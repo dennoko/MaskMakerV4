@@ -91,6 +91,11 @@ graph LR
 | UV チャンネル (`UVChannel`) | △ | Target | B | 対象（UV 複数時のみ） | UV0、Target ごとに記憶 |
 | サブメッシュ (`TargetSubmesh`) | △ | Target | B | 対象（複数時のみ） | マテリアルスロット名で表示、Target ごとに記憶 |
 | ベース重ね / 不透明度 | ○ | Target | B | UV プレビュー内 | 重ねは既定 OFF |
+| UV展開図出力 (`ExportUVLayout`) | ○ | Output | B | UV プレビュー右上 `[SaveAs]` | クリックで設定ポップアップ展開 |
+| UV展開図の解像度 (`UVLayoutSize`) | ○ | Output（Targetで記憶） | B | UV 出力ポップアップ | 既定 2048 |
+| UV展開図の描画要素（ワイヤー/シーム/選択限定/色分け） | ○ | Target | B | UV 出力ポップアップ | ワイヤー・シームは既定 ON、選択限定・色分けは既定 OFF |
+| UV展開図の背景（透過 / ベーステクスチャ） | ○ | Target | B | UV 出力ポップアップ | 既定「透過」 |
+| UV展開図の線色（白 / 黒 / シアン） | ○ | Target / User | B | UV 出力ポップアップ | 既定「白」 |
 | 反転 (`InvertMask`) | △ | Output（実態は使うシェーダーの規約で Project 共通） | C | 出力 ▸詳細 | Project 既定 |
 | 余白 (`PixelMargin`) | ▲ | Project（解像度依存） | C | 出力 ▸詳細 | 解像度に応じた推奨値 |
 | 反転も同時保存 (`SaveInvertedToo`) | ▲ | Project / User の習慣 | C | 出力 ▸詳細 | Project 既定 |
@@ -213,6 +218,7 @@ graph LR
 | マテリアルに適用 | `d_Material Icon` | 候補 |
 | 保存先 | `d_Folder Icon` | 候補 |
 | ベーステクスチャ重ね | `d_Texture Icon` | 候補 |
+| UV展開図出力 | `d_Camera`（無ければ `d_RawImage Icon`） | 候補 |
 | 既存マスク取り込み（ドロップ受付） | `d_Import` | 候補 |
 | 対象 | `d_SkinnedMeshRenderer Icon` / `d_MeshRenderer Icon` | 候補 |
 | 設定 | `d_SettingsIcon`（無ければ `d__Popup`） | 候補 |
@@ -299,7 +305,7 @@ VisualElement.dennoko-root
 │ ┌────────────────────────────────────┐ │  UV ビュー（見出しなし）
 │ │                                    │ │
 │ │          2D UV（クリック/塗り可）    │ │
-│ │                          [Texture] │ │  ← ベース重ね。ON で右下に不透明度スライダー
+│ │                  [Texture] [Camera]│ │  ← ベース重ね、UV展開図出力（ポップアップ展開）
 │ │                                    │ │  ← テクスチャのドロップで既存マスク取り込み
 │ └────────────────────────────────────┘ │
 │ ┌ 出力 ──────────────────────────────┐ │
@@ -323,7 +329,7 @@ VisualElement.dennoko-root
 | カード | ランク | 内容（MaskSettings） | UX 判断 |
 | :--- | :--- | :--- | :--- |
 | **対象** | B | 対象 Renderer、`TargetSubmesh`、`UVChannel`、終了ボタン | Idle ではここに大きなドロップ欄（親を選択中は子 Renderer の一覧、§3）。Hierarchy で Renderer を選択中なら自動入力。Working では対象名がドロップダウンになり、同じアバター配下の Renderer へ切り替えられる（現在の作業は自動保存、切替先の前回作業を復元）。**サブメッシュ・UV は複数ある時だけ表示**。選んだ値は対象（Target）ごとに記憶し、次回は選び直し不要。サブメッシュはマテリアルスロット名で表示 |
-| **UV プレビュー** | B | ラベルマップ 2D ピッキング、ペイント兼用、`PreviewOverlayBaseTex`、`PreviewOverlayAlpha`、既存マスク取り込み | シーンと**同じツール・同じモード**でそのまま操作可能。ホバーで該当グループをハイライト。ホイールでズーム、中ボタンでパン。重ねトグル ON の時だけ不透明度スライダーを表示。テクスチャをドロップすると既存マスクとして取り込む（黒い部分を手塗りに加算、Undo 可）。受付の枠と `取り込む` はドラッグ中だけ出す |
+| **UV プレビュー** | B | ラベルマップ 2D ピッキング、ペイント兼用、`PreviewOverlayBaseTex`、`PreviewOverlayAlpha`、既存マスク取り込み、**UV 展開図出力** | シーンと**同じツール・同じモード**でそのまま操作可能。ホバーで該当グループをハイライト。ホイールでズーム、中ボタンでパン。重ねトグル ON の時だけ不透明度スライダーを表示。テクスチャをドロップすると既存マスクとして取り込む（黒い部分を手塗りに加算、Undo 可）。受付の枠と `取り込む` はドラッグ中だけ出す。<br>**UV 展開図の出力 (`[Camera]` ボタン)**: クリックで直下にミニポップアップを展開。解像度（512〜4096、既定 2048）、描画要素（☑ ポリゴン線、☑ シーム線、☐ 選択限定、☐ 色分け）、背景（透過/ベース）、線色（白/黒/シアン）を指定し、`[書き出し]` で `{FileName}_uv.png` を保存。設定は Target/User で自動保存 |
 | **出力（基本）** | B | `FileName`、`TextureSize`、`ChannelWriteEnabled` と R/G/B/A・Base PNG | テクスチャごとに決める項目だけを常時表示。ファイル名は `{Renderer名}_mask` を自動入力。解像度はベーステクスチャのサイズを自動採用（無ければ Project 既定）。チャンネル書き込みは OFF なら R/G/B/A と Base PNG を隠し、ON でインデント展開。Base PNG はマテリアルから候補を自動提示。値は対象ごとに記憶 |
 | **出力（▸詳細）** | C | `InvertMask`、`PixelMargin`、`SaveInvertedToo` | 既定で閉。Project 既定の値を使うので毎回は触らない。`SaveInvertedToo` は ON で実ファイル名（`name.png` / `name_inv.png`）を灰色でプレビュー。`PixelMargin` は解像度に応じた推奨値を既定にする |
 | **出力サマリ行**（フッター上） | C | 保存先と ▸詳細の値の要約 | 例: `[Folder] Textures  余白2`。カード上に見えている値（ファイル名・解像度）は重複させない。反転・反転同時保存は ON の時だけチップを出す。文章にせず値のチップだけを並べる。チップをクリックすると該当の詳細を開き、保存先チップは Project Settings を開く。値が Project 既定と違う項目には上書きマーク ● を付け、クリックで既定に戻す |
@@ -476,6 +482,8 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | `AutoApplyMaterial`（新設）/ 適用先スロット（新設、Target で記憶） | A | — | トースト内ボタン | — |
 | 対象の切替（操作） | B | 対象名のドロップダウン | — | — |
 | 既存マスクの取り込み（操作） | B | UV ビューへのドロップ | — | — |
+| `ExportUVLayout`（UV展開図出力） | B | UV プレビュー右上 `[Camera]` ボタン（ポップアップ展開） | — | — |
+| `UVLayoutSize` / 要素 / 背景 / 線色 | B | UV 展開図ポップアップ | — | — |
 | `OverlayOnTop`（X-Ray） | A | — | カプセル | — |
 | `IsolateTargetMesh` | A | — | カプセル | — |
 | `FileName` | B | 出力（基本） | — | — |
@@ -511,6 +519,7 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | フローティングカプセル | `.dennoko-toolbar` + `.dennoko-card` (角丸カプセル型) |
 | カーソル直下ラジアルメニュー | `.dennoko-root .mm-radial-menu` (Surface1 + Outline、扇形スライス群) |
 | 出力完了トースト | `.dennoko-root .mm-toast` (Surface2 + Outline + 影、カーソル近傍出現) |
+| UV 展開図出力ポップアップ | `.dennoko-root .mm-uv-export-popup` (Surface1 + Outline、角丸6px、UVカード直下展開) |
 | 主ボタン（作業開始/出力。画面ごとに 1 つ） | `.dennoko-button-primary` |
 | 副ボタン（終了など） | `.dennoko-button-secondary` |
 | モード/ツール/粒度/対称の単一選択群 | ボタン群 + 選択中に `.dennoko-button-active`（青枠 `#64b5f6`） |
@@ -598,6 +607,13 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
 
 ---
 
+### 比較⑥: 外部ペイント用の UV 展開図出力（クリスタ/Photoshop 用下絵）
+
+- **従来**: Unity から FBX を探す → Blender 等を起動 → メッシュを開く → UV エクスポート実行 → 保存（数分、ソフト間往復）
+- **改善後**: UV プレビューカードの **`[Camera]` ボタン ➔ `[書き出し]`**（1 クリック、数秒で `{FileName}_uv.png` が完成）
+
+---
+
 ## 11. 実装メモ
 
 - **ラジアルメニュー (Pie Menu)**:
@@ -607,6 +623,10 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
   - `UVAnalyzer` 解析時に、各アイランドのバウンディングボックス中心座標 $X$ の符号反転位置にあるアイランドをペア（`MirrorPair`）として事前キャッシュ。
 - **マテリアル自動適用**:
   - ターゲットRendererの `sharedMaterials` を走査し、主要シェーダー（lilToon, Poiyomi, UTS2, Standard等）のプロパティ名リスト（`_MaskTex`, `_DecalMask`, `_MainTex` 等）を照合して即時割り当て＋Undo登録。
+- **UV 展開図ラスタライザ (UV Layout Exporter)**:
+  - 指定解像度（既定 2048）の `Texture2D`（RGBA32）に、CPU または `Graphics.DrawProcedural` / `GL.LINES` で UV 座標の三角形エッジ・シームエッジを描画。
+  - 色分け ON 時は、各アイランドの三角形をハッシュ由来のパステルカラーで充填ラスタライズした上にエッジを描画。
+  - 背景は透過（Alpha=0）またはベーステクスチャの `Graphics.Blit`。PNG 圧縮して `{FileName}_uv.png` に保存。
 - **入力競合保護**:
   - `HandleUtility.AddDefaultControl` を適切に使用する。右ボタンドラッグは Ctrl 押下中だけ本ツールが消費し（ブラシ伸縮）、それ以外の右ドラッグ（フライスルー）・Alt・中ボタンは Unity 標準カメラ操作を 100% 優先する。
 - **作業ツール**:
@@ -644,4 +664,5 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
 | `mask_processing.md` §3 | マテリアル適用を履歴の 1 件として扱う。作業状態のディスク保存・復元を追加 | §6.2, §11 |
 | `export.md` §3.2 | 同じ対象からの再出力は前回のパスへ上書き。連番はそれ以外と衝突した時だけ | §4.4 |
 | `export.md` | マテリアル適用（適用先スロットの候補提示と Target ごとの記憶）を追加 | §6.2 |
-| `work_context_and_rendering.md` §4 | `AddMode` と `ModeToggleHotkey` を削除し、`SymmetryEnabled`・`AutoApplyMaterial`・`BlackThreshold` を追加。各項目に User / Project / Target / Session の層を明記 | §2.5.4 |
+| `export.md` (新設 §4) | **UV 展開図（ワイヤーフレーム）エクスポート仕様**（解像度、要素、背景、線色、`{FileName}_uv.png` 出力）を追加 | §2.5.3, §4.3 |
+| `work_context_and_rendering.md` §4 | `AddMode` と `ModeToggleHotkey` を削除し、`SymmetryEnabled`・`AutoApplyMaterial`・`BlackThreshold`・`UVLayout*` 設定を追加。各項目に User / Project / Target / Session の層を明記 | §2.5.4 |

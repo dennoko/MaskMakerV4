@@ -96,3 +96,42 @@ private static bool AssetExists(string path)
 ```
 
 この処理により、例えば `uv_mask.png` と `uv_mask_inv.png` が常に同じサフィックス番号のペアとして安全に出力されます。
+
+---
+
+## 4. UV展開図エクスポート仕様 (UV Layout Export)
+
+外部ペイントソフト（CLIP STUDIO PAINT, Photoshop, Substance 3D 等）でテクスチャを描く際の下絵・ガイド用として、メッシュのUVワイヤーフレーム画像をPNG出力する機能です。
+
+### 4.1 パラメータ仕様
+
+| パラメータ | 型 / 選択肢 | 既定値 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `UVLayoutSize` | `int` (512, 1024, 2048, 4096) | 2048 | 出力解像度（マスク解像度とは独立） |
+| `DrawWireframe` | `bool` | `true` | 全三角形（ポリゴン）のエッジ線を描画 |
+| `DrawSeams` | `bool` | `true` | UVアイランドの外形境界線を強調色（赤系）で太線描画 |
+| `SelectionOnly` | `bool` | `false` | 現在選択されているアイランド・パーツのみを描画 |
+| `ColorFillIslands` | `bool` | `false` | 各UVアイランドを半透明の識別カラーで塗り分け（パーツ判別用） |
+| `BackgroundMode` | `enum` (Transparent, BaseTexture) | `Transparent` | 透過背景、またはモデルのベーステクスチャ重ね |
+| `LineColor` | `enum` (White, Black, Cyan) | `White` | ワイヤーフレーム線の色（白: `#FFFFFF`, 黒: `#000000`, シアン: `#00E5FF`） |
+
+### 4.2 レンダリングパイプライン
+
+1. **バッファ初期化**:
+   - `BackgroundMode == Transparent`: 全ピクセル完全透明 `(0, 0, 0, 0)` の `Texture2D`（RGBA32）を用意。
+   - `BackgroundMode == BaseTexture`: モデルのベーステクスチャを解像度 $W \times H$ へ `Graphics.Blit` で取り込み。
+2. **アイランド色分け充填 (ColorFillIslands == true)**:
+   - 各アイランドごとに、インデックスのハッシュ値から生成したパステルカラー（Alpha: 0.35）を算出。
+   - アイランド内の三角形をスキャンライン/Edge関数でラスタライズ充填。
+3. **ワイヤーフレーム描画 (DrawWireframe == true)**:
+   - 対象三角形の各UV辺（$(u_0, v_0) \to (u_1, v_1) \to (u_2, v_2) \to (u_0, v_0)$）をピクセル座標にマッピング。
+   - Bresenhamアルゴリズムで `LineColor` のピクセルを描画（線幅 1px）。
+4. **シーム境界線描画 (DrawSeams == true)**:
+   - `UVAnalysis.SeamEdges2D` の各エッジを描画（線幅 2px、`SeamColor` 赤系 `#FF3333`）。
+5. **ファイル出力とインポート設定**:
+   - パス: `{folder}/{FileName}_uv.png`（競合時は連番で解決）。
+   - PNGバイト配列を書き出し後、テクスチャインポーターを設定：
+     - `sRGBTexture = true`（カラー画像として表示するためsRGB有効）
+     - `textureCompression = TextureImporterCompression.Uncompressed`
+     - `alphaIsTransparency = true`
+

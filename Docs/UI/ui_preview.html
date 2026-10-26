@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>UV Mask Maker V4 - UI & Workflow Prototype</title>
+  <style>
+    :root {
+      --dennoko-surface-0: #121212;
+      --dennoko-surface-1: #1e1e1e;
+      --dennoko-surface-2: #2c2c2c;
+      --dennoko-outline: #484848;
+      --dennoko-text-primary: #ffffff;
+      --dennoko-text-secondary: #cccccc;
+      --dennoko-text-tertiary: #aaaaaa;
+      --dennoko-text-disabled: #555555;
+      --dennoko-semantic-info: #64b5f6;
+      --dennoko-semantic-success: #4caf50;
+      --dennoko-semantic-warning: #ffb74d;
+      --dennoko-semantic-error: #9b1b30;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--dennoko-surface-0);
+      color: var(--dennoko-text-secondary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Meiryo", Roboto, sans-serif;
+      font-size: 12px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top guide bar */
+    #prototype-guide {
+      background: #0d0d0d;
+      border-bottom: 1px solid var(--dennoko-outline);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--dennoko-text-tertiary);
+    }
+    #prototype-guide kbd {
+      background: var(--dennoko-surface-2);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 3px;
+      padding: 1px 4px;
+      color: var(--dennoko-text-primary);
+    }
+
+    /* Main Container (Unity Editor Layout) */
+    #unity-workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Left: SceneView */
+    #scene-view-pane {
+      flex: 1;
+      position: relative;
+      background: #181818;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .pane-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: #1e1e1e;
+      border-bottom: 1px solid var(--dennoko-outline);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      color: var(--dennoko-text-tertiary);
+      z-index: 10;
+    }
+
+    /* Start Badge (Idle state) */
+    #start-badge {
+      position: absolute;
+      top: 34px;
+      right: 16px;
+      background: var(--dennoko-surface-2);
+      border: 1px solid var(--dennoko-outline);
+      color: var(--dennoko-text-primary);
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 20;
+    }
+    #start-badge:hover {
+      border-color: var(--dennoko-semantic-info);
+      background: #383838;
+    }
+
+    /* Floating Capsule Toolbar (Working state) */
+    #floating-capsule {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 34px;
+      background: var(--dennoko-surface-1);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 17px;
+      display: none;
+      align-items: center;
+      padding: 0 8px;
+      gap: 6px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      z-index: 30;
+    }
+
+    .capsule-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .capsule-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--dennoko-outline);
+      margin: 0 4px;
+    }
+
+    .btn-capsule {
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--dennoko-text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+    }
+    .btn-capsule:hover {
+      background: var(--dennoko-surface-2);
+      color: var(--dennoko-text-primary);
+    }
+    .btn-capsule.active {
+      border-color: var(--dennoko-semantic-info);
+      color: var(--dennoko-text-primary);
+      background: rgba(100, 181, 246, 0.12);
+    }
+
+    #capsule-count {
+      font-size: 11px;
+      color: var(--dennoko-text-tertiary);
+      padding: 0 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Toast Notification */
+    #scene-toast {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dennoko-surface-2);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+      z-index: 40;
+    }
+    .btn-toast-action {
+      background: var(--dennoko-surface-1);
+      border: 1px solid var(--dennoko-outline);
+      color: var(--dennoko-text-primary);
+      border-radius: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .btn-toast-action:hover {
+      border-color: var(--dennoko-semantic-info);
+    }
+
+    /* Radial Menu (Pie Menu) */
+    #radial-menu {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(30, 30, 30, 0.95);
+      border: 1px solid var(--dennoko-outline);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+      display: none;
+      z-index: 100;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+    .radial-slice {
+      position: absolute;
+      font-size: 11px;
+      color: var(--dennoko-text-secondary);
+      text-align: center;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.1s;
+    }
+    .radial-slice.highlight {
+      color: var(--dennoko-text-primary);
+      border: 1px solid var(--dennoko-semantic-info);
+      background: rgba(100, 181, 246, 0.2);
+    }
+    #radial-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--dennoko-text-primary);
+      text-align: center;
+    }
+
+    /* Interactive Mesh Canvas Mock */
+    #mesh-container {
+      width: 440px;
+      height: 480px;
+      position: relative;
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .mesh-part {
+      border: 2px solid #555;
+      background: rgba(50, 50, 50, 0.4);
+      border-radius: 6px;
+      position: absolute;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 11px;
+    }
+    .mesh-part:hover {
+      border-color: #ffffff !important;
+    }
+    .mesh-part.selected {
+      border-color: #00e5ff;
+      background: rgba(0, 229, 255, 0.25);
+      color: #ffffff;
+      box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.4);
+    }
+    .mesh-part.will-remove:hover {
+      border-color: #ff5252 !important;
+    }
+
+    /* Right: EditorWindow (Tool Tab) */
+    #editor-window-pane {
+      width: 320px;
+      background: var(--dennoko-surface-0);
+      border-left: 1px solid var(--dennoko-outline);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dennoko Window Components */
+    .dennoko-header {
+      height: 38px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--dennoko-outline);
+      background: var(--dennoko-surface-0);
+    }
+    .dennoko-title {
+      font-weight: 600;
+      color: var(--dennoko-text-primary);
+      font-size: 13px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--dennoko-text-tertiary);
+      font-size: 11px;
+    }
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--dennoko-text-tertiary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 3px;
+    }
+    .btn-icon:hover {
+      color: var(--dennoko-text-primary);
+      background: var(--dennoko-surface-2);
+    }
+
+    .dennoko-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dennoko-card {
+      background: var(--dennoko-surface-1);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dennoko-card-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--dennoko-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .field-input {
+      flex: 1;
+      background: var(--dennoko-surface-0);
+      border: 1px solid var(--dennoko-outline);
+      color: var(--dennoko-text-primary);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* Segmented buttons */
+    .segmented-group {
+      display: flex;
+      background: var(--dennoko-surface-0);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .segmented-btn {
+      flex: 1;
+      padding: 4px 6px;
+      background: transparent;
+      border: none;
+      color: var(--dennoko-text-secondary);
+      font-size: 10px;
+      cursor: pointer;
+      text-align: center;
+      border-right: 1px solid var(--dennoko-outline);
+    }
+    .segmented-btn:last-child {
+      border-right: none;
+    }
+    .segmented-btn.active {
+      border: 1px solid var(--dennoko-semantic-info);
+      background: rgba(100, 181, 246, 0.15);
+      color: var(--dennoko-text-primary);
+      font-weight: bold;
+    }
+
+    /* 2D UV View Mock */
+    #uv-view-box {
+      height: 140px;
+      background: #111;
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: 
+        radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+    .uv-overlay-tag {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      font-size: 9px;
+      background: rgba(0,0,0,0.6);
+      padding: 2px 4px;
+      border-radius: 3px;
+      color: var(--dennoko-text-tertiary);
+    }
+
+    /* Summary Bar */
+    .mm-summary {
+      font-size: 10px;
+      color: var(--dennoko-text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 4px;
+    }
+    .summary-chip {
+      background: var(--dennoko-surface-2);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: var(--dennoko-text-secondary);
+    }
+
+    /* Footer & Main button */
+    .dennoko-footer {
+      padding: 10px;
+      background: var(--dennoko-surface-1);
+      border-top: 1px solid var(--dennoko-outline);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .dennoko-button-primary {
+      height: 34px;
+      background: var(--dennoko-surface-2);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 6px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .dennoko-button-primary:hover {
+      border-color: var(--dennoko-semantic-info);
+      background: #383838;
+    }
+    .dennoko-button-secondary {
+      height: 24px;
+      background: var(--dennoko-surface-0);
+      border: 1px solid var(--dennoko-outline);
+      border-radius: 4px;
+      color: var(--dennoko-text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 8px;
+    }
+    .dennoko-button-secondary:hover {
+      color: var(--dennoko-text-primary);
+    }
+
+    .dennoko-status {
+      font-size: 10px;
+      color: var(--dennoko-text-tertiary);
+      min-height: 14px;
+      padding-left: 2px;
+    }
+    .dennoko-status.success {
+      color: var(--dennoko-semantic-success);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Prototype Guide -->
+  <div id="prototype-guide">
+    <div><strong>UV Mask Maker V4</strong> 動作フロー・レイアウト検証プロトタイプ</div>
+    <div>
+      ショートカット操作: 
+      <kbd>C 長押し</kbd> ラジアルメニュー | 
+      <kbd>X</kbd> 左右対称切替 | 
+      <kbd>Tab</kbd> 選択⇄ペイント | 
+      <kbd>Ctrl + Enter</kbd> クイック出力
+    </div>
+  </div>
+
+  <div id="unity-workspace">
+    <!-- Left: SceneView -->
+    <div id="scene-view-pane">
+      <div class="pane-header">Scene View (3D In-Place Editing)</div>
+
+      <!-- Start Badge (Idle state) -->
+      <div id="start-badge" onclick="startWorking()">
+        <span>▶ Mask Maker で編集</span>
+      </div>
+
+      <!-- Mock 3D Model Mesh -->
+      <div id="mesh-container">
+        <div style="position: absolute; top: 12px; font-size: 11px; color: var(--dennoko-text-tertiary);">
+          アバターモデル: Body (クリックでトグル選択、ダブルクリックでパーツ全選択)
+        </div>
+
+        <!-- Left/Right symmetrical mesh islands mock -->
+        <!-- Torso -->
+        <div class="mesh-part" id="part-torso" style="width: 100px; height: 130px; top: 60px;" onclick="handlePartClick(event, 'torso')" ondblclick="handlePartDblClick('torso')">
+          胴体 (Torso)
+        </div>
+        <!-- Right Arm & Left Arm (X-Symmetry pairs) -->
+        <div class="mesh-part" id="part-arm-r" style="width: 48px; height: 110px; top: 70px; left: 100px;" onclick="handlePartClick(event, 'arm_r')" ondblclick="handlePartDblClick('arm_r')">
+          右腕 (R)
+        </div>
+        <div class="mesh-part" id="part-arm-l" style="width: 48px; height: 110px; top: 70px; right: 100px;" onclick="handlePartClick(event, 'arm_l')" ondblclick="handlePartDblClick('arm_l')">
+          左腕 (L)
+        </div>
+        <!-- Right Leg & Left Leg -->
+        <div class="mesh-part" id="part-leg-r" style="width: 52px; height: 170px; top: 210px; left: 155px;" onclick="handlePartClick(event, 'leg_r')" ondblclick="handlePartDblClick('leg_r')">
+          右足 (R)
+        </div>
+        <div class="mesh-part" id="part-leg-l" style="width: 52px; height: 170px; top: 210px; right: 155px;" onclick="handlePartClick(event, 'leg_l')" ondblclick="handlePartDblClick('leg_l')">
+          左足 (L)
+        </div>
+      </div>
+
+      <!-- Floating Capsule Toolbar (Working state) -->
+      <div id="floating-capsule">
+        <!-- Mode Switch -->
+        <div class="capsule-group">
+          <button class="btn-capsule active" id="btn-mode-select" onclick="setMode(false)">選択</button>
+          <button class="btn-capsule" id="btn-mode-paint" onclick="setMode(true)">ペイント</button>
+        </div>
+        <div class="capsule-divider"></div>
+
+        <!-- Selection / Paint Sub-tools segment -->
+        <div class="capsule-group" id="capsule-subtools">
+          <!-- Dynamically swapped -->
+          <button class="btn-capsule active" onclick="setGranularity(0)">島</button>
+          <button class="btn-capsule" onclick="setGranularity(1)">パーツ</button>
+          <button class="btn-capsule" onclick="setGranularity(2)">面</button>
+        </div>
+        <div class="capsule-divider"></div>
+
+        <!-- X-Mirror Symmetry toggle -->
+        <button class="btn-capsule" id="btn-symmetry" onclick="toggleSymmetry()">対称 (X)</button>
+        <div class="capsule-divider"></div>
+
+        <!-- Utility buttons -->
+        <div class="capsule-group">
+          <button class="btn-capsule" onclick="doUndo()" title="Undo (Ctrl+Z)">↶</button>
+          <button class="btn-capsule" onclick="doClear()" title="Clear">✕</button>
+        </div>
+        <div class="capsule-divider"></div>
+
+        <!-- Quick Save button -->
+        <button class="btn-capsule" id="btn-capsule-save" onclick="doExport()" style="font-weight:bold; color:var(--dennoko-semantic-info);">
+          出力
+        </button>
+
+        <span id="capsule-count">0/5</span>
+      </div>
+
+      <!-- Toast Notification (Smart Apply) -->
+      <div id="scene-toast">
+        <span id="toast-text">✔ Body_mask.png を出力しました</span>
+        <button class="btn-toast-action" onclick="applyMaterial()">マテリアルに適用</button>
+      </div>
+
+      <!-- Radial Menu (Pie Menu) -->
+      <div id="radial-menu">
+        <div id="radial-center-text">選択</div>
+        <div class="radial-slice" id="rad-top" style="top: 8px; left: 50%; transform: translateX(-50%);">↑ ペイントへ</div>
+        <div class="radial-slice" id="rad-right" style="top: 50%; right: 8px; transform: translateY(-50%);">→ 島</div>
+        <div class="radial-slice" id="rad-bottom" style="bottom: 8px; left: 50%; transform: translateX(-50%);">↓ 面</div>
+        <div class="radial-slice" id="rad-left" style="top: 50%; left: 8px; transform: translateY(-50%);">← 反転</div>
+        <div class="radial-slice" id="rad-tr" style="top: 24px; right: 24px;">↗ 対称</div>
+        <div class="radial-slice" id="rad-tl" style="top: 24px; left: 24px;">↖ クリア</div>
+      </div>
+    </div>
+
+    <!-- Right: Tool Tab (EditorWindow) -->
+    <div id="editor-window-pane">
+      <div class="dennoko-header">
+        <span class="dennoko-title">UV Mask Maker</span>
+        <div class="header-actions">
+          <span>v4.0.0</span>
+          <button class="btn-icon" title="リロード">↻</button>
+          <button class="btn-icon" title="設定">⚙</button>
+        </div>
+      </div>
+
+      <div class="dennoko-scroll">
+        <!-- Target Card -->
+        <div class="dennoko-card">
+          <div class="field-row">
+            <span style="font-weight: bold; color: var(--dennoko-text-primary);">[SMR] Body</span>
+            <button class="dennoko-button-secondary" id="btn-finish" onclick="finishWorking()" style="display:none;">終了</button>
+          </div>
+          <div class="field-row" id="target-submesh-row" style="display:none;">
+            <select class="field-input">
+              <option>Body_skin (Material)</option>
+              <option>Costume_cloth</option>
+            </select>
+            <select class="field-input" style="max-width: 65px;">
+              <option>UV0</option>
+              <option>UV1</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Working only: UV View Card -->
+        <div class="dennoko-card" id="card-uv-view" style="display:none; position: relative;">
+          <div class="dennoko-card-title">
+            <span>2D UV プレビュー</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 10px; cursor: pointer; color: var(--dennoko-semantic-info);">[Texture]</span>
+              <button class="btn-icon" style="color: var(--dennoko-text-primary);" onclick="toggleUVExportPopup()" title="UV展開図を出力">📷 UV出力</button>
+            </div>
+          </div>
+          <div id="uv-view-box">
+            <span style="color: rgba(255,255,255,0.3); font-size: 11px;">UV展開図 & ペイント</span>
+            <div class="uv-overlay-tag">Textureをドロップで取込</div>
+          </div>
+
+          <!-- UV Export Popup -->
+          <div id="uv-export-popup" style="display:none; position: absolute; top: 32px; right: 10px; width: 230px; background: var(--dennoko-surface-2); border: 1px solid var(--dennoko-outline); border-radius: 6px; padding: 10px; box-shadow: 0 6px 16px rgba(0,0,0,0.7); z-index: 50; flex-direction: column; gap: 8px;">
+            <div style="font-size: 11px; font-weight: bold; color: var(--dennoko-text-primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+              UV展開図を出力
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>解像度:</span>
+                <div class="segmented-group">
+                  <button class="segmented-btn">1024</button>
+                  <button class="segmented-btn active">2048</button>
+                  <button class="segmented-btn">4096</button>
+                </div>
+              </div>
+              <label><input type="checkbox" checked> 全ポリゴン線</label>
+              <label><input type="checkbox" checked> シーム境界線強調</label>
+              <label><input type="checkbox"> 選択部分のみ限定</label>
+              <label><input type="checkbox"> アイランド色分け</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                <span>背景:</span>
+                <div class="segmented-group">
+                  <button class="segmented-btn active">透過</button>
+                  <button class="segmented-btn">ベース</button>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>線色:</span>
+                <div class="segmented-group">
+                  <button class="segmented-btn active">白</button>
+                  <button class="segmented-btn">黒</button>
+                  <button class="segmented-btn">シアン</button>
+                </div>
+              </div>
+            </div>
+            <button class="dennoko-button-primary" style="height: 26px; font-size: 11px; margin-top: 4px;" onclick="doExportUVLayout()">
+              PNGを書き出し
+            </button>
+          </div>
+        </div>
+
+        <!-- Working only: Output Card -->
+        <div class="dennoko-card" id="card-output" style="display:none;">
+          <div class="dennoko-card-title">出力</div>
+          <div class="field-row">
+            <input class="field-input" id="input-filename" value="Body_mask">
+            <span style="color: var(--dennoko-text-tertiary);">.png</span>
+          </div>
+          <div class="field-row">
+            <div class="segmented-group" style="width: 100%;">
+              <button class="segmented-btn">512</button>
+              <button class="segmented-btn">1024</button>
+              <button class="segmented-btn active">2048</button>
+              <button class="segmented-btn">4096</button>
+            </div>
+          </div>
+          <div class="field-row" style="font-size: 11px; margin-top: 4px;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <input type="checkbox" id="chk-channel"> チャンネル書き込み
+            </label>
+          </div>
+          <div id="channel-details" style="display: none; padding-left: 12px; gap: 4px; flex-direction: column;">
+            <div class="field-row">
+              <span style="color: var(--dennoko-text-tertiary);">チャンネル:</span>
+              <label><input type="checkbox" checked> R</label>
+              <label><input type="checkbox"> G</label>
+              <label><input type="checkbox"> B</label>
+              <label><input type="checkbox"> A</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer & Summary Bar -->
+      <div class="dennoko-footer">
+        <div class="mm-summary" id="footer-summary" style="display:none;">
+          <span class="summary-chip">📁 Textures/</span>
+          <span class="summary-chip">余白 2px ●</span>
+        </div>
+        <button class="dennoko-button-primary" id="btn-main-action" onclick="onMainActionClick()">
+          作業開始
+        </button>
+        <div class="dennoko-status" id="tab-status">Ready</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    const state = {
+      isWorking: false,
+      isPaintMode: false,
+      granularity: 0, // 0: Island, 1: Parts, 2: Polygon
+      symmetry: false,
+      selectedParts: new Set(),
+      history: []
+    };
+
+    // Pairs for X-Mirror symmetry
+    const symmetryPairs = {
+      'arm_r': 'arm_l',
+      'arm_l': 'arm_r',
+      'leg_r': 'leg_l',
+      'leg_l': 'leg_r'
+    };
+
+    function startWorking() {
+      state.isWorking = true;
+      document.getElementById('start-badge').style.display = 'none';
+      document.getElementById('floating-capsule').style.display = 'flex';
+      document.getElementById('btn-finish').style.display = 'block';
+      document.getElementById('target-submesh-row').style.display = 'flex';
+      document.getElementById('card-uv-view').style.display = 'flex';
+      document.getElementById('card-output').style.display = 'flex';
+      document.getElementById('footer-summary').style.display = 'flex';
+      document.getElementById('btn-main-action').innerText = '出 力 (Ctrl+Enter)';
+      document.getElementById('mesh-container').style.borderColor = 'rgba(100, 181, 246, 0.4)';
+      showStatus('作業中: メッシュ孤立表示・NDMF適用中');
+    }
+
+    function finishWorking() {
+      state.isWorking = false;
+      document.getElementById('start-badge').style.display = 'flex';
+      document.getElementById('floating-capsule').style.display = 'none';
+      document.getElementById('btn-finish').style.display = 'none';
+      document.getElementById('target-submesh-row').style.display = 'none';
+      document.getElementById('card-uv-view').style.display = 'none';
+      document.getElementById('card-output').style.display = 'none';
+      document.getElementById('footer-summary').style.display = 'none';
+      document.getElementById('btn-main-action').innerText = '作業開始';
+      document.getElementById('mesh-container').style.borderColor = 'rgba(255,255,255,0.08)';
+      showStatus('自動保存完了: 終了しました');
+    }
+
+    function onMainActionClick() {
+      if (!state.isWorking) {
+        startWorking();
+      } else {
+        doExport();
+      }
+    }
+
+    // Mesh part interaction (Smart Toggle)
+    function handlePartClick(e, partId) {
+      if (!state.isWorking) return;
+      saveHistory();
+
+      const targets = [partId];
+      if (state.symmetry && symmetryPairs[partId]) {
+        targets.push(symmetryPairs[partId]);
+      }
+
+      const isAlreadySelected = state.selectedParts.has(partId);
+      targets.forEach(id => {
+        if (isAlreadySelected) {
+          state.selectedParts.delete(id);
+          document.getElementById('part-' + id.replace('_', '-')).classList.remove('selected');
+        } else {
+          state.selectedParts.add(id);
+          document.getElementById('part-' + id.replace('_', '-')).classList.add('selected');
+        }
+      });
+      updateCount();
+    }
+
+    // Double-click to select whole connected part
+    function handlePartDblClick(partId) {
+      if (!state.isWorking) return;
+      saveHistory();
+      const allParts = ['torso', 'arm_r', 'arm_l', 'leg_r', 'leg_l'];
+      allParts.forEach(id => {
+        state.selectedParts.add(id);
+        document.getElementById('part-' + id.replace('_', '-')).classList.add('selected');
+      });
+      updateCount();
+      showToast('パーツ全体を一括選択しました');
+    }
+
+    function toggleSymmetry() {
+      state.symmetry = !state.symmetry;
+      const btn = document.getElementById('btn-symmetry');
+      btn.classList.toggle('active', state.symmetry);
+      showStatus(state.symmetry ? '左右対称 (X-Mirror): ON' : '左右対称: OFF');
+    }
+
+    function setMode(isPaint) {
+      state.isPaintMode = isPaint;
+      document.getElementById('btn-mode-select').classList.toggle('active', !isPaint);
+      document.getElementById('btn-mode-paint').classList.toggle('active', isPaint);
+
+      const subtools = document.getElementById('capsule-subtools');
+      if (isPaint) {
+        subtools.innerHTML = `
+          <button class="btn-capsule active">ブラシ 50px</button>
+          <button class="btn-capsule">矩形</button>
+          <button class="btn-capsule">投げ縄</button>
+          <button class="btn-capsule">消しゴム</button>
+        `;
+      } else {
+        subtools.innerHTML = `
+          <button class="btn-capsule active" onclick="setGranularity(0)">島</button>
+          <button class="btn-capsule" onclick="setGranularity(1)">パーツ</button>
+          <button class="btn-capsule" onclick="setGranularity(2)">面</button>
+        `;
+      }
+    }
+
+    function setGranularity(g) {
+      state.granularity = g;
+      const labels = ['島', 'パーツ', '面'];
+      showStatus(`選択の単位: ${labels[g]}`);
+    }
+
+    function updateCount() {
+      document.getElementById('capsule-count').innerText = `${state.selectedParts.size}/5`;
+    }
+
+    function saveHistory() {
+      state.history.push(new Set(state.selectedParts));
+      if (state.history.length > 20) state.history.shift();
+    }
+
+    function doUndo() {
+      if (state.history.length > 0) {
+        state.selectedParts = state.history.pop();
+        ['torso', 'arm_r', 'arm_l', 'leg_r', 'leg_l'].forEach(id => {
+          const el = document.getElementById('part-' + id.replace('_', '-'));
+          el.classList.toggle('selected', state.selectedParts.has(id));
+        });
+        updateCount();
+        showStatus('元に戻しました (Undo)');
+      }
+    }
+
+    function doClear() {
+      if (state.selectedParts.size === 0) return;
+      saveHistory();
+      state.selectedParts.clear();
+      ['torso', 'arm_r', 'arm_l', 'leg_r', 'leg_l'].forEach(id => {
+        document.getElementById('part-' + id.replace('_', '-')).classList.remove('selected');
+      });
+      updateCount();
+      showToast('クリアしました — 元に戻す(Ctrl+Z)');
+    }
+
+    function doExport() {
+      const filename = document.getElementById('input-filename').value + '.png';
+      showToast(`✔ ${filename} を出力しました`);
+      showStatus(`保存: ${filename}`, true);
+    }
+
+    function toggleUVExportPopup() {
+      const popup = document.getElementById('uv-export-popup');
+      popup.style.display = (popup.style.display === 'none' || !popup.style.display) ? 'flex' : 'none';
+    }
+
+    function doExportUVLayout() {
+      toggleUVExportPopup();
+      const baseName = document.getElementById('input-filename').value;
+      const filename = baseName + '_uv.png';
+      showToast(`✔ UV展開図を出力: ${filename}`);
+      showStatus(`保存: ${filename} (UV Layout)`, true);
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('scene-toast');
+      document.getElementById('toast-text').innerText = text;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 4000);
+    }
+
+    function applyMaterial() {
+      showToast('⚡ マテリアルに即時適用しました (lilToon _MaskTex)');
+      showStatus('マテリアルに適用完了', true);
+    }
+
+    function showStatus(text, isSuccess = false) {
+      const statusEl = document.getElementById('tab-status');
+      statusEl.innerText = text;
+      statusEl.className = 'dennoko-status' + (isSuccess ? ' success' : '');
+    }
+
+    // Keyboard Hotkeys
+    let isCPressed = false;
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'c' || e.key === 'C') {
+        if (!isCPressed && state.isWorking) {
+          isCPressed = true;
+          openRadialMenu();
+        }
+      } else if (e.key === 'x' || e.key === 'X') {
+        if (state.isWorking) toggleSymmetry();
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        if (state.isWorking) setMode(!state.isPaintMode);
+      } else if (e.key === 'Enter' && e.ctrlKey) {
+        if (state.isWorking) doExport();
+      } else if (e.key === 'z' && e.ctrlKey) {
+        if (state.isWorking) doUndo();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'c' || e.key === 'C') {
+        isCPressed = false;
+        closeRadialMenu();
+      }
+    });
+
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function openRadialMenu() {
+      const rad = document.getElementById('radial-menu');
+      rad.style.left = mouseX + 'px';
+      rad.style.top = mouseY + 'px';
+      rad.style.display = 'block';
+    }
+
+    function closeRadialMenu() {
+      document.getElementById('radial-menu').style.display = 'none';
+    }
+
+    // Channel checkbox toggle
+    document.getElementById('chk-channel').addEventListener('change', (e) => {
+      document.getElementById('channel-details').style.display = e.target.checked ? 'flex' : 'none';
+    });
+  </script>
+</body>
+</html>
