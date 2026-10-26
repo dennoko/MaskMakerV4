@@ -8,7 +8,8 @@ using UnityEngine.UIElements;
 namespace Dennoko.UVMaskMaker
 {
     /// <summary>
-    /// SceneView に常駐する UI（開始バッジ・ラジアルメニュー・トースト・ヒント。UI 設計 §5.2 / §6.2 / §2.6.3）。
+    /// SceneView に常駐する UI（ラジアルメニュー・トースト・ヒント。UI 設計 §5.2 / §6.2 / §2.6.3）。
+    /// 作業していない時はシーンに何も出さない（開始はツールタブと Hierarchy の右クリックから）。
     /// 各 SceneView の rootVisualElement に 1 つだけルートを置く。同名の物が残っていれば先に外す。
     /// </summary>
     [InitializeOnLoad]
@@ -20,7 +21,6 @@ namespace Dennoko.UVMaskMaker
         {
             public SceneView View;
             public VisualElement Root;
-            public Button Badge;
             public VisualElement Toast;
             public Label ToastText;
             public Image ToastIcon;
@@ -57,8 +57,6 @@ namespace Dennoko.UVMaskMaker
         {
             EditorApplication.update += Poll;
             Notifier.Posted += OnMessage;
-            Selection.selectionChanged += RefreshAll;
-            UiHub.Changed += RefreshAll;
         }
 
         // ── 生成 ──
@@ -91,11 +89,6 @@ namespace Dennoko.UVMaskMaker
             parent.Add(root);
 
             var hud = new Hud { View = view, Root = root };
-            hud.Badge = new Button(StartFromSelection) { text = "MaskMaker V4 ▶" };
-            hud.Badge.AddToClassList("mm-start-badge");
-            hud.Badge.AddToClassList("dennoko-button-secondary");
-            root.Add(hud.Badge);
-
             hud.Toast = new VisualElement();
             hud.Toast.AddToClassList("mm-toast");
             hud.ToastIcon = new Image();
@@ -115,27 +108,6 @@ namespace Dennoko.UVMaskMaker
             root.Add(hud.Hint);
 
             Huds[view] = hud;
-            Refresh(hud);
-        }
-
-        public static void RefreshAll()
-        {
-            foreach (var h in Huds.Values) if (h.Root != null) Refresh(h);
-        }
-
-        private static void Refresh(Hud hud)
-        {
-            bool idle = !SessionController.IsWorking;
-            Bind.Show(hud.Badge, idle && TargetResolver.FromSelection() != null);
-            hud.Badge.text = L10n.Japanese ? "MaskMaker V4 で編集 ▶" : "Edit with MaskMaker V4 ▶";
-        }
-
-        private static void StartFromSelection()
-        {
-            var r = TargetResolver.FromSelection();
-            if (r == null) return;
-            MaskMakerWindow.EnsureOpen();
-            SessionController.Start(r, origin: MessageOrigin.Scene);
         }
 
         /// <summary>SceneView の GUI 座標 → rootVisualElement の座標（上のツールバーの分だけずらす）。</summary>

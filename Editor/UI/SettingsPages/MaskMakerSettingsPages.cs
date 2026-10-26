@@ -136,10 +136,10 @@ namespace Dennoko.UVMaskMaker
         }
     }
 
-    /// <summary>Hierarchy の右クリック「MaskMaker V4 で編集」（UI 設計 §3）。</summary>
+    /// <summary>Hierarchy の右クリック「dennokoworks/MaskMaker V4」（UI 設計 §3）。</summary>
     internal static class MaskMakerMenus
     {
-        private const string Path = "GameObject/MaskMaker V4 で編集";
+        private const string Path = "GameObject/dennokoworks/MaskMaker V4";
 
         [MenuItem(Path, false, 49)]
         private static void EditSelected()

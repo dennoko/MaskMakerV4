@@ -9,8 +9,10 @@ namespace Dennoko.UVMaskMaker
     /// <summary>
     /// 手元カプセル（UI 設計 §6.1）。作業中だけ表示する。状態は持たず、UiHub の合図で読み直す。
     /// 同じ位置を、選択モードでは「選択の単位」、ペイントモードでは「ペイントツール」に差し替える。
+    /// 既定の置き場所はシーンビューの左下（ユーザーが動かした位置は Unity が覚える）。
     /// </summary>
-    [Overlay(typeof(SceneView), "MaskMaker V4", true)]
+    [Overlay(typeof(SceneView), "dennokoworks.MaskMakerV4.Capsule", "MaskMaker V4", true,
+        defaultDockZone = DockZone.LeftColumn, defaultDockPosition = DockPosition.Bottom, defaultLayout = Layout.Panel)]
     internal sealed class CapsuleOverlay : Overlay, ITransientOverlay
     {
         public bool visible => SessionController.IsWorking;

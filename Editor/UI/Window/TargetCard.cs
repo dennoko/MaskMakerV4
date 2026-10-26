@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace Dennoko.UVMaskMaker
 {
     /// <summary>
-    /// 対象カード（UI 設計 §4.3）。Idle: 対象欄（親を選ぶと子 Renderer の一覧）。
+    /// 対象カード（UI 設計 §4.3）。Idle: 対象欄と横の「編集 ▶」（親を選ぶと子 Renderer の一覧）。
     /// Working: 対象名のドロップダウン（同じアバター内の切替）、終了、サブメッシュ / UV（複数ある時だけ）。
     /// </summary>
     internal sealed class TargetCard
@@ -28,6 +28,12 @@ namespace Dennoko.UVMaskMaker
             _field.label = string.Empty;
             _list = root.Q("target-list");
             _field.RegisterValueChangedCallback(e => SetPending(e.newValue as Renderer));
+
+            var edit = root.Q<Button>("edit-button");
+            edit.text = L10n.T("button.edit");
+            edit.tooltip = L10n.T("tooltip.edit");
+            edit.clicked += () => SessionController.Start(PendingTarget);
+            UiHub.Watch(edit, () => edit.SetEnabled(PendingTarget != null));
 
             root.Q<Button>("end-button").text = L10n.T("button.end");
             root.Q<Button>("end-button").clicked += () => SessionController.End();

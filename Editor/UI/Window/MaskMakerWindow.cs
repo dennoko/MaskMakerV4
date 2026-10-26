@@ -26,7 +26,7 @@ namespace Dennoko.UVMaskMaker
             w.minSize = new Vector2(320, 420);
         }
 
-        /// <summary>開始バッジ・右クリック・自動再開から、フォーカスを奪わずに開く。</summary>
+        /// <summary>右クリック・自動再開から、フォーカスを奪わずに開く。</summary>
         public static void EnsureOpen()
         {
             if (HasOpenInstances<MaskMakerWindow>()) return;

@@ -134,8 +134,8 @@
 │  │  │  ├─ UVViewElement.cs              UV ビュー本体（表示・選択・ペイント・ズーム/パン・ドロップ取り込み）
 │  │  │  └─ OutputCard.cs
 │  │  ├─ Scene/
-│  │  │  ├─ CapsuleOverlay.cs / .uxml     手元カプセル（Overlay + ITransientOverlay）
-│  │  │  └─ SceneHud.cs                   開始バッジ・ラジアル・トースト・ヒント
+│  │  │  ├─ CapsuleOverlay.cs / .uxml     手元カプセル（Overlay + ITransientOverlay。既定はシーンビューの左下）
+│  │  │  └─ SceneHud.cs                   ラジアル・トースト・ヒント
 │  │  ├─ SettingsPages/MaskMakerSettingsPages.cs   Preferences / Project Settings、Hierarchy の右クリック
 │  │  └─ Version/  DennokoVersionChecker.cs, MaskMakerVersion.cs
 │  │

@@ -300,12 +300,6 @@
     color: var(--dennoko-text-primary);
 }
 
-.dennoko-root .mm-start-badge {
-    position: absolute;
-    right: 12px;
-    top: 34px;
-}
-
 .dennoko-root.mm-overlay-root {
     flex-grow: 0;
     background-color: rgba(0, 0, 0, 0);

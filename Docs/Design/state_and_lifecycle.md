@@ -114,7 +114,6 @@ Bind.Choice(buttonGroup, SettingKeys.TextureSize, settings, new[] { 512, 1024, 2
 | `MaskMakerWindow` | `CreateGUI`（リロード後も Unity が呼ぶ） | 要素の `DetachFromPanelEvent` |
 | `CapsuleOverlay` | `CreatePanelContent` | `OnWillBeDestroyed` |
 | `SceneHud`（ラジアル・トースト・ヒント） | 作業開始時に各 SceneView の `rootVisualElement` へ追加。同名の要素が既にあれば先に外す（リロードで残った物の掃除） | 作業終了時 |
-| `StartBadge` | `SceneView.duringSceneGui`（Idle の時だけ描く） | — |
 
 どのビューも結び付けた直後に 1 回全体を読み直すので、リロード直後・ウィンドウを開き直した直後でも、最初の表示から正しい値になります。
 

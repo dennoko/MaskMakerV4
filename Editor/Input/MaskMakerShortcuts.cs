@@ -70,7 +70,6 @@ namespace Dennoko.UVMaskMaker
             if (s == null) return;
             s.Interaction.SpaceHeld = args.stage == ShortcutStage.Begin;
             SceneView.RepaintAll();
-            SceneHud.RefreshAll();
         }
     }
 }

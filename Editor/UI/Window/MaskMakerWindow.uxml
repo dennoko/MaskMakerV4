@@ -16,7 +16,10 @@
         <!-- 対象（見出しなし） -->
         <ui:VisualElement name="target-card" class="dennoko-card">
             <ui:VisualElement name="target-idle">
-                <uie:ObjectField name="target-field" type="UnityEngine.Renderer, UnityEngine.CoreModule" allow-scene-objects="true" />
+                <ui:VisualElement class="mm-row">
+                    <uie:ObjectField name="target-field" type="UnityEngine.Renderer, UnityEngine.CoreModule" allow-scene-objects="true" class="mm-grow" />
+                    <ui:Button name="edit-button" text="編集 ▶" class="dennoko-button-secondary" />
+                </ui:VisualElement>
                 <ui:VisualElement name="target-list" class="mm-target-list" />
             </ui:VisualElement>
             <ui:VisualElement name="target-working">
