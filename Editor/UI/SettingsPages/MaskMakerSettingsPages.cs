@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -22,20 +21,20 @@ namespace Dennoko.UVMaskMaker
             return new SettingsProvider(PreferencesPath, SettingsScope.User)
             {
                 label = "MaskMaker V4",
-                activateHandler = (search, root) =>
+                // 言語の切替はツールタブのヘッダー（[JA][EN]）。ここでは切り替わった時に作り直すだけ
+                activateHandler = (search, root) => LanguageUi.Build(root, content =>
                 {
-                    var page = Page(root);
+                    var page = Page(content);
                     ColorRow(page, "prefs.selectedColor", SettingKeys.SelectedSceneColor, SettingLayer.User);
                     FloatRow(page, "prefs.maskAlpha", SettingKeys.SceneMaskAlpha, SettingLayer.User, 0f, 1f);
                     ColorRow(page, "prefs.seamColor", SettingKeys.SeamColor, SettingLayer.User);
                     FloatRow(page, "prefs.seamThickness", SettingKeys.OverlaySeamThickness, SettingLayer.User, 0.5f, 8f);
                     BoolRow(page, "prefs.xray", SettingKeys.OverlayOnTop, SettingLayer.User);
                     BoolRow(page, "prefs.isolate", SettingKeys.IsolateTargetMesh, SettingLayer.User);
-                    EnumRow(page, "prefs.language", SettingKeys.Language, SettingLayer.User);
                     page.Add(new Button(SettingsService.ResetHintCounts) { text = L10n.T("prefs.resetHints") });
                     page.Add(new Button(() => EditorApplication.ExecuteMenuItem("Edit/Shortcuts...")) { text = L10n.T("prefs.shortcuts") });
                     page.Add(new Button(Icons.ReportMissing) { text = "Check icons" });
-                },
+                }),
                 keywords = new HashSet<string>(new[] { "MaskMaker", "UV", "Mask" }),
             };
         }
@@ -46,9 +45,9 @@ namespace Dennoko.UVMaskMaker
             return new SettingsProvider(ProjectPath, SettingsScope.Project)
             {
                 label = "MaskMaker V4",
-                activateHandler = (search, root) =>
+                activateHandler = (search, root) => LanguageUi.Build(root, content =>
                 {
-                    var page = Page(root);
+                    var page = Page(content);
                     IntChoiceRow(page, "project.defaultSize", SettingKeys.DefaultTextureSize, SettingKeys.TextureSizes);
                     BoolRow(page, "project.useTextureFolder", SettingKeys.UseTextureFolder, SettingLayer.Project);
                     TextRow(page, "project.outputDir", SettingKeys.OutputDir, SettingLayer.Project);
@@ -59,7 +58,7 @@ namespace Dennoko.UVMaskMaker
                     IntRow(page, "project.threshold", SettingKeys.BlackThreshold, SettingLayer.Project, 0, 255);
                     FloatRow(page, "project.mirrorTolerance", SettingKeys.MirrorTolerance, SettingLayer.Project, 0f, 0.05f);
                     BoolRow(page, "project.singleChannel", SettingKeys.ImportAsSingleChannel, SettingLayer.Project);
-                },
+                }),
                 keywords = new HashSet<string>(new[] { "MaskMaker", "UV", "Mask" }),
             };
         }
@@ -113,14 +112,6 @@ namespace Dennoko.UVMaskMaker
         {
             var f = new ColorField(L10n.T(key));
             f.RegisterValueChangedCallback(e => SettingsService.Set(s, e.newValue, layer));
-            UiHub.Watch(f, () => f.SetValueWithoutNotify(SettingsService.GetFrom(s, layer)));
-            page.Add(f);
-        }
-
-        private static void EnumRow<T>(VisualElement page, string key, Setting<T> s, SettingLayer layer) where T : Enum
-        {
-            var f = new EnumField(L10n.T(key), s.Default);
-            f.RegisterValueChangedCallback(e => SettingsService.Set(s, (T)e.newValue, layer));
             UiHub.Watch(f, () => f.SetValueWithoutNotify(SettingsService.GetFrom(s, layer)));
             page.Add(f);
         }

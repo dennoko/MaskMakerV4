@@ -105,7 +105,7 @@ graph LR
 | 選択色・シーム色 | ✕ | User | D | Preferences | — |
 | シーム太さ・シームのマスク表示の不透明度 | ✕ | User | D | Preferences | — |
 | ホットキー全般 | ✕ | User | D | Unity の Shortcut Manager | `[Shortcut]` 属性で登録し、再割当ては標準 UI に任せる |
-| 言語 (`Language`) | ✕ | User | D | Preferences | 初回は Editor の言語から自動 |
+| 言語 (`Language`) | ○ | User | B | ツールタブのヘッダー右 `[JA][EN]` | 初回は Editor の言語から自動（その時は実際に使っている方を選択中に表示）。切り替えると開いているツールタブ・UV 展開図ウィンドウ・カプセル・設定画面を作り直して、すぐに全部の表示が変わる |
 | 迷い検知ヒント（§2.6.3） | ✕ | User | D | Preferences | 各ヒントは 3 回出たら以後出さない。Preferences でリセット可 |
 | 対称判定の許容誤差 | ✕ | Project | D | Project Settings | 自動 |
 | 取り込みのしきい値 (`BlackThreshold`) | ✕ | Project | D | Project Settings | 128 |
@@ -127,7 +127,7 @@ graph LR
 
 1. タブから「選択の単位」と「表示設定」を削除した。前者は S/A として手元に、後者は D として 設定ウィンドウに置いた。
 2. 出力カードを基本（B）と ▸詳細（C）に分け、フッター上に出力サマリ行を追加した。詳細を開かなくても出力内容を確認できる。
-3. 粒度の広い項目（保存先・余白・反転・色・キー割当・言語）は Project / User に移し、毎回は見せない。
+3. 粒度の広い項目（保存先・余白・反転・色・キー割当）は Project / User に移し、毎回は見せない。
 4. ファイル名、解像度、UV、サブメッシュ、Base PNG、X-Mirror の初期値は自動推定にした。
 5. サブメッシュ・UV は、選択肢が複数ある時だけ表示する。
 6. ホットキーは Unity の Shortcut Manager に登録する。
@@ -334,7 +334,7 @@ VisualElement.dennoko-root
 | **出力（基本）** | B | `FileName`、`TextureSize`、`ChannelWriteEnabled` と R/G/B/A・Base PNG | テクスチャごとに決める項目だけを常時表示。ファイル名は `{Renderer名}_mask` を自動入力。解像度はベーステクスチャのサイズを自動採用（無ければ Project 既定）。Base PNG を指定した時は解像度を Base PNG のサイズに固定する（ボタンは無効にしてサイズを表示）。解像度を下げるとシーンと UV ビューの表示も同じ粗さになり、出力結果をその場で確認できる（手塗りは内部で 4096 のまま保持するので、戻せば元に戻る）。チャンネル書き込みは OFF なら R/G/B/A と Base PNG を隠し、ON でインデント展開。Base PNG はマテリアルから候補を自動提示。値は対象ごとに記憶 |
 | **出力（▸詳細）** | C | `InvertMask`、`PixelMargin`、`SaveInvertedToo` | 既定で閉。Project 既定の値を使うので毎回は触らない。`SaveInvertedToo` は ON で実ファイル名（`name.png` / `name_inv.png`）を灰色でプレビュー。`PixelMargin` は解像度に応じた推奨値を既定にする |
 | **出力サマリ行**（フッター上） | C | 保存先と ▸詳細の値の要約 | 例: `[Folder] Textures  余白2`。カード上に見えている値（ファイル名・解像度）は重複させない。反転・反転同時保存は ON の時だけチップを出す。文章にせず値のチップだけを並べる。チップをクリックすると該当の詳細を開き、保存先チップは Project Settings を開く。値が Project 既定と違う項目には上書きマーク ● を付け、クリックで既定に戻す |
-| **設定アイコン（ヘッダー右）** | D | 表示色・シーム・ホットキー・言語・ヒント | ここから Preferences（User）と Project Settings を開く。作業中のタブには置かない |
+| **言語 `[JA][EN]` ＋ 設定アイコン（ヘッダー右）** | B / D | 言語、表示色・シーム・ホットキー・ヒント | 言語は 1 クリックで切り替える（スキルのウィンドウ構造テンプレートのヘッダーに合わせる）。設定アイコンからは Preferences（User）と Project Settings を開く（その中身は作業中のタブには置かない） |
 
 ### 4.4 出力時の挙動
 - 押下 → 成功で `.dennoko-status--success` に `保存: Body_mask.png`（ファイル名クリックで Ping）。4 秒で消える。書き出し中の表示は 0.3 秒以上かかった時だけ出す。シーンから出力した時はステータスバーには出さず、トースト（§6.2）だけにする。
@@ -499,7 +499,7 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | `SelectedSceneColor` / `SeamColor` | D | 設定アイコン → Preferences | — | — |
 | `OverlaySeamThickness` / `SceneMaskAlpha` | D | 設定アイコン → Preferences | — | — |
 | 全ホットキー | D | — | — | Shortcut Manager |
-| `Language`（初回は Editor 言語から自動） | D | 設定アイコン → Preferences | — | — |
+| `Language`（初回は Editor 言語から自動） | B | ツールタブのヘッダー右 `[JA][EN]` | — | — |
 | 迷い検知ヒント（ON/OFF・リセット） | D | 設定アイコン → Preferences | — | — |
 | `BlackThreshold`（取り込みのしきい値） | D | 設定アイコン → Project Settings | — | — |
 

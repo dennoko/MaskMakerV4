@@ -127,7 +127,6 @@ namespace Dennoko.UVMaskMaker
             { "prefs.seamThickness", ("シームの太さ", "Seam thickness") },
             { "prefs.xray", ("X-Ray を既定で ON", "X-Ray on by default") },
             { "prefs.isolate", ("孤立表示を既定で ON", "Isolate by default") },
-            { "prefs.language", ("言語", "Language") },
             { "prefs.resetHints", ("ヒントをもう一度表示", "Show hints again") },
             { "prefs.shortcuts", ("ショートカットを編集", "Edit shortcuts") },
             { "project.defaultSize", ("既定の解像度", "Default size") },

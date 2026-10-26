@@ -85,6 +85,7 @@ Here is the quickest workflow to select part of a costume, export a mask, and ap
 | | **Floating Capsule Toolbar** | Compact, dockable toolbar floating inside the SceneView |
 | | **Unified Undo / Redo** | Selection, painting, and material application share a unified history stack (`Ctrl+Z` / `Ctrl+Y`) |
 | | **Auto-Save & Restore** | Automatically saves edit states; work persists across recompilations and Unity restarts |
+| | **Language Switch (JA / EN)** | 1-click toggle between Japanese and English right from the header (`[JA]` / `[EN]`) |
 
 ---
 
@@ -212,6 +213,7 @@ Export clean wireframe layout images for use as template layers in Clip Studio P
 1. **Tool Tab (EditorWindow)**:
    - Opened via `dennokoworks` > `MaskMaker V4`.
    - Contains Target Mesh picker, UV View, Export settings, and the primary action button.
+   - **Header**: Displays the title, version label, update check button (↻), **Language toggle buttons (`[JA]` / `[EN]`)**, and Settings icon (⚙) for opening Preferences and Project Settings. Clicking the language buttons rebuilds and translates the entire UI instantly across all open windows and overlays.
 2. **Floating Capsule Toolbar**:
    - A rounded floating bar appearing inside the SceneView during editing. Drag to reposition anywhere.
    - Houses Mode toggle, Granularity, Paint Tools, X-Mirror, Isolation, Undo/Redo, Export, and Selection counter.

@@ -74,6 +74,12 @@ namespace Dennoko.UVMaskMaker
                 root.Add(new Label("UXML Asset not found."));
                 return;
             }
+            // 表示言語が変わったら中身ごと作り直す
+            LanguageUi.Build(root, content => Build(content, tree));
+        }
+
+        private void Build(VisualElement root, VisualTreeAsset tree)
+        {
             tree.CloneTree(root);
 
             new TargetCard(root);
@@ -108,6 +114,7 @@ namespace Dennoko.UVMaskMaker
                 MaskMakerVersion.ForceRecheck();
                 LoadVersionResultFromSessionState();
             };
+            LanguageUi.BindToggle(root.Q<Button>("lang-ja"), root.Q<Button>("lang-en"));
             var settings = root.Q<Button>("settings-button");
             Icons.Apply(settings, Icons.Settings, "⚙", L10n.T("tooltip.settings"));
             settings.clicked += () =>

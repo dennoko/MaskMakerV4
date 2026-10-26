@@ -87,6 +87,47 @@ namespace Dennoko.UVMaskMaker
     }
 
     /// <summary>
+    /// 表示言語（UI 設計 §2.6.5）。文字は作る時に L10n から入れるので、言語が変わったら中身ごと作り直す。
+    /// </summary>
+    internal static class LanguageUi
+    {
+        /// <summary>
+        /// host の中身を build で作り、表示言語が変わったら作り直す（パネルから外れている間に変わった分は、戻った時に作り直す）。
+        /// 中身は host 直下の 1 要素にまとめるので、作り直しはそれを外すだけで済み、中で付けた購読（UiHub.Watch・選択の購読など）も一緒に外れる。
+        /// </summary>
+        public static void Build(VisualElement host, Action<VisualElement> build, bool grow = true)
+        {
+            bool builtJapanese = false;
+            void Rebuild()
+            {
+                host.Clear();
+                var content = new VisualElement();
+                if (grow) content.style.flexGrow = 1;
+                host.Add(content);
+                builtJapanese = L10n.Japanese;
+                build(content);
+            }
+            Rebuild();
+            UiHub.Watch(host, () =>
+            {
+                if (L10n.Japanese != builtJapanese) Rebuild();
+            });
+        }
+
+        /// <summary>ヘッダーの [JA][EN]。「自動」の時は実際に使っている言語を選択中にする。</summary>
+        public static void BindToggle(Button ja, Button en)
+        {
+            ja.text = "JA";
+            en.text = "EN";
+            Bind.Choice(new List<(Button, UILanguage)>
+            {
+                (ja, UILanguage.Japanese),
+                (en, UILanguage.English),
+            }, SettingKeys.Language, () => L10n.Japanese ? UILanguage.Japanese : UILanguage.English);
+        }
+    }
+
+    /// <summary>
     /// 設定キー ⇄ UI 要素（Design state_and_lifecycle §3.1）。
     /// 表示は常に解決済みの値から SetValueWithoutNotify で作り、入力は SettingsService.Set に流すだけ。
     /// </summary>

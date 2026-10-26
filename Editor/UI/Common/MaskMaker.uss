@@ -109,6 +109,17 @@
     background-color: var(--dennoko-surface-2);
 }
 
+/* ヘッダーの言語切替 [JA][EN]（選択中は .dennoko-button-active） */
+.dennoko-root .unity-button.mm-lang-button {
+    height: 18px;
+    min-width: 24px;
+    margin: 0 0 0 2px;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    -unity-text-align: middle-center;
+}
+
 /* UV ビュー */
 .dennoko-root .mm-uv-host {
     height: 320px;

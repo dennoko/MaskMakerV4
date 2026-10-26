@@ -75,8 +75,24 @@ namespace Dennoko.UVMaskMaker
                 root.Add(new Label("UXML Asset not found."));
                 return;
             }
+
+            // 書き出さずに閉じる（Esc でも同じ）。作り直しの外で 1 回だけ付ける
+            root.RegisterCallback<KeyDownEvent>(e =>
+            {
+                if (e.keyCode != KeyCode.Escape) return;
+                e.StopPropagation();
+                Dismiss();
+            }, TrickleDown.TrickleDown);
+
+            // 表示言語が変わったら中身ごと作り直す
+            LanguageUi.Build(root, content => Build(content, tree));
+        }
+
+        private void Build(VisualElement root, VisualTreeAsset tree)
+        {
             tree.CloneTree(root);
 
+            titleContent = new GUIContent(L10n.T("layout.title"));
             root.Q<Label>("layout-title").text = L10n.T("layout.title");
             root.Q<Label>("layout-size-label").text = L10n.T("layout.size");
             root.Q<Label>("layout-elements-label").text = L10n.T("layout.elements");
@@ -129,14 +145,7 @@ namespace Dennoko.UVMaskMaker
                 if (SessionCommands.ExportUVLayout()) Dismiss();
             };
 
-            // 書き出さずに閉じる（Esc でも同じ）
             Text(root, "layout-cancel", "button.cancel").clicked += Dismiss;
-            root.RegisterCallback<KeyDownEvent>(e =>
-            {
-                if (e.keyCode != KeyCode.Escape) return;
-                e.StopPropagation();
-                Dismiss();
-            }, TrickleDown.TrickleDown);
 
             _previewEmpty = root.Q<Label>("layout-preview-empty");
             _previewEmpty.text = L10n.T("layout.noSession");

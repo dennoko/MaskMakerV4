@@ -1,13 +1,17 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
 
-    <!-- ヘッダー: タイトル + バージョン + 更新確認 + 設定 -->
+    <!-- ヘッダー: タイトル + バージョン + 更新確認 / 言語 [JA][EN] + 設定 -->
     <ui:VisualElement class="dennoko-header">
         <ui:VisualElement class="dennoko-header-titlegroup">
             <ui:Label text="MaskMaker V4" class="dennoko-title" />
             <ui:Label name="version-label" text="" class="dennoko-version-label" />
             <ui:Button name="version-reload-button" text="↻" class="dennoko-version-reload-button" />
         </ui:VisualElement>
-        <ui:Button name="settings-button" class="dennoko-version-reload-button" />
+        <ui:VisualElement class="dennoko-header-titlegroup">
+            <ui:Button name="lang-ja" text="JA" class="mm-lang-button" />
+            <ui:Button name="lang-en" text="EN" class="mm-lang-button" />
+            <ui:Button name="settings-button" class="dennoko-version-reload-button" />
+        </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement class="dennoko-separator" />
 

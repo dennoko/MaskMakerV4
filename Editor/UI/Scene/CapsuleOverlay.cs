@@ -24,6 +24,13 @@ namespace Dennoko.UVMaskMaker
             root.AddToClassList("mm-overlay-root");
             var tree = UiAssets.LoadTree(UiAssets.CapsuleUxmlGuid);
             if (tree == null) return root;
+            // 表示言語が変わったら中身ごと作り直す（ツールチップと単位の文字）
+            LanguageUi.Build(root, content => Build(content, tree), false);
+            return root;
+        }
+
+        private static void Build(VisualElement root, VisualTreeAsset tree)
+        {
             tree.CloneTree(root);
 
             Button B(string name, string icon, string fallback, string tipKey, string key, System.Action click)
@@ -93,7 +100,6 @@ namespace Dennoko.UVMaskMaker
                 Bind.Active(pause, SessionController.IsWorking && SessionCommands.IsPaused);
                 count.text = UiRules.CountText(SessionController.Current);
             });
-            return root;
         }
 
         /// <summary>出力成功時に 2 秒だけ枠を成功色にする（アイコンは差し替えない）。</summary>
