@@ -38,6 +38,14 @@
         <!-- UV ビュー（見出しなし。Working のみ） -->
         <ui:VisualElement name="uv-card" class="dennoko-card">
             <ui:VisualElement name="uv-host" class="mm-uv-host">
+                <!-- 既存マスクの取り込み（操作はドロップのみ。ホバーで案内を出す） -->
+                <ui:VisualElement name="uv-import" class="mm-uv-import">
+                    <ui:VisualElement class="mm-uv-import-chip">
+                        <ui:VisualElement name="uv-import-icon" class="mm-chip-icon" />
+                        <ui:Label name="uv-import-label" text="マスク取り込み" class="mm-uv-import-label" />
+                    </ui:VisualElement>
+                    <ui:Label name="uv-import-hint" text="" class="mm-uv-import-hint" />
+                </ui:VisualElement>
                 <ui:VisualElement name="uv-tools" class="mm-uv-tools">
                     <ui:Button name="reset-view-button" class="mm-icon-button" />
                     <ui:Button name="base-overlay-button" class="mm-icon-button" />

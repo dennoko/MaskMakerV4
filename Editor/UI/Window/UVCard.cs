@@ -2,7 +2,7 @@ using UnityEngine.UIElements;
 
 namespace Dennoko.UVMaskMaker
 {
-    /// <summary>UV ビューのカード（UV ビュー本体、表示を戻す、ベース重ね、UV 展開図の書き出しタブを開く）。</summary>
+    /// <summary>UV ビューのカード（UV ビュー本体、表示を戻す、ベース重ね、UV 展開図の書き出し、マスク取り込みの案内）。</summary>
     internal sealed class UVCard
     {
         public UVCard(VisualElement root)
@@ -26,6 +26,16 @@ namespace Dennoko.UVMaskMaker
             var layoutButton = root.Q<Button>("layout-button");
             Icons.Apply(layoutButton, Icons.Layout, "UV", L10n.T("tooltip.layout"));
             layoutButton.clicked += UVLayoutWindow.Open;
+
+            // 既存マスクの取り込みはドロップのみ。左上の表示にホバーすると案内を出す（USS の :hover）
+            var import = root.Q("uv-import");
+            var importIcon = root.Q("uv-import-icon");
+            var importTex = Icons.Get(Icons.Import);
+            if (importTex != null) importIcon.style.backgroundImage = importTex;
+            Bind.Show(importIcon, importTex != null);
+            root.Q<Label>("uv-import-label").text = L10n.T("uv.import");
+            root.Q<Label>("uv-import-hint").text = L10n.T("uv.importHint");
+            view.AcceptDrops(import);
         }
     }
 }

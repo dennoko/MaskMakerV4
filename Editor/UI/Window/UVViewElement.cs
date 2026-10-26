@@ -357,6 +357,14 @@ namespace Dennoko.UVMaskMaker
             return null;
         }
 
+        /// <summary>ビューの上に重ねた要素（取り込み表示など）に落とされたテクスチャも受け付ける。</summary>
+        public void AcceptDrops(VisualElement e)
+        {
+            e.RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
+            e.RegisterCallback<DragPerformEvent>(OnDragPerform);
+            e.RegisterCallback<DragLeaveEvent>(_ => SetDropVisual(false));
+        }
+
         private void OnDragUpdated(DragUpdatedEvent e)
         {
             if (SessionController.Current == null || DraggedTexturePath() == null) return;

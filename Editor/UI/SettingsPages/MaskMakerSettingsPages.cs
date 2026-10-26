@@ -146,7 +146,7 @@ namespace Dennoko.UVMaskMaker
         {
             var r = TargetResolver.FromSelection();
             if (r == null) return;
-            MaskMakerWindow.EnsureOpen();
+            MaskMakerWindow.EnsureOpen(bringToFront: true);
             SessionController.Start(r);
         }
 

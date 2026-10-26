@@ -139,6 +139,57 @@
     flex-direction: row;
 }
 
+/* UV ビュー左上のマスク取り込み表示（ホバーでドロップの案内を出す） */
+.dennoko-root .mm-uv-import {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    align-items: flex-start;
+}
+
+.dennoko-root .mm-uv-import-chip {
+    flex-direction: row;
+    align-items: center;
+    height: 22px;
+    padding-left: 5px;
+    padding-right: 6px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+}
+
+.dennoko-root .mm-uv-import:hover .mm-uv-import-chip {
+    background-color: var(--dennoko-surface-2);
+}
+
+.dennoko-root .mm-uv-import-label {
+    color: var(--dennoko-text-secondary);
+    font-size: 11px;
+}
+
+.dennoko-root .mm-uv-import:hover .mm-uv-import-label {
+    color: var(--dennoko-text-primary);
+}
+
+.dennoko-root .mm-uv-import-hint {
+    display: none;
+    width: 220px;
+    margin-top: 2px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-2);
+    color: var(--dennoko-text-primary);
+    font-size: 11px;
+    white-space: normal;
+}
+
+.dennoko-root .mm-uv-import:hover .mm-uv-import-hint {
+    display: flex;
+}
+
 .dennoko-root .mm-drop-target {
     border-width: 2px;
     border-color: var(--dennoko-semantic-info);

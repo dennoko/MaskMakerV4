@@ -26,12 +26,26 @@ namespace Dennoko.UVMaskMaker
             w.minSize = new Vector2(320, 420);
         }
 
-        /// <summary>右クリック・自動再開から、フォーカスを奪わずに開く。</summary>
-        public static void EnsureOpen()
+        /// <summary>右クリック・自動再開からウィンドウを開く。bringToFront = true の場合、既に開いているインスタンスがあれば最前面に表示する。</summary>
+        public static void EnsureOpen(bool bringToFront = false)
         {
-            if (HasOpenInstances<MaskMakerWindow>()) return;
-            var w = GetWindow<MaskMakerWindow>(false, "MaskMaker V4", false);
+            if (HasOpenInstances<MaskMakerWindow>())
+            {
+                if (bringToFront)
+                {
+                    var existing = GetWindow<MaskMakerWindow>(false, "MaskMaker V4", false);
+                    existing.Show();
+                    existing.Focus();
+                }
+                return;
+            }
+            var w = GetWindow<MaskMakerWindow>(false, "MaskMaker V4", bringToFront);
             w.minSize = new Vector2(320, 420);
+            if (bringToFront)
+            {
+                w.Show();
+                w.Focus();
+            }
         }
 
         private void OnEnable()
