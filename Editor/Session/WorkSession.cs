@@ -82,7 +82,7 @@ namespace Dennoko.UVMaskMaker
                 MirrorTolerance = SettingsService.Get(SettingKeys.MirrorTolerance),
             };
             Analysis = MeshAnalyzer.Analyze(input);
-            Raycaster = new MeshRaycaster(Analysis.Indices, Mesh.Vertices);
+            Raycaster = new MeshRaycaster(Analysis.Indices, Mesh.Vertices, Analysis.TriSubmesh) { SubmeshCull = Mesh.SubmeshCull() };
             UVGrid = new UVGrid(Analysis.TriUV);
             UpdateActive();
         }

@@ -18,12 +18,12 @@
 | 6 | `AssetImporter.importSettingsMissing` が新規ファイルの初回インポートで true | PNG を新規に書いた直後の `OnPreprocessTexture` で true、2 回目以降は false | 登録したパスに対して 1 回だけ設定を当て、登録を消す |
 | 7 | 内蔵アイコン名（UI 設計 §2.6.6）が 2022.3 と Unity 6 で引ける | 確認メニューで null が 0 件 | 見つからない物を別アイコンか 3 字以内の語に |
 | 8 | `AsyncGPUReadback.WaitForCompletion` で R8 4096² を読む時間 | 20ms 以下 | 確定を非同期にし、完了まで次のストローク開始を待たせる |
-| 9 | SkinnedMeshRenderer で `BakeMesh(mesh, false)` + `localToWorldMatrix` の位置が表示と一致する（スケール付きの Renderer で） | マスクとシームがメッシュに重なる | `BakeMesh(mesh, true)` + スケール 1 の行列に替える（`WorkMesh` だけの変更） |
+| 9 | SkinnedMeshRenderer で `BakeMesh(mesh, true)` + `localToWorldMatrix` の位置が表示と一致する（スケール付きの Renderer・親で） | マスクとシームがメッシュに重なり、クリックした位置の三角形が選ばれる | `BakeMesh(mesh, false)` + スケール 1 の行列に替える（`WorkMesh` だけの変更） |
 | 10 | SceneView で Ctrl + 右ドラッグ・Shift + ホイールが、Unity のカメラ操作より先にツールへ届く | ブラシ伸縮・拡張/縮小が効き、カメラが動かない | `SceneView.beforeSceneGui` で先に拾う |
 
 ### 1.1 現在の状況（2026-10-26）
 
-- M1〜M7 の実装は完了。Unity 同梱のコンパイラで Core / Editor / Tests の 3 アセンブリがコンパイルでき、Unity 外（mono）で実行できるテスト 31 件（Core 28、Persistence 3）は全て通る。
+- M1〜M7 の実装は完了。Unity 同梱のコンパイラで Core / Editor / Tests の 3 アセンブリがコンパイルでき、Unity 外（mono）で実行できるテスト 34 件（Core 31、Persistence 2、出力パス 1）は全て通る。
 - 上の表の項目と GPU テスト（§3.2）、ライフサイクルの手動確認（§3.3）は、Unity エディタ上での確認が必要（未実施）。
 - M8（NDMF 連携）は未着手。この環境に NDMF が無く API を確かめられないため、拡張点（`IWorkMeshSource` / `WorkMeshSources.Register`）だけを用意してある。
 
@@ -49,7 +49,7 @@
 ### 3.1 単体テスト（EditMode、Core）
 - **解析**: 立方体（6 島・1 パーツ）、UV シームのある円柱、ハードエッジだけの立方体（1 島）、点接触の 2 三角形（1 パーツ）、サブメッシュ 2 つ、UV が 1.5 ずれた三角形（補正と `NeedsWrap`）、原点から遠い座標のメッシュ。
 - **選択**: トグル（Full / Partial / None）、反転が他サブメッシュに触れない、拡張 / 縮小の 1 段、対称の投票（相手なし・自分自身・半分未満）。
-- **ピッキング**: レイの命中と最近点、裏面、UV の重なりで全候補が返る、1px 未満の三角形。
+- **ピッキング**: レイの命中と最近点、マテリアルの Cull に従う裏面の除外（Back / Off / Front）、表裏が重なる時の表優先、共有辺ですり抜けない、UV の重なりで全候補が返る、1px 未満の三角形。
 - **RLE**: 空・全面・市松・ランダムの往復一致、同じ画像が同じバイト列になる。
 - **図形**: 自己交差する投げ縄の偶奇判定。
 - **出力パス**: 上書き / 連番 / 元と反転の番号一致。

@@ -63,7 +63,7 @@
 │  │  │  ├─ SelectionOps.cs               Full/Partial/None、トグル判定、全選択・反転・拡張・縮小・選択数
 │  │  │  └─ MirrorResolver.cs             対称グループの投票
 │  │  ├─ Picking/
-│  │  │  ├─ MeshRaycaster.cs              Möller–Trumbore（両面）
+│  │  │  ├─ MeshRaycaster.cs              Möller–Trumbore（マテリアルの Cull に従う）
 │  │  │  └─ UVGrid.cs                     UV グリッド（重なった全候補、回り込み）
 │  │  ├─ Imaging/
 │  │  │  ├─ PaintRle.cs                   手塗りの連長圧縮

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Dennoko.UVMaskMaker
 {
@@ -63,11 +64,32 @@ namespace Dennoko.UVMaskMaker
         public void Rebake()
         {
             if (!(Renderer is SkinnedMeshRenderer smr) || _baked == null) return;
-            smr.BakeMesh(_baked, false);
+            // useScale: true で Renderer の本来のローカル空間になる（false はスケール抜きの空間で、LocalToWorld と合わない）
+            smr.BakeMesh(_baked, true);
             Vertices = _baked.vertices;
             Normals = _baked.normals;
             if (Normals == null || Normals.Length != Vertices.Length) Normals = new Vector3[Vertices.Length];
             PoseRevision++;
+        }
+
+        /// <summary>サブメッシュごとのカリング（マテリアルの _Cull / _CullMode）。プロパティが無ければ Back。</summary>
+        public CullMode[] SubmeshCull()
+        {
+            var mats = Renderer.sharedMaterials;
+            var result = new CullMode[SubmeshCount];
+            for (int s = 0; s < result.Length; s++)
+            {
+                result[s] = CullMode.Back;
+                var m = s < mats.Length ? mats[s] : null;
+                if (m == null) continue;
+                foreach (var name in new[] { "_Cull", "_CullMode" })
+                {
+                    if (!m.HasProperty(name)) continue;
+                    result[s] = (CullMode)Mathf.Clamp(Mathf.RoundToInt(m.GetFloat(name)), 0, 2);
+                    break;
+                }
+            }
+            return result;
         }
 
         public Vector2[] ReadUVs(int channel)
