@@ -140,10 +140,10 @@ namespace Dennoko.UVMaskMaker
             MaskExporter.Export(S, origin);
         }
 
-        public static void ExportUVLayout()
+        public static bool ExportUVLayout()
         {
-            if (S == null) return;
-            UVLayoutExporter.Export(S);
+            if (S == null) return false;
+            return UVLayoutExporter.Export(S);
         }
 
         public static void ImportMask(string assetPath, MessageOrigin origin)

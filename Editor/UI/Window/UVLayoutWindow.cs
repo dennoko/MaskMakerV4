@@ -6,20 +6,41 @@ using UnityEngine.UIElements;
 namespace Dennoko.UVMaskMaker
 {
     /// <summary>
-    /// UV 展開図の書き出しタブ（UI 設計 §4.3）。UV ビューの [Camera] ボタンで、ツールタブの隣に開く。
-    /// 状態を持たず、表示はすべて SettingsService / SessionController から作る。閉じても作業は続く。
+    /// UV 展開図の書き出しウィンドウ（UI 設計 §4.3）。UV ビューの [Camera] ボタンで、フローティングで開く。
+    /// 書き出しかキャンセルで閉じる。状態を持たず、表示はすべて SettingsService / SessionController から作る。
     /// </summary>
     internal sealed class UVLayoutWindow : EditorWindow
     {
+        private static readonly Vector2 DefaultSize = new Vector2(320, 520);
+
         private Label _status;
         private IVisualElementScheduledItem _statusReset;
         private string _statusAsset;
 
-        /// <summary>ツールタブの隣にタブとして開く（既に開いていれば前に出す）。</summary>
+        /// <summary>ツールタブの上にフローティングで開く（既に開いていれば前に出す）。</summary>
         public static void Open()
         {
-            var w = GetWindow<UVLayoutWindow>(L10n.T("layout.title"), true, typeof(MaskMakerWindow));
+            if (HasOpenInstances<UVLayoutWindow>())
+            {
+                FocusWindowIfItsOpen<UVLayoutWindow>();
+                return;
+            }
+            var w = CreateInstance<UVLayoutWindow>();
             w.minSize = new Vector2(280, 320);
+            w.position = CenteredOn(OwnerRect(), DefaultSize);
+            w.ShowUtility();
+        }
+
+        /// <summary>ツールタブの位置。見つからなければエディタ本体のウィンドウ。</summary>
+        private static Rect OwnerRect()
+        {
+            var tools = Resources.FindObjectsOfTypeAll<MaskMakerWindow>();
+            return tools.Length > 0 ? tools[0].position : EditorGUIUtility.GetMainWindowPosition();
+        }
+
+        private static Rect CenteredOn(Rect owner, Vector2 size)
+        {
+            return new Rect(owner.center - size * 0.5f, size);
         }
 
         private void OnEnable()
@@ -50,7 +71,8 @@ namespace Dennoko.UVMaskMaker
             root.Q<Label>("layout-size-label").text = L10n.T("layout.size");
             root.Q<Label>("layout-elements-label").text = L10n.T("layout.elements");
             root.Q<Label>("layout-background-label").text = L10n.T("layout.background");
-            root.Q<Label>("layout-line-label").text = L10n.T("layout.line");
+            root.Q<Label>("layout-seam-color-label").text = L10n.T("layout.seamColor");
+            root.Q<Label>("layout-wire-color-label").text = L10n.T("layout.wireColor");
             root.Q<Label>("layout-fill-label").text = L10n.T("layout.fill");
 
             Bind.Choice(new List<(Button, int)>
@@ -73,13 +95,8 @@ namespace Dennoko.UVMaskMaker
             };
             Bind.Choice(bgItems, SettingKeys.UVLayoutBackgroundMode, () => SettingsService.Get(SettingKeys.UVLayoutBackgroundMode));
 
-            var lineItems = new List<(Button, UVLayoutLineColor)>
-            {
-                (Text(root, "layout-line-white", "layout.white"), UVLayoutLineColor.White),
-                (Text(root, "layout-line-black", "layout.black"), UVLayoutLineColor.Black),
-                (Text(root, "layout-line-cyan", "layout.cyan"), UVLayoutLineColor.Cyan),
-            };
-            Bind.Choice(lineItems, SettingKeys.UVLayoutLine, () => SettingsService.Get(SettingKeys.UVLayoutLine));
+            LineColorChoice(root, "layout-seam", SettingKeys.UVLayoutSeamColor);
+            LineColorChoice(root, "layout-wire", SettingKeys.UVLayoutWireColor);
 
             var fillItems = new List<(Button, UVLayoutFillColor)>
             {
@@ -90,16 +107,20 @@ namespace Dennoko.UVMaskMaker
             };
             Bind.Choice(fillItems, SettingKeys.UVLayoutFill, () => SettingsService.Get(SettingKeys.UVLayoutFill));
 
+            // 書き出せたら閉じる。失敗時は開いたまま、このウィンドウのステータスにエラーを出す
             var write = Text(root, "layout-write", "button.writeLayout");
-            write.clicked += SessionCommands.ExportUVLayout;
+            write.clicked += () =>
+            {
+                if (SessionCommands.ExportUVLayout()) Dismiss();
+            };
 
             // 書き出さずに閉じる（Esc でも同じ）
-            Text(root, "layout-cancel", "button.cancel").clicked += Cancel;
+            Text(root, "layout-cancel", "button.cancel").clicked += Dismiss;
             root.RegisterCallback<KeyDownEvent>(e =>
             {
                 if (e.keyCode != KeyCode.Escape) return;
                 e.StopPropagation();
-                Cancel();
+                Dismiss();
             }, TrickleDown.TrickleDown);
 
             // 対象・保存名・書き出しの可否は作業の有無に従う
@@ -117,8 +138,8 @@ namespace Dennoko.UVMaskMaker
             _status.RegisterCallback<ClickEvent>(_ => PingStatus());
         }
 
-        /// <summary>タブを閉じてツールタブへ戻る。設定は書き換えた時点で保存済みなので、閉じるだけでよい。</summary>
-        private void Cancel()
+        /// <summary>ウィンドウを閉じてツールタブへ戻る。設定は書き換えた時点で保存済みなので、閉じるだけでよい。</summary>
+        private void Dismiss()
         {
             Close();
             if (HasOpenInstances<MaskMakerWindow>()) FocusWindowIfItsOpen<MaskMakerWindow>();
@@ -129,6 +150,18 @@ namespace Dennoko.UVMaskMaker
             var t = root.Q<Toggle>(name);
             t.text = L10n.T(textKey);
             Bind.Toggle(t, s);
+        }
+
+        private static void LineColorChoice(VisualElement root, string prefix, Setting<UVLayoutLineColor> s)
+        {
+            var items = new List<(Button, UVLayoutLineColor)>
+            {
+                (Text(root, prefix + "-red", "layout.red"), UVLayoutLineColor.Red),
+                (Text(root, prefix + "-white", "layout.white"), UVLayoutLineColor.White),
+                (Text(root, prefix + "-black", "layout.black"), UVLayoutLineColor.Black),
+                (Text(root, prefix + "-cyan", "layout.cyan"), UVLayoutLineColor.Cyan),
+            };
+            Bind.Choice(items, s, () => SettingsService.Get(s));
         }
 
         private static Button Text(VisualElement root, string name, string textKey)

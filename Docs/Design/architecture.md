@@ -129,8 +129,8 @@
 │  │  ├─ Window/
 │  │  │  ├─ MaskMakerWindow.cs / .uxml    ヘッダー・サマリ・フッター・ステータスバー
 │  │  │  ├─ TargetCard.cs
-│  │  │  ├─ UVCard.cs                     UV ビューのカード（表示を戻す・ベース重ね・UV 展開図タブを開く）
-│  │  │  ├─ UVLayoutWindow.cs/.uxml       UV 展開図の書き出しタブ（ツールタブの隣に開く）
+│  │  │  ├─ UVCard.cs                     UV ビューのカード（表示を戻す・ベース重ね・UV 展開図ウィンドウを開く）
+│  │  │  ├─ UVLayoutWindow.cs/.uxml       UV 展開図の書き出しウィンドウ（フローティング）
 │  │  │  ├─ UVViewElement.cs              UV ビュー本体（表示・選択・ペイント・ズーム/パン・ドロップ取り込み）
 │  │  │  └─ OutputCard.cs
 │  │  ├─ Scene/

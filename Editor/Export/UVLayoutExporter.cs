@@ -9,9 +9,8 @@ namespace Dennoko.UVMaskMaker
     /// <summary>UV 展開図の書き出し（Impl export §4）。</summary>
     internal static class UVLayoutExporter
     {
-        private static readonly Color SeamColor = new Color(1f, 0.2f, 0.2f, 1f); // #FF3333
-
-        public static void Export(WorkSession s)
+        /// <summary>書き出して true を返す。書き込みに失敗したら false（エラーは通知済み）。</summary>
+        public static bool Export(WorkSession s)
         {
             var gpu = s.Gpu;
             int size = Mathf.Clamp(SettingsService.Get(SettingKeys.UVLayoutSize), 64, 8192);
@@ -52,12 +51,12 @@ namespace Dennoko.UVMaskMaker
                     if (SettingsService.Get(SettingKeys.UVLayoutWireframe))
                     {
                         wire.SetUV(s.Analysis.WireEdges, filter);
-                        Draw(line, wire, LineColor(), 1f);
+                        Draw(line, wire, LineColor(SettingsService.Get(SettingKeys.UVLayoutWireColor)), 1f);
                     }
                     if (SettingsService.Get(SettingKeys.UVLayoutSeams))
                     {
                         seams.SetUV(s.Analysis.BorderEdges, filter);
-                        Draw(line, seams, SeamColor, 2f);
+                        Draw(line, seams, LineColor(SettingsService.Get(SettingKeys.UVLayoutSeamColor)), 2f);
                     }
                 }
 
@@ -75,11 +74,13 @@ namespace Dennoko.UVMaskMaker
                     Origin = MessageOrigin.Window,
                     AssetPath = path,
                 });
+                return true;
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is InvalidOperationException)
             {
                 Debug.LogException(e);
                 Notifier.Post(MessageLevel.Error, L10n.T("status.writeFailed"));
+                return false;
             }
             finally
             {
@@ -156,12 +157,13 @@ namespace Dennoko.UVMaskMaker
             return result;
         }
 
-        private static Color LineColor()
+        private static Color LineColor(UVLayoutLineColor c)
         {
-            switch (SettingsService.Get(SettingKeys.UVLayoutLine))
+            switch (c)
             {
                 case UVLayoutLineColor.Black: return Color.black;
                 case UVLayoutLineColor.Cyan: return new Color(0f, 0.898f, 1f, 1f); // #00E5FF
+                case UVLayoutLineColor.Red: return new Color(1f, 0.2f, 0.2f, 1f);  // #FF3333
                 default: return Color.white;
             }
         }

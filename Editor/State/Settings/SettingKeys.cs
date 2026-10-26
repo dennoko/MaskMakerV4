@@ -22,6 +22,7 @@ namespace Dennoko.UVMaskMaker
         White = 0,
         Black = 1,
         Cyan = 2,
+        Red = 3,
     }
 
     public enum UVLayoutFillColor
@@ -80,7 +81,8 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<bool> UVLayoutColorFill = new Setting<bool>("UVLayoutColorFill", false, T);
         public static readonly Setting<UVLayoutFillColor> UVLayoutFill = new Setting<UVLayoutFillColor>("UVLayoutFillColor", UVLayoutFillColor.Islands, T);
         public static readonly Setting<UVLayoutBackground> UVLayoutBackgroundMode = new Setting<UVLayoutBackground>("UVLayoutBackground", UVLayoutBackground.Transparent, T);
-        public static readonly Setting<UVLayoutLineColor> UVLayoutLine = new Setting<UVLayoutLineColor>("UVLayoutLineColor", UVLayoutLineColor.White, T);
+        public static readonly Setting<UVLayoutLineColor> UVLayoutWireColor = new Setting<UVLayoutLineColor>("UVLayoutLineColor", UVLayoutLineColor.White, T);
+        public static readonly Setting<UVLayoutLineColor> UVLayoutSeamColor = new Setting<UVLayoutLineColor>("UVLayoutSeamColor", UVLayoutLineColor.Red, T);
         public static readonly Setting<string> MaterialSlot = new Setting<string>("MaterialSlot", "", T);
         public static readonly Setting<string> LastOutputPath = new Setting<string>("LastOutputPath", "", T);
         public static readonly Setting<string> LastOutputInvPath = new Setting<string>("LastOutputInvPath", "", T);

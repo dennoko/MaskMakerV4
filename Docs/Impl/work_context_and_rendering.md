@@ -142,7 +142,8 @@ $$\text{Session} \;>\; \text{Target} \;>\; \text{Project} \;>\; \text{User} \;>\
 | `UVLayoutSelectionOnly` / `UVLayoutColorFill` | bool | false | Target | |
 | `UVLayoutFillColor` | enum | Islands | Target | [export.md](export.md) §4.1 |
 | `UVLayoutBackground` | enum | Transparent | Target | |
-| `UVLayoutLineColor` | enum | White | Target | |
+| `UVLayoutLineColor`（内部エッジ） | enum | White | Target | |
+| `UVLayoutSeamColor`（縁） | enum | Red | Target | |
 | `MaterialSlot` | string | なし | Target | [export.md](export.md) §5.2 |
 | `LastOutputPath` / `LastOutputInvPath` / `LastUVLayoutPath` | string | なし | Target | 上書き判定用（UI には出さない） |
 | `InvertMask` | bool | false | Target | 下の層（Project）が既定 |
