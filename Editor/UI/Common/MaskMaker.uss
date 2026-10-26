@@ -158,6 +158,13 @@
     margin-top: 10px;
 }
 
+/* UV 展開図タブのキャンセル（主ボタンの横に同じ高さで並べる） */
+.dennoko-root .unity-button.mm-footer-cancel {
+    height: 34px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
 /* 出力サマリ */
 .dennoko-root .mm-summary {
     flex-direction: row;

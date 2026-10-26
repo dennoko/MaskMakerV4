@@ -37,6 +37,7 @@ namespace Dennoko.UVMaskMaker
             { "button.end", ("終了", "End") },
             { "button.export", ("出  力", "Export") },
             { "button.writeLayout", ("書き出し", "Write") },
+            { "button.cancel", ("キャンセル", "Cancel") },
             { "target.placeholder", ("Renderer を選択", "Select a Renderer") },
             { "output.header", ("出力", "Output") },
             { "output.channel", ("チャンネル", "Channels") },

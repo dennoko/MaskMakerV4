@@ -83,6 +83,15 @@ namespace Dennoko.UVMaskMaker
             var write = Text(root, "layout-write", "button.writeLayout");
             write.clicked += SessionCommands.ExportUVLayout;
 
+            // 書き出さずに閉じる（Esc でも同じ）
+            Text(root, "layout-cancel", "button.cancel").clicked += Cancel;
+            root.RegisterCallback<KeyDownEvent>(e =>
+            {
+                if (e.keyCode != KeyCode.Escape) return;
+                e.StopPropagation();
+                Cancel();
+            }, TrickleDown.TrickleDown);
+
             // 対象・保存名・書き出しの可否は作業の有無に従う
             var target = root.Q<Label>("layout-target");
             var file = root.Q<Label>("layout-file");
@@ -96,6 +105,13 @@ namespace Dennoko.UVMaskMaker
 
             _status = root.Q<Label>("status-label");
             _status.RegisterCallback<ClickEvent>(_ => PingStatus());
+        }
+
+        /// <summary>タブを閉じてツールタブへ戻る。設定は書き換えた時点で保存済みなので、閉じるだけでよい。</summary>
+        private void Cancel()
+        {
+            Close();
+            if (HasOpenInstances<MaskMakerWindow>()) FocusWindowIfItsOpen<MaskMakerWindow>();
         }
 
         private static void Toggle(VisualElement root, string name, string textKey, Setting<bool> s)
