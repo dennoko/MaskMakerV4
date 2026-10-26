@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Dennoko.UVMaskMaker.Core"
+        "Dennoko.UVMaskMaker.Core",
+        "Dennoko.UVMaskMaker.Editor"
     ],
     "includePlatforms": [
         "Editor"
