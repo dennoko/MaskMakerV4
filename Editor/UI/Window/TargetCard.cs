@@ -58,10 +58,23 @@ namespace Dennoko.UVMaskMaker
                 SessionController.Restart();
             });
 
-            Selection.selectionChanged += OnSelectionChanged;
+            // パネルにある間だけ選択の変化を受け取る。タブの切替・ドッキング・最大化でパネルから外れても、
+            // 戻った時に購読し直し、外れている間に変わった選択を読み直す
+            root.RegisterCallback<AttachToPanelEvent>(_ =>
+            {
+                SubscribeSelection();
+                OnSelectionChanged();
+            });
             root.RegisterCallback<DetachFromPanelEvent>(_ => Selection.selectionChanged -= OnSelectionChanged);
+            if (root.panel != null) SubscribeSelection();
             OnSelectionChanged();
             UiHub.Watch(root.Q("target-card"), Refresh);
+        }
+
+        private void SubscribeSelection()
+        {
+            Selection.selectionChanged -= OnSelectionChanged;
+            Selection.selectionChanged += OnSelectionChanged;
         }
 
         private void OnSelectionChanged()
