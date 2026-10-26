@@ -24,6 +24,14 @@ namespace Dennoko.UVMaskMaker
         Cyan = 2,
     }
 
+    public enum UVLayoutFillColor
+    {
+        Islands = 0,
+        White = 1,
+        Black = 2,
+        Cyan = 3,
+    }
+
     public enum UILanguage
     {
         Auto = 0,
@@ -70,6 +78,7 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<bool> UVLayoutSeams = new Setting<bool>("UVLayoutSeams", true, T);
         public static readonly Setting<bool> UVLayoutSelectionOnly = new Setting<bool>("UVLayoutSelectionOnly", false, T);
         public static readonly Setting<bool> UVLayoutColorFill = new Setting<bool>("UVLayoutColorFill", false, T);
+        public static readonly Setting<UVLayoutFillColor> UVLayoutFill = new Setting<UVLayoutFillColor>("UVLayoutFillColor", UVLayoutFillColor.Islands, T);
         public static readonly Setting<UVLayoutBackground> UVLayoutBackgroundMode = new Setting<UVLayoutBackground>("UVLayoutBackground", UVLayoutBackground.Transparent, T);
         public static readonly Setting<UVLayoutLineColor> UVLayoutLine = new Setting<UVLayoutLineColor>("UVLayoutLineColor", UVLayoutLineColor.White, T);
         public static readonly Setting<string> MaterialSlot = new Setting<string>("MaterialSlot", "", T);

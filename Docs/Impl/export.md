@@ -99,7 +99,8 @@ public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
 | `UVLayoutWireframe` | `bool` | `true` | 全三角形の辺を描く |
 | `UVLayoutSeams` | `bool` | `true` | UV 境界（`BorderEdges`）を強調色で太く描く |
 | `UVLayoutSelectionOnly` | `bool` | `false` | 選択済み三角形だけを描く |
-| `UVLayoutColorFill` | `bool` | `false` | 島ごとに半透明の識別色で塗り分ける |
+| `UVLayoutColorFill` | `bool` | `false` | 半透明の識別色または単色でポリゴン面を塗り分ける |
+| `UVLayoutFillColor` | `enum` (Islands, White, Black, Cyan) | `Islands` | 面の塗り色（島ごと / 白 / 黒 / シアン、不透明度 0.35） |
 | `UVLayoutBackground` | `enum` (Transparent, BaseTexture) | `Transparent` | 透過背景、またはベーステクスチャ |
 | `UVLayoutLineColor` | `enum` (White, Black, Cyan) | `White` | 線の色（白 `#FFFFFF` / 黒 `#000000` / シアン `#00E5FF`） |
 
@@ -107,7 +108,7 @@ public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
 
 ### 4.2 描画手順
 1. **背景**: Transparent は全画素 `(0,0,0,0)`。BaseTexture はベーステクスチャの元ファイルを `LoadImage` で読み、`UVLayoutSize` の正方形に引き伸ばして敷く。
-2. **島の塗り分け**（`UVLayoutColorFill`）: 島 $g$ の色相を $h_g = \text{frac}(g \times 0.618034)$（黄金比で隣の番号ほど色相が離れる）、彩度 0.45、明度 1.0、不透明度 0.35 とし、[mask_processing.md](mask_processing.md) §4 と同じ規則でラスタライズして重ねる。
+2. **面の塗り分け**（`UVLayoutColorFill`）: `UVLayoutFillColor` が `Islands` の場合は島 $g$ の色相を $h_g = \text{frac}(g \times 0.618034)$（黄金比で隣の番号ほど色相が離れる）、彩度 0.45、明度 1.0、不透明度 0.35 とする。単色（White / Black / Cyan）の場合は各色の不透明度 0.35 とし、[mask_processing.md](mask_processing.md) §4 と同じ規則でラスタライズして重ねる。
 3. **ワイヤーフレーム**（`UVLayoutWireframe`）: 各三角形の 3 辺を線幅 1px のアンチエイリアス付き線で描く。共有辺は 1 回だけ描く。
 4. **UV 境界**（`UVLayoutSeams`）: `BorderEdges`（[mesh_analysis.md](mesh_analysis.md) §5.2）を線幅 2px、`#FF3333` で描く。
 5. **書き出し**: `{folder}/{FileName}_uv.png`。上書き・連番の規則は §3.2 と同じ（`LastUVLayoutPath` を記録）。インポーター設定は §2.2 と同じ仕組みで、初回インポート時に `sRGBTexture = true`、`alphaIsTransparency = true`、`mipmapEnabled = false`、`textureCompression = Uncompressed` を当てる。

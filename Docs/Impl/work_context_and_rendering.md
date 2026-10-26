@@ -140,6 +140,7 @@ $$\text{Session} \;>\; \text{Target} \;>\; \text{Project} \;>\; \text{User} \;>\
 | `UVLayoutSize` | int | 2048 | Target | [export.md](export.md) §4.1 |
 | `UVLayoutWireframe` / `UVLayoutSeams` | bool | true | Target | |
 | `UVLayoutSelectionOnly` / `UVLayoutColorFill` | bool | false | Target | |
+| `UVLayoutFillColor` | enum | Islands | Target | [export.md](export.md) §4.1 |
 | `UVLayoutBackground` | enum | Transparent | Target | |
 | `UVLayoutLineColor` | enum | White | Target | |
 | `MaterialSlot` | string | なし | Target | [export.md](export.md) §5.2 |

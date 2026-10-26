@@ -64,6 +64,8 @@ namespace Dennoko.UVMaskMaker
             { "layout.white", ("白", "White") },
             { "layout.black", ("黒", "Black") },
             { "layout.cyan", ("シアン", "Cyan") },
+            { "layout.fill", ("面色", "Fill") },
+            { "layout.islands", ("島ごと", "Islands") },
             { "summary.folder.texture", ("テクスチャと同じ場所", "Next to texture") },
             { "tooltip.settings", ("設定", "Settings") },
             { "tooltip.reload", ("更新を確認", "Check for updates") },

@@ -33,7 +33,7 @@ namespace Dennoko.UVMaskMaker
                     if (SettingsService.Get(SettingKeys.UVLayoutColorFill))
                     {
                         colors = gpu.CreateBuffer(s.Analysis.TriangleCount, 16);
-                        colors.SetData(IslandColors(s));
+                        colors.SetData(FillColors(s));
                         var m = gpu.UVRaster;
                         s.Tri.Bind(m);
                         m.SetBuffer(ShaderIds.TriColors, colors);
@@ -112,6 +112,30 @@ namespace Dennoko.UVMaskMaker
                 GL.Clear(false, true, new Color(0, 0, 0, 0));
             }
             RenderTexture.active = prev;
+        }
+
+        /// <summary>ポリゴン（面）の塗りつぶし色。島ごと（黄金比色相）または単色。</summary>
+        private static Vector4[] FillColors(WorkSession s)
+        {
+            var mode = SettingsService.Get(SettingKeys.UVLayoutFill);
+            if (mode == UVLayoutFillColor.Islands) return IslandColors(s);
+
+            bool linear = QualitySettings.activeColorSpace == ColorSpace.Linear;
+            Color baseColor;
+            switch (mode)
+            {
+                case UVLayoutFillColor.White: baseColor = Color.white; break;
+                case UVLayoutFillColor.Black: baseColor = Color.black; break;
+                case UVLayoutFillColor.Cyan:  baseColor = new Color(0f, 0.898f, 1f, 1f); break;
+                default:                      baseColor = Color.white; break;
+            }
+            baseColor.a = 0.35f;
+            Color c = linear ? baseColor.linear : baseColor;
+            var v = (Vector4)c;
+
+            var result = new Vector4[s.Analysis.TriangleCount];
+            for (int t = 0; t < result.Length; t++) result[t] = v;
+            return result;
         }
 
         /// <summary>島ごとの色。黄金比で色相を進めて、隣の番号ほど色が離れるようにする。</summary>

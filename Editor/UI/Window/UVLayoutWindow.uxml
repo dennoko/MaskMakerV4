@@ -37,6 +37,14 @@
                 <ui:Button name="layout-line-black" text="黒" class="mm-choice" />
                 <ui:Button name="layout-line-cyan" text="シアン" class="mm-choice" />
             </ui:VisualElement>
+
+            <ui:Label name="layout-fill-label" text="面色" class="dennoko-text-tertiary mm-layout-label" />
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="layout-fill-islands" text="島ごと" class="mm-choice" />
+                <ui:Button name="layout-fill-white" text="白" class="mm-choice" />
+                <ui:Button name="layout-fill-black" text="黒" class="mm-choice" />
+                <ui:Button name="layout-fill-cyan" text="シアン" class="mm-choice" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:ScrollView>
 

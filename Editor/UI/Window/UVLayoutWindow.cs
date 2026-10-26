@@ -51,6 +51,7 @@ namespace Dennoko.UVMaskMaker
             root.Q<Label>("layout-elements-label").text = L10n.T("layout.elements");
             root.Q<Label>("layout-background-label").text = L10n.T("layout.background");
             root.Q<Label>("layout-line-label").text = L10n.T("layout.line");
+            root.Q<Label>("layout-fill-label").text = L10n.T("layout.fill");
 
             Bind.Choice(new List<(Button, int)>
             {
@@ -79,6 +80,15 @@ namespace Dennoko.UVMaskMaker
                 (Text(root, "layout-line-cyan", "layout.cyan"), UVLayoutLineColor.Cyan),
             };
             Bind.Choice(lineItems, SettingKeys.UVLayoutLine, () => SettingsService.Get(SettingKeys.UVLayoutLine));
+
+            var fillItems = new List<(Button, UVLayoutFillColor)>
+            {
+                (Text(root, "layout-fill-islands", "layout.islands"), UVLayoutFillColor.Islands),
+                (Text(root, "layout-fill-white", "layout.white"), UVLayoutFillColor.White),
+                (Text(root, "layout-fill-black", "layout.black"), UVLayoutFillColor.Black),
+                (Text(root, "layout-fill-cyan", "layout.cyan"), UVLayoutFillColor.Cyan),
+            };
+            Bind.Choice(fillItems, SettingKeys.UVLayoutFill, () => SettingsService.Get(SettingKeys.UVLayoutFill));
 
             var write = Text(root, "layout-write", "button.writeLayout");
             write.clicked += SessionCommands.ExportUVLayout;
