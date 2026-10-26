@@ -12,12 +12,20 @@
 | :-: | :--- | :--- | :--- |
 | 1 | `ScriptableSingleton` に `Undo.RecordObject` した履歴が、ドメインリロード後も Ctrl+Z で戻せる | リロード後に Undo で値が戻り、`undoRedoPerformed` が呼ばれる | リロード前に履歴を捨てる仕様にする（UI 設計に注記） |
 | 2 | `EditorWindow.OnDestroy` がドメインリロードでは呼ばれない | ウィンドウを閉じた時だけ呼ばれる | `SessionState` に「リロード中」フラグを立てて区別 |
-| 3 | 作業中コンテキストのショートカットが、Unity 既定の `Ctrl+A`・`X`・`E`・`Tab`・`1〜3`・`B` より優先される | ツール有効中は本ツールの処理だけが走る | 競合するキーだけ `OnToolGUI` の `KeyDown` で直接処理 |
+| 3 | タグ付きショートカット（SceneView + `UVMaskMaker.Working`）が、Unity 既定の `Ctrl+A`・`X`・`E`・`Tab`・`1〜3`・`B` より優先される | ツール有効中は本ツールの処理だけが走る | 競合するキーだけ `OnToolGUI` の `KeyDown` で直接処理 |
 | 4 | `UVToClip` の上下反転が D3D11 / Metal / Vulkan で正しい | 既知の三角形を R8 RT に描いて読み戻し、期待画素と一致 | 反転条件を `_ProjectionParams.x` に切り替え |
 | 5 | NDMF プレビューから、変形適用後のメッシュと対応する Renderer を取得できる | MA で衣装を統合したアバターで、プレビューと同じ形のメッシュが得られる | NDMF 連携を後回しにし、元のメッシュで作業（情報表示） |
 | 6 | `AssetImporter.importSettingsMissing` が新規ファイルの初回インポートで true | PNG を新規に書いた直後の `OnPreprocessTexture` で true、2 回目以降は false | 登録したパスに対して 1 回だけ設定を当て、登録を消す |
 | 7 | 内蔵アイコン名（UI 設計 §2.6.6）が 2022.3 と Unity 6 で引ける | 確認メニューで null が 0 件 | 見つからない物を別アイコンか 3 字以内の語に |
 | 8 | `AsyncGPUReadback.WaitForCompletion` で R8 4096² を読む時間 | 20ms 以下 | 確定を非同期にし、完了まで次のストローク開始を待たせる |
+| 9 | SkinnedMeshRenderer で `BakeMesh(mesh, false)` + `localToWorldMatrix` の位置が表示と一致する（スケール付きの Renderer で） | マスクとシームがメッシュに重なる | `BakeMesh(mesh, true)` + スケール 1 の行列に替える（`WorkMesh` だけの変更） |
+| 10 | SceneView で Ctrl + 右ドラッグ・Shift + ホイールが、Unity のカメラ操作より先にツールへ届く | ブラシ伸縮・拡張/縮小が効き、カメラが動かない | `SceneView.beforeSceneGui` で先に拾う |
+
+### 1.1 現在の状況（2026-10-26）
+
+- M1〜M7 の実装は完了。Unity 同梱のコンパイラで Core / Editor / Tests の 3 アセンブリがコンパイルでき、Unity 外（mono）で実行できるテスト 31 件（Core 28、Persistence 3）は全て通る。
+- 上の表の項目と GPU テスト（§3.2）、ライフサイクルの手動確認（§3.3）は、Unity エディタ上での確認が必要（未実施）。
+- M8（NDMF 連携）は未着手。この環境に NDMF が無く API を確かめられないため、拡張点（`IWorkMeshSource` / `WorkMeshSources.Register`）だけを用意してある。
 
 ---
 

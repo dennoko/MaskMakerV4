@@ -29,7 +29,7 @@
 
 ### 2.4 作業メッシュとポーズ追従
 - **MeshRenderer**: `MeshFilter.sharedMesh`（NDMF 適用後があればそれ）を作業メッシュとする。
-- **SkinnedMeshRenderer**: 現在のポーズで変形したメッシュを `BakeMesh(mesh, useScale: true)` で作り、Renderer の `localToWorldMatrix` で配置する。
+- **SkinnedMeshRenderer**: 現在のポーズで変形したメッシュを `BakeMesh(mesh, useScale: false)`（スケールを含まない Renderer ローカル）で作り、Renderer の `localToWorldMatrix` で配置する。
 - 作業メッシュの頂点は Renderer のローカル空間で保持する（ピッキング・ワールド空間ブラシ・オーバーレイ描画が共有）。
 - **ポーズの変化**: Renderer とボーンの `localToWorldMatrix` から作る軽いハッシュを SceneView の再描画ごとに比べ、変わっていたら焼き直す（ドラッグ中は 0.2 秒まとめる）。三角形の並びは変わらないので、解析・選択・手塗りはそのまま使える。
 

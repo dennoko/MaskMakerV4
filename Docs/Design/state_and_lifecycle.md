@@ -197,7 +197,7 @@ SessionController.Current = session;
 ### 5.5 SceneView 入力の受け口
 - 入力は作業用 `EditorTool`（`MaskMakerTool.OnToolGUI`）で受けます。Unity の他のツールに切り替わると自動で一時停止になります（UI 設計 §2.6.7）。
 - 描画（マスク・シーム）は一時停止中も続けるため、`SceneView.duringSceneGui` で行います（作業開始で購読、終了で解除）。
-- ショートカットは作業中コンテキスト（`IShortcutToolContext`）に登録し、ツールが有効な間だけ効かせます。C（ラジアル）と Space（一時停止）は押している間だけ効くので `[ClutchShortcut]` にします。Undo / Redo は Unity 標準のものを使うので登録しません。
+- ショートカットは SceneView のコンテキストにタグ `UVMaskMaker.Working` 付きで登録し、作業中かつ作業ツールが有効な間だけ `ShortcutManager.RegisterTag` します（`IShortcutToolContext` は 2022.3 では internal）。C（ラジアル）と Space（一時停止）は押している間だけ効くので `[ClutchShortcut]` にします。Undo / Redo は Unity 標準のものを使うので登録しません。
 
 ---
 

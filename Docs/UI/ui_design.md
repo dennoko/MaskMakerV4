@@ -230,7 +230,7 @@ graph LR
 ### 2.6.7 ショートカット
 
 - クイック出力は `Ctrl+Enter`。Unity の既定プロファイルでは `Ctrl+Enter` に割り当ては無いはずだが、実機の Edit > Shortcuts で検索して確認する。
-- 全てのキーは**作業中だけ有効な Shortcut Context** に登録する。`X`（ピボット回転の切替）や `E`（回転ツール）など Unity 既定と重なるキーも、作業中だけ本ツールが優先され、作業終了で元に戻る。
+- 全てのキーは SceneView のコンテキストに、**作業中だけ登録するタグ**（`ShortcutManager.RegisterTag`）付きで登録する。`X`（ピボット回転の切替）や `E`（回転ツール）など Unity 既定と重なるキーも、作業中だけ本ツールが優先され、作業終了で元に戻る。
 - ラジアルの `C` と一時停止の `Space` を同じキーにはしない（以前の「または Space」は削除）。
 - **既存の慣習に合わせる**: `B / M / L / E` と `[ ]`（Photoshop）、`Ctrl+Z / Ctrl+Y / Ctrl+A`（Windows・Unity）、`Ctrl+I`（Blender の選択反転）。キーの意味を新しく覚えさせない。
 - 作業中に Unity のツール（`W` 移動 / `R` 拡縮 / `T` 矩形など）へ切り替えると自動で一時停止になる（カプセルの一時停止ボタンが青枠）。本ツールのキー（`Tab` / `1`〜`3` / `B` など）か一時停止ボタンで作業に戻る。
@@ -259,7 +259,7 @@ graph LR
 通知はどちらか一方にだけ出す（§2.6.1 原則 4）。出力した場所に出すので、視線を動かさずに結果を確認できる。
 
 **対象の決め方（Idle）**
-- 入口は 3 つで、どれも同じ開始処理を呼ぶ: タブの「作業開始」、シーンの開始バッジ、Hierarchy の右クリック `Mask Maker で編集`。ウィンドウはメニュー `Tools/UV Mask Maker` で開く（バッジ・右クリックからはウィンドウも自動で開く）。
+- 入口は 3 つで、どれも同じ開始処理を呼ぶ: タブの「作業開始」、シーンの開始バッジ、Hierarchy の右クリック `MaskMaker V4 で編集`。ウィンドウはメニュー `dennokoworks/MaskMaker V4` で開く（バッジ・右クリックからはウィンドウも自動で開く）。
 - **Renderer を選択中**: 対象欄に自動入力。主ボタン 1 回で開始。
 - **複数の Renderer を含む親（アバター・衣装のルート）を選択中**: 対象欄が子 Renderer の一覧（アイコン＋名前）になる。前回作業した Renderer（無ければ頂点数が最大のもの）を既定にして、主ボタンでそのまま開始。他の項目はクリックで即開始。
 - 開始バッジから親を対象にした場合は、シーン上でホバーした Renderer を縁取り、クリックしたものを対象にして開始する（タブへマウスを動かさない）。
@@ -627,7 +627,7 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
 - **入力競合保護**:
   - `HandleUtility.AddDefaultControl` を適切に使用する。右ボタンドラッグは Ctrl 押下中だけ本ツールが消費し（ブラシ伸縮）、それ以外の右ドラッグ（フライスルー）・Alt・中ボタンは Unity 標準カメラ操作を 100% 優先する。
 - **作業ツール**:
-  - 作業中は独自の `EditorTool` をアクティブにし、Shortcut Context をそれに紐付ける。Unity の他ツールへ切り替わったら一時停止扱いにする（§2.6.7）。
+  - 作業中は独自の `EditorTool` をアクティブにし、そのツールが有効な間だけショートカットのタグを登録する。Unity の他ツールへ切り替わったら一時停止扱いにする（§2.6.7）。
   - 作業中は `EventType.MouseEnterWindow` で SceneView に `Focus()` を移し、キーがマウス位置のビューに届くようにする。
 - **作業状態の保存と復元**:
   - 選択は三角形インデックスのビット列、手塗りは連長圧縮して `UserSettings/UVMaskMaker/targets/{TargetKey}/session.bin` に保存する。メッシュハッシュ（頂点数・サブメッシュ数・インデックス）で一致を確認し、不一致なら復元しない（`Docs/Impl/mask_processing.md` §3.5）。
@@ -643,7 +643,7 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
 - **アイコン確認**:
   - §2.6.6 の名前を `EditorGUIUtility.FindTexture` で引き、null のものを Console に列挙するメニューを用意する。Unity 2022.3 / Unity 6 の両方で実行してから確定する。
 - **ショートカット**:
-  - `ShortcutManagement` の `IShortcutToolContext` を実装した作業中専用コンテキストに、全キーを `[Shortcut(..., typeof(コンテキスト))]` で登録する。
+  - 全キーを `[Shortcut(id, typeof(SceneView), "UVMaskMaker.Working", key)]` で登録し、作業中かつ作業ツールが有効な間だけ `ShortcutManager.RegisterTag("UVMaskMaker.Working")` する（`IShortcutToolContext` は 2022.3 では internal のため使えない）。C と Space は `[ClutchShortcut]`。Undo / Redo は Unity 標準。
 - **迷い検知ヒント**:
   - ヒントごとに表示回数を `EditorPrefs` に保存し、3 回で以後出さない。同時に出すヒントは 1 件。
 - **テーマ検証**:

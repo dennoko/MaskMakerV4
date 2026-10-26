@@ -38,159 +38,119 @@
 
 ## 3. フォルダ・ファイル構成
 
-リポジトリのルートを UPM パッケージのルートとします（パッケージ名は仮に `jp.dennokoworks.uvmaskmaker`）。
+リポジトリのルートが、そのまま Unity プロジェクトの `Assets/dennokoworks/MaskMaker V4/` になります（他の dennokoworks ツールと同じ配置）。メニューは `dennokoworks/MaskMaker V4`。
 
 ```
-/
-├─ package.json
-├─ Docs/                                  … 仕様・設計（Impl / UI / Design）
+/                                         … Assets/dennokoworks/MaskMaker V4/
+├─ version.json (+ .meta)                 バージョン表示・更新確認（GUID 固定）
+├─ Docs/                                  仕様・設計（Impl / UI / Design）
 ├─ Editor/
-│  ├─ Core/                               … [asmdef] Dennoko.UVMaskMaker.Core
+│  ├─ AssemblyInfo.cs                     InternalsVisibleTo（テスト用）
+│  ├─ Dennoko.UVMaskMaker.Editor.asmdef
+│  ├─ Core/                               … [asmdef] Dennoko.UVMaskMaker.Core（UnityEditor を参照しない）
 │  │  ├─ Analysis/
-│  │  │  ├─ MeshInput.cs                  解析の入力（頂点・インデックス・UV・サブメッシュ範囲）の値オブジェクト
-│  │  │  ├─ MeshAnalyzer.cs               解析の入口。下の各段を順に呼ぶだけ
-│  │  │  ├─ MeshAnalysis.cs               解析結果（Impl overview §5.3）
-│  │  │  ├─ GroupTable.cs                 CSR のグループ表
-│  │  │  ├─ VertexIds.cs                  位置・UV の量子化と正準 ID（Impl mesh_analysis §3）
-│  │  │  ├─ EdgeTable.cs                  辺の辞書、境界・シーム、三角形隣接（§4–5）
+│  │  │  ├─ MeshAnalysis.cs               入力 MeshInput・結果 MeshAnalysis・辺の型・粒度の enum
+│  │  │  ├─ MeshAnalyzer.cs               解析の入口（各段を順に呼ぶ）とメッシュハッシュ（Impl mesh_analysis §9）
+│  │  │  ├─ GroupTable.cs                 CSR のグループ表（Union-Find から / 恒等）
+│  │  │  ├─ VertexIds.cs                  位置・UV の量子化と EdgeKey（§3–4）
+│  │  │  ├─ EdgeTable.cs                  境界・シーム・ワイヤー・三角形隣接（§5）
 │  │  │  ├─ UnionFind.cs
-│  │  │  ├─ Grouping.cs                   島・パーツのグループ化と外周（§6）
+│  │  │  ├─ Grouping.cs                   島・パーツと外周（§6）
 │  │  │  ├─ UVWrap.cs                     UV 範囲外の補正（§7）
-│  │  │  ├─ MirrorMapBuilder.cs           左右対称の対応表（§8）
-│  │  │  └─ MeshHash.cs                   （§9）
+│  │  │  └─ MirrorMapBuilder.cs           左右対称の対応表（§8）
 │  │  ├─ Selection/
-│  │  │  ├─ TriangleBits.cs               ビット列の基本操作（set/clear/invert/count、有効マスク付き）
-│  │  │  ├─ GroupState.cs                 Full / Partial / None と選択数
-│  │  │  ├─ SelectionOps.cs               追加・除外・トグル・全選択・反転・拡張・縮小
+│  │  │  ├─ TriangleBits.cs               ビット列の基本操作と有効マスク
+│  │  │  ├─ SelectionOps.cs               Full/Partial/None、トグル判定、全選択・反転・拡張・縮小・選択数
 │  │  │  └─ MirrorResolver.cs             対称グループの投票
 │  │  ├─ Picking/
-│  │  │  ├─ MeshRaycaster.cs              Möller–Trumbore（ローカル空間）
-│  │  │  └─ UVGrid.cs                     UV 空間の三角形グリッド
+│  │  │  ├─ MeshRaycaster.cs              Möller–Trumbore（両面）
+│  │  │  └─ UVGrid.cs                     UV グリッド（重なった全候補、回り込み）
 │  │  ├─ Imaging/
-│  │  │  ├─ PaintRle.cs                   手塗りの連長圧縮（Impl mask_processing §3.4）
-│  │  │  ├─ PolygonFill.cs                画面空間の矩形・投げ縄の偶奇塗り
-│  │  │  ├─ MaskEncoder.cs                D → 白黒 / チャンネル書き込みの RGBA 配列
+│  │  │  ├─ PaintRle.cs                   手塗りの連長圧縮
+│  │  │  ├─ PolygonFill.cs                矩形・投げ縄の偶奇塗り
+│  │  │  ├─ MaskEncoder.cs                D → 白黒 / チャンネル書き込み
 │  │  │  └─ ImportThreshold.cs            取り込みの輝度・アルファ判定
-│  │  └─ Util/
-│  │     ├─ Fnv1a.cs
-│  │     └─ Leb128.cs
+│  │  └─ Util/  Fnv1a.cs, Leb128.cs
 │  │
-│  ├─ State/                              … 真実の置き場（§1 原則 1）
-│  │  ├─ EditState.cs                     ScriptableSingleton。選択ビット・PaintRle・TargetKey・MeshHash
-│  │  ├─ EditCommands.cs                  EditState を変える唯一の入口（Undo 記録・リビジョン・保存予約）
+│  ├─ State/                              … 真実の置き場
+│  │  ├─ EditState.cs                     ScriptableSingleton（選択ビット・PaintRle・TargetKey・MeshHash・リビジョン）
+│  │  ├─ EditCommands.cs                  EditState を変える唯一の入口（Undo 記録）
 │  │  └─ Settings/
-│  │     ├─ Setting.cs                    Setting<T>: キー・既定値・書き込み層
+│  │     ├─ Setting.cs                    Setting<T> と層の enum
 │  │     ├─ SettingKeys.cs                全設定の宣言（Impl work_context_and_rendering §4.3 と 1 対 1）
-│  │     ├─ SettingsService.cs            層の解決・書き込み・Changed イベント
-│  │     ├─ SettingCodec.cs               値 ⇄ 文字列（InvariantCulture）
-│  │     └─ Layers/
-│  │        ├─ ISettingsLayer.cs
-│  │        ├─ SessionLayer.cs            ScriptableSingleton（リロードをまたぐ）
-│  │        ├─ TargetLayer.cs             targets/{key}/settings.json
-│  │        ├─ ProjectLayer.cs            ProjectSettings/UVMaskMaker.json
-│  │        └─ UserLayer.cs               EditorPrefs
+│  │     ├─ SettingsService.cs            層の解決・書き込み・上書き判定・Changed
+│  │     ├─ SettingCodec.cs               値 ⇄ 文字列
+│  │     └─ Layers/  KeyValueStore.cs, SettingsLayers.cs（Session / Target / Project / User）
 │  │
 │  ├─ Persistence/
-│  │  ├─ TargetKey.cs                     対象の識別子（Impl work_context_and_rendering §2.5）
-│  │  ├─ StoragePaths.cs                  保存先パスの一元管理
-│  │  ├─ SessionFile.cs                   session.bin の読み書き
-│  │  ├─ AtomicFile.cs                    一時ファイル → 置き換え
-│  │  └─ SaveScheduler.cs                 2 秒遅延の自動保存
+│  │  ├─ Persistence.cs                   StoragePaths・AtomicFile・SaveScheduler・SessionFile
+│  │  └─ TargetKey.cs                     対象の識別子
 │  │
 │  ├─ Session/
-│  │  ├─ SessionController.cs             Current の保持。Start / End / Resume の唯一の入口
-│  │  ├─ SessionLifecycle.cs              [InitializeOnLoad]。Unity のイベント → Controller
-│  │  ├─ StartTransaction.cs              開始途中で失敗した時のロールバック
-│  │  ├─ WorkSession.cs                   作業中の実行時オブジェクト。下記サービスを所有し、破棄も行う
-│  │  ├─ SessionCommands.cs               ユーザー操作の意味づけ（クリック・なぞり・クリア・出力など）
-│  │  ├─ InteractionState.cs              ホバー・ドラッグ中などの一時状態（保存しない）
-│  │  ├─ Isolation.cs                     孤立表示（自分が始めた時だけ解除）
-│  │  └─ WorkMesh/
-│  │     ├─ IWorkMeshSource.cs            作業メッシュの供給元
-│  │     ├─ WorkMeshSources.cs            供給元の登録表（NDMF が自分を登録する）
-│  │     ├─ RendererMeshSource.cs         sharedMesh / BakeMesh
-│  │     ├─ WorkMesh.cs                   ローカル頂点・法線の CPU 配列とポーズリビジョン
-│  │     └─ PoseWatcher.cs                ボーン行列のハッシュでポーズ変化を検知
+│  │  ├─ SessionController.cs             Start / End / SwitchTarget / Restart と自動保存（SessionPersistence）
+│  │  ├─ SessionLifecycle.cs              [InitializeOnLoad]。Unity のイベント → Controller、再開トークン、ショートカットのタグ
+│  │  ├─ SessionSupport.cs                StartTransaction・Isolation・InteractionState
+│  │  ├─ WorkSession.cs                   作業 1 回分の実行時オブジェクト（キャッシュを所有）
+│  │  ├─ SessionCommands.cs               ユーザー操作の意味づけ（UI・ショートカット・入力はここだけを呼ぶ）
+│  │  └─ WorkMesh/WorkMesh.cs             WorkMesh・IWorkMeshSource・WorkMeshSources・RendererMeshSource・PoseWatcher
 │  │
 │  ├─ Gpu/
-│  │  ├─ GpuResources.cs                  RT・Material・Mesh の生成（命名・HideFlags）と一括解放、リーク掃除
-│  │  ├─ ShaderIds.cs                     プロパティ ID とパス番号
-│  │  ├─ TriMesh.cs                       非共有頂点のメッシュと三角形フラグバッファ
-│  │  ├─ LineMesh.cs                      太線用のメッシュ（3D / UV）
-│  │  ├─ MaskPipeline.cs                  Island / Coverage / PaintLow / 余白 / D
-│  │  ├─ PaintSurface.cs                  PaintRT と EditState.PaintRle の同期（確定・復元）
-│  │  ├─ PaintOps.cs                      ブラシ・図形パスの発行
-│  │  ├─ ShapeMask.cs                     画面サイズの図形マスク
-│  │  └─ GpuReadback.cs                   RT → byte[]
+│  │  ├─ GpuResources.cs                  資源の生成・解放・リーク掃除、RenderTargetScope、ShaderIds
+│  │  ├─ TriMesh.cs                       TriMesh（+ 三角形フラグ）と LineMesh
+│  │  ├─ MaskPipeline.cs                  Island / Coverage / 縮小 / 余白 / D
+│  │  ├─ PaintSurface.cs                  PaintRT と PaintRle の同期、GpuReadback
+│  │  └─ PaintOps.cs                      ブラシ・図形・取り込みのパス、ShapeMask、ViewInfo / MirrorInfo
 │  │
 │  ├─ Rendering/
-│  │  ├─ SceneOverlay.cs                  SceneView への描画（マスク・シーム・ホバー・カーソル）
+│  │  ├─ SceneOverlay.cs                  SceneView への描画（マスク・シーム・ホバー・カーソル・修飾キーのバッジ）
 │  │  └─ UVViewRenderer.cs                UV ビューの RT 描画
 │  │
 │  ├─ Input/
-│  │  ├─ MaskMakerTool.cs                 EditorTool。SceneView 入力の受け口、他ツール選択で一時停止
-│  │  ├─ PointerGestures.cs               クリック / ダブルクリック / ドラッグ / Ctrl+右ドラッグの判定（View 共通）
-│  │  ├─ SelectInteraction.cs             選択モードの入力 → SessionCommands
-│  │  ├─ PaintInteraction.cs              ペイントモードの入力 → PaintOps / SessionCommands
-│  │  └─ MaskMakerShortcuts.cs            [Shortcut] / [ClutchShortcut] と作業中コンテキスト
+│  │  ├─ MaskMakerTool.cs                 EditorTool（入力の受け口）
+│  │  ├─ SceneInput.cs                    SceneView の入力の解釈、ブラシ半径、迷い検知ヒント（Hints）
+│  │  ├─ Gestures.cs                      SelectGesture（両ビュー共用）・ScenePaintGesture・PaintCommit
+│  │  └─ MaskMakerShortcuts.cs            [Shortcut] / [ClutchShortcut]
 │  │
 │  ├─ Export/
-│  │  ├─ SourceImage.cs                   元ファイルのバイト列から画像を読む
-│  │  ├─ OutputPaths.cs                   保存先・上書き・連番（Impl export §3）
-│  │  ├─ MaskExporter.cs                  白黒 / チャンネル書き込み
+│  │  ├─ SourceImage.cs                   元ファイルのバイト列から読む・元サイズ・最近傍の拡縮
+│  │  ├─ OutputPaths.cs                   保存先・上書き・連番
+│  │  ├─ MaskExporter.cs                  マスク PNG と MaskTexturePostprocessor（初回インポートだけ設定）
 │  │  ├─ UVLayoutExporter.cs
-│  │  ├─ MaskTexturePostprocessor.cs      初回インポート時の設定（Impl export §2.2）
-│  │  ├─ MaskImporter.cs                  既存マスクの取り込み
-│  │  └─ MaterialApplier.cs               候補スロット・適用
-│  │
-│  ├─ Ndmf/                               … [asmdef] Dennoko.UVMaskMaker.Ndmf（NDMF がある時だけ）
-│  │  └─ NdmfMeshSource.cs
+│  │  ├─ MaskImporter.cs
+│  │  └─ MaterialApplier.cs
 │  │
 │  ├─ UI/
 │  │  ├─ Common/
-│  │  │  ├─ DennokoTheme.uss              スキルのテーマ（コピー）
-│  │  │  ├─ DennokoUIFont.cs
-│  │  │  ├─ MaskMaker.uss                 .mm-* の独自クラス
-│  │  │  ├─ Bind.cs                       設定キー ⇄ UI 要素の結び付け（state_and_lifecycle §3）
-│  │  │  ├─ UiRules.cs                    表示・有効/無効の判定（全ビュー共通の純粋関数）
-│  │  │  ├─ Icons.cs                      内蔵アイコンの取得と確認メニュー
-│  │  │  └─ L10n.cs                       表示文字列（ja / en）
+│  │  │  ├─ DennokoTheme.uss (+ .meta)    スキルのテーマ（GUID 固定）
+│  │  │  ├─ MaskMaker.uss (+ .meta)       .mm-* の固有クラス
+│  │  │  ├─ DennokoUIFont.cs              スキルのフォント（ウォームアップ文字は UI の全日本語）
+│  │  │  ├─ L10n.cs                       表示文字列（ja / en）と Notifier（メッセージの出口）
+│  │  │  └─ UiCommon.cs                   UiAssets・UiHub・Bind・UiRules・Icons・TargetResolver
 │  │  ├─ Window/
-│  │  │  ├─ MaskMakerWindow.cs / .uxml
+│  │  │  ├─ MaskMakerWindow.cs / .uxml    ヘッダー・サマリ・フッター・ステータスバー
 │  │  │  ├─ TargetCard.cs
-│  │  │  ├─ UVViewElement.cs              UV ビュー（表示は UVViewRenderer、入力は Input/ を共用）
-│  │  │  ├─ OutputCard.cs
-│  │  │  ├─ SummaryRow.cs
-│  │  │  └─ StatusBar.cs
+│  │  │  ├─ UVCard.cs                     UV ビューのカード（ベース重ね・UV 展開図ポップアップ）
+│  │  │  ├─ UVViewElement.cs              UV ビュー本体（表示・選択・ペイント・ズーム/パン・ドロップ取り込み）
+│  │  │  └─ OutputCard.cs
 │  │  ├─ Scene/
-│  │  │  ├─ CapsuleOverlay.cs             Overlay + ITransientOverlay（作業中だけ表示）
-│  │  │  ├─ SceneHud.cs                   SceneView.rootVisualElement への常駐ルート（ラジアル・トースト・ヒント）
-│  │  │  ├─ RadialMenu.cs
-│  │  │  ├─ Toast.cs
-│  │  │  ├─ CursorHint.cs
-│  │  │  └─ StartBadge.cs
-│  │  ├─ SettingsPages/
-│  │  │  ├─ MaskMakerPreferences.cs       SettingsProvider（User）
-│  │  │  └─ MaskMakerProjectSettings.cs   SettingsProvider（Project）
-│  │  └─ Version/
-│  │     ├─ DennokoVersionChecker.cs
-│  │     └─ UVMaskMakerVersion.cs
+│  │  │  ├─ CapsuleOverlay.cs / .uxml     手元カプセル（Overlay + ITransientOverlay）
+│  │  │  └─ SceneHud.cs                   開始バッジ・ラジアル・トースト・ヒント
+│  │  ├─ SettingsPages/MaskMakerSettingsPages.cs   Preferences / Project Settings、Hierarchy の右クリック
+│  │  └─ Version/  DennokoVersionChecker.cs, MaskMakerVersion.cs
 │  │
 │  └─ Shaders/
-│     ├─ UVMaskMakerCommon.hlsl           UV → クリップ座標、フラグ定数、カプセル距離、ミラー
-│     ├─ UVRaster.shader                  UV 空間へのメッシュ描画（Island / Coverage / PaintWorld）
-│     ├─ ImageOps.shader                  全画面処理（縮小・余白・PaintView・取り込み OR）
-│     ├─ Overlay.shader                   マスクの表示（SceneView / UV ビュー）
-│     └─ Line.shader                      太線（アンチエイリアス付き）
+│     ├─ UVMaskMakerCommon.hlsl           UV → クリップ座標（上下反転はここだけ）、フラグ、距離関数
+│     ├─ UVRaster.shader                  Island / Coverage / PaintWorld / ColorFill
+│     ├─ ImageOps.shader                  Downsample / DilateH / DilateV / PaintView / ImportOr / Copy
+│     ├─ Overlay.shader                   Scene / UVView
+│     └─ Line.shader                      Line3D / LineUV
 │
-└─ Tests/
-   └─ Editor/                             … [asmdef] Dennoko.UVMaskMaker.Tests
-      ├─ Core/                            解析・選択・ピッキング・RLE・塗りつぶしの単体テスト
-      ├─ Gpu/                             ラスタライズ規則・余白・縮小の読み戻しテスト
-      └─ Persistence/                     保存形式・層の解決のテスト
+└─ Tests/Editor/                          … [asmdef] Dennoko.UVMaskMaker.Tests（UNITY_INCLUDE_TESTS の時だけ）
+   ├─ Core/                               解析・選択・ピッキング・画像処理
+   └─ Persistence/                        session.bin・連番
 ```
 
----
+小さな型は使う側のファイルにまとめています（例: `ShaderIds` は `GpuResources.cs`）。1 ファイルが 300 行を超えたら分けます。
 
 ## 4. 依存ルール
 
@@ -221,7 +181,7 @@ graph TD
 | UI は Gpu を直接操作しない（UV ビューの RT を表示するだけ） | 描画の変更が UI に波及しない |
 | UI / Input が状態を変える時は必ず `SessionCommands` を呼ぶ | 変更の入口を 1 つにし、Undo・保存・通知の漏れを防ぐ |
 | サービスは `WorkSession` が所有し、必要なクラスへコンストラクタで渡す。サービスロケーターや static な参照で取りに行かない | 寿命が `WorkSession` と一致し、破棄漏れが起きない |
-| static で保持してよいのは `SessionController.Current`（リロードで消えても再開処理が作り直す）と、`SessionLifecycle` のイベント購読だけ | ドメインリロード時の不整合を防ぐ |
+| static で保持してよいのは `SessionController.Current`（リロードで消えても再開処理が作り直す）、イベントの購読（`SessionLifecycle` / `UiHub` / `SceneHud`）、ファイルを読み直せばよいキャッシュ（`SettingsService` の永続層、`SaveScheduler` の予約）だけ | ドメインリロード時の不整合を防ぐ |
 
 ---
 
