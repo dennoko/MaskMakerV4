@@ -247,6 +247,7 @@ namespace Dennoko.UVMaskMaker
         public const string Folder = "d_Folder Icon";
         public const string Texture = "d_Texture Icon";
         public const string Layout = "d_Camera|d_RawImage Icon";
+        public const string ResetView = "d_ViewToolZoom|d_Search Icon";
         public const string Import = "d_Import";
         public const string SkinnedMesh = "d_SkinnedMeshRenderer Icon";
         public const string MeshRenderer = "d_MeshRenderer Icon";

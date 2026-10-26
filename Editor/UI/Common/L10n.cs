@@ -64,6 +64,7 @@ namespace Dennoko.UVMaskMaker
             { "tooltip.reload", ("更新を確認", "Check for updates") },
             { "tooltip.baseOverlay", ("ベーステクスチャを重ねる", "Overlay base texture") },
             { "tooltip.layout", ("UV 展開図を書き出す", "Export UV layout") },
+            { "tooltip.resetView", ("100% のサイズで元の位置に戻す（F）", "Reset to 100% and center (F)") },
             { "tooltip.overrideDot", ("既定に戻す", "Reset to default") },
 
             // ステータス・トースト

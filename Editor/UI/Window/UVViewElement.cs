@@ -66,6 +66,14 @@ namespace Dennoko.UVMaskMaker
             schedule.Execute(RenderIfNeeded).Every(33);
         }
 
+        /// <summary>ズーム 100%・パンなし（全体が収まる元の位置）に戻す。</summary>
+        public void ResetView()
+        {
+            _zoom = 1f;
+            _pan = Vector2.zero;
+            _cursor.MarkDirtyRepaint();
+        }
+
         // ── 座標 ──
 
         private Vector4 UVToView
@@ -253,7 +261,7 @@ namespace Dennoko.UVMaskMaker
                 case KeyCode.L: SessionCommands.SetPaintTool(PaintSubMode.Lasso); break;
                 case KeyCode.E: SessionCommands.SetPaintTool(PaintSubMode.Eraser); break;
                 case KeyCode.X: SessionCommands.ToggleSymmetry(); break;
-                case KeyCode.F: _zoom = 1f; _pan = Vector2.zero; break;
+                case KeyCode.F: ResetView(); break;
                 default: return;
             }
             e.StopPropagation();

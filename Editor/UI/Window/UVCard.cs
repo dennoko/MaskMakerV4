@@ -12,6 +12,10 @@ namespace Dennoko.UVMaskMaker
             var view = new UVViewElement();
             host.Insert(0, view);
 
+            var resetButton = root.Q<Button>("reset-view-button");
+            Icons.Apply(resetButton, Icons.ResetView, "1:1", L10n.T("tooltip.resetView"));
+            resetButton.clicked += view.ResetView;
+
             var baseButton = root.Q<Button>("base-overlay-button");
             Icons.Apply(baseButton, Icons.Texture, "B", L10n.T("tooltip.baseOverlay"));
             Bind.ToggleButton(baseButton, SettingKeys.PreviewOverlayBaseTex);

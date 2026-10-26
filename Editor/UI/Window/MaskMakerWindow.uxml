@@ -36,6 +36,7 @@
         <ui:VisualElement name="uv-card" class="dennoko-card">
             <ui:VisualElement name="uv-host" class="mm-uv-host">
                 <ui:VisualElement name="uv-tools" class="mm-uv-tools">
+                    <ui:Button name="reset-view-button" class="mm-icon-button" />
                     <ui:Button name="base-overlay-button" class="mm-icon-button" />
                     <ui:Button name="layout-button" class="mm-icon-button" />
                 </ui:VisualElement>
