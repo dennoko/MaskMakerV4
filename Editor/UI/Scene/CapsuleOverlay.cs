@@ -50,7 +50,7 @@ namespace Dennoko.UVMaskMaker
             var brush = B("tool-brush", Icons.Paint, "B", "term.brush", "B", () => SessionCommands.SetPaintTool(PaintSubMode.Brush));
             var rect = B("tool-rect", Icons.Rect, "M", "term.rect", "M", () => SessionCommands.SetPaintTool(PaintSubMode.Rect));
             var lasso = B("tool-lasso", Icons.Lasso, "L", "term.lasso", "L", () => SessionCommands.SetPaintTool(PaintSubMode.Lasso));
-            var eraser = B("tool-eraser", Icons.Eraser, "E", "term.eraser", "E", () => SessionCommands.SetPaintTool(PaintSubMode.Eraser));
+            var eraser = B("tool-eraser", Icons.Eraser, "E", "term.eraser", "Shift+B", () => SessionCommands.SetPaintTool(PaintSubMode.Eraser));
 
             var symmetry = B("symmetry", Icons.Symmetry, "X", "term.symmetry", "X", SessionCommands.ToggleSymmetry);
             var xray = B("xray", Icons.XRay, "XR", "term.xray", null, SessionCommands.ToggleXRay);

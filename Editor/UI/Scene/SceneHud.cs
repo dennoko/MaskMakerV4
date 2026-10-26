@@ -304,7 +304,7 @@ namespace Dennoko.UVMaskMaker
                 s[0] = Tool(PaintSubMode.Brush, Icons.Paint, "term.brush", "B", t);
                 s[7] = Tool(PaintSubMode.Rect, Icons.Rect, "term.rect", "M", t);
                 s[6] = Tool(PaintSubMode.Lasso, Icons.Lasso, "term.lasso", "L", t);
-                s[5] = Tool(PaintSubMode.Eraser, Icons.Eraser, "term.eraser", "E", t);
+                s[5] = Tool(PaintSubMode.Eraser, Icons.Eraser, "term.eraser", "Shift+B", t);
             }
             return s;
         }

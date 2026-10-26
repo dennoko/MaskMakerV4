@@ -256,10 +256,9 @@ namespace Dennoko.UVMaskMaker
                 case KeyCode.Alpha1: SessionCommands.SetGranularity(SelectionGranularity.UVIsland); break;
                 case KeyCode.Alpha2: SessionCommands.SetGranularity(SelectionGranularity.ConnectedMesh); break;
                 case KeyCode.Alpha3: SessionCommands.SetGranularity(SelectionGranularity.Polygon); break;
-                case KeyCode.B: SessionCommands.SetPaintTool(PaintSubMode.Brush); break;
+                case KeyCode.B: SessionCommands.SetPaintTool(e.shiftKey ? PaintSubMode.Eraser : PaintSubMode.Brush); break;
                 case KeyCode.M: SessionCommands.SetPaintTool(PaintSubMode.Rect); break;
                 case KeyCode.L: SessionCommands.SetPaintTool(PaintSubMode.Lasso); break;
-                case KeyCode.E: SessionCommands.SetPaintTool(PaintSubMode.Eraser); break;
                 case KeyCode.X: SessionCommands.ToggleSymmetry(); break;
                 case KeyCode.F: ResetView(); break;
                 default: return;

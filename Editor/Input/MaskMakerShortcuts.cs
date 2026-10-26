@@ -35,7 +35,8 @@ namespace Dennoko.UVMaskMaker
         [Shortcut(P + "Lasso", typeof(SceneView), Tag, KeyCode.L)]
         private static void Lasso() => SessionCommands.SetPaintTool(PaintSubMode.Lasso);
 
-        [Shortcut(P + "Eraser", typeof(SceneView), Tag, KeyCode.E)]
+        // E は右ドラッグ中のカメラ移動（WASDQE）と重なるので、ブラシの逆として Shift+B にする
+        [Shortcut(P + "Eraser", typeof(SceneView), Tag, KeyCode.B, ShortcutModifiers.Shift)]
         private static void Eraser() => SessionCommands.SetPaintTool(PaintSubMode.Eraser);
 
         [Shortcut(P + "Symmetry", typeof(SceneView), Tag, KeyCode.X)]
