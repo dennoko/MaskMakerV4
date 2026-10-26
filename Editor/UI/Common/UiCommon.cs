@@ -15,6 +15,7 @@ namespace Dennoko.UVMaskMaker
         public const string StylesUssGuid = "c4f1b5d2a0e34d8f9b7c6e1a2d3f4b52";
         public const string WindowUxmlGuid = "d5a2c6e3b1f44e9a8c7d0f2b3e4a5c63";
         public const string CapsuleUxmlGuid = "e6b3d7f4c2a54fab9d8e1a3c4f5b6d74";
+        public const string LayoutUxmlGuid = "8cb76dc39e39429aa930b43082667f4c";
 
         /// <summary>dennoko-root と保険の背景色、テーマ + 固有 USS、フォントを適用する。</summary>
         public static void SetupRoot(VisualElement root, bool opaque = true)

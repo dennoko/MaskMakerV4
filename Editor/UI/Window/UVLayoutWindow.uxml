@@ -1,0 +1,56 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+
+    <!-- ヘッダー: タイトル + 対象 -->
+    <ui:VisualElement class="dennoko-header">
+        <ui:VisualElement class="dennoko-header-titlegroup">
+            <ui:Label name="layout-title" text="UV 展開図の書き出し" class="dennoko-title" />
+        </ui:VisualElement>
+        <ui:Label name="layout-target" text="" class="dennoko-text-tertiary" />
+    </ui:VisualElement>
+    <ui:VisualElement class="dennoko-separator" />
+
+    <ui:ScrollView class="dennoko-scroll">
+        <ui:VisualElement class="dennoko-card">
+            <ui:Label name="layout-size-label" text="解像度" class="dennoko-text-tertiary" />
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="layout-size-512" text="512" class="mm-choice" />
+                <ui:Button name="layout-size-1024" text="1024" class="mm-choice" />
+                <ui:Button name="layout-size-2048" text="2048" class="mm-choice" />
+                <ui:Button name="layout-size-4096" text="4096" class="mm-choice" />
+            </ui:VisualElement>
+
+            <ui:Label name="layout-elements-label" text="描画要素" class="dennoko-text-tertiary mm-layout-label" />
+            <ui:Toggle name="layout-wire" text="ポリゴン線" />
+            <ui:Toggle name="layout-seams" text="シーム線" />
+            <ui:Toggle name="layout-selection-only" text="選択限定" />
+            <ui:Toggle name="layout-color-fill" text="色分け" />
+
+            <ui:Label name="layout-background-label" text="背景" class="dennoko-text-tertiary mm-layout-label" />
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="layout-bg-transparent" text="透過" class="mm-choice" />
+                <ui:Button name="layout-bg-base" text="ベース" class="mm-choice" />
+            </ui:VisualElement>
+
+            <ui:Label name="layout-line-label" text="線色" class="dennoko-text-tertiary mm-layout-label" />
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="layout-line-white" text="白" class="mm-choice" />
+                <ui:Button name="layout-line-black" text="黒" class="mm-choice" />
+                <ui:Button name="layout-line-cyan" text="シアン" class="mm-choice" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:ScrollView>
+
+    <ui:VisualElement class="dennoko-separator" />
+
+    <!-- 主ボタン（画面ごとに 1 つ）と保存名 -->
+    <ui:VisualElement class="dennoko-card dennoko-footer">
+        <ui:Label name="layout-file" text="" class="dennoko-text-tertiary" />
+        <ui:Button name="layout-write" text="書き出し" class="dennoko-button-primary" />
+    </ui:VisualElement>
+
+    <!-- ステータスバー（平常時は空） -->
+    <ui:VisualElement class="mm-status-row">
+        <ui:Label name="status-label" text="" class="dennoko-status mm-grow" />
+    </ui:VisualElement>
+
+</ui:UXML>

@@ -153,13 +153,9 @@
     color: var(--dennoko-semantic-info);
 }
 
-.dennoko-root .mm-uv-export-popup {
-    margin-top: 4px;
-    padding: 8px;
-    border-radius: 6px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
+/* UV 展開図タブの項目見出し（2 つ目以降は上に間を空ける） */
+.dennoko-root .mm-layout-label {
+    margin-top: 10px;
 }
 
 /* 出力サマリ */

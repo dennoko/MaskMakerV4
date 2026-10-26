@@ -42,29 +42,6 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Slider name="base-alpha-slider" low-value="0" high-value="1" show-input-field="true" />
-
-            <ui:VisualElement name="layout-popup" class="mm-uv-export-popup">
-                <ui:VisualElement class="mm-row">
-                    <ui:Button name="layout-size-512" text="512" class="mm-choice" />
-                    <ui:Button name="layout-size-1024" text="1024" class="mm-choice" />
-                    <ui:Button name="layout-size-2048" text="2048" class="mm-choice" />
-                    <ui:Button name="layout-size-4096" text="4096" class="mm-choice" />
-                </ui:VisualElement>
-                <ui:Toggle name="layout-wire" text="ポリゴン線" />
-                <ui:Toggle name="layout-seams" text="シーム線" />
-                <ui:Toggle name="layout-selection-only" text="選択限定" />
-                <ui:Toggle name="layout-color-fill" text="色分け" />
-                <ui:VisualElement class="mm-row">
-                    <ui:Button name="layout-bg-transparent" text="透過" class="mm-choice" />
-                    <ui:Button name="layout-bg-base" text="ベース" class="mm-choice" />
-                </ui:VisualElement>
-                <ui:VisualElement class="mm-row">
-                    <ui:Button name="layout-line-white" text="白" class="mm-choice" />
-                    <ui:Button name="layout-line-black" text="黒" class="mm-choice" />
-                    <ui:Button name="layout-line-cyan" text="シアン" class="mm-choice" />
-                </ui:VisualElement>
-                <ui:Button name="layout-write" text="書き出し" class="dennoko-button-secondary" />
-            </ui:VisualElement>
         </ui:VisualElement>
 
         <!-- 出力（Working のみ。基本 + 詳細） -->
