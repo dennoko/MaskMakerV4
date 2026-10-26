@@ -101,10 +101,9 @@ graph LR
 | 反転も同時保存 (`SaveInvertedToo`) | ▲ | Project / User の習慣 | C | 出力 ▸詳細 | Project 既定 |
 | 保存先 (`UseTextureFolder` / `OutputDir`) | ▲ | Project | C + D | サマリ行の保存先チップ → Project Settings | テクスチャと同じ場所 |
 | 選択色・シーム色 | ✕ | User | D | Preferences | — |
-| シーム太さ・AA 無効化 | ✕ | User | D | Preferences | — |
-| 深度オフセット (`OverlayDepthOffset`) | ✕ | User（メッシュの大きさに依存） | D | Preferences | メッシュの bounds から自動算出、上書き時のみ手動 |
-| ホットキー全般 (`ModeToggleHotkey` 含む) | ✕ | User | D | Unity の Shortcut Manager | `[Shortcut]` 属性で登録し、再割当ては標準 UI に任せる |
-| 言語 (`Language` / `UseEnglish`) | ✕ | User | D | Preferences | 初回は Editor の言語から自動 |
+| シーム太さ・シームのマスク表示の不透明度 | ✕ | User | D | Preferences | — |
+| ホットキー全般 | ✕ | User | D | Unity の Shortcut Manager | `[Shortcut]` 属性で登録し、再割当ては標準 UI に任せる |
+| 言語 (`Language`) | ✕ | User | D | Preferences | 初回は Editor の言語から自動 |
 | 迷い検知ヒント（§2.6.3） | ✕ | User | D | Preferences | 各ヒントは 3 回出たら以後出さない。Preferences でリセット可 |
 | 対称判定の許容誤差 | ✕ | Project | D | Project Settings | 自動 |
 | 取り込みのしきい値 (`BlackThreshold`) | ✕ | Project | D | Project Settings | 128 |
@@ -117,7 +116,7 @@ graph LR
 | :--- | :--- | :--- |
 | **User** | `EditorPrefs` | 全 Unity プロジェクト共通 |
 | **Project** | `ProjectSettings/UVMaskMaker.json` | プロジェクト単位。バージョン管理でチーム共有できる |
-| **Target** | `UserSettings/UVMaskMaker/targets.json`（キー＝メッシュのアセット GUID と Renderer 名）。作業状態（選択・手塗り）は `UserSettings/UVMaskMaker/sessions/` | 個人。同じメッシュを開き直すと設定と作業が復元される |
+| **Target** | `UserSettings/UVMaskMaker/targets/{TargetKey}/settings.json`（キー＝メッシュのアセット GUID と Renderer 名）。作業状態（選択・手塗り）は同じフォルダの `session.bin` | 個人。同じメッシュを開き直すと設定と作業が復元される |
 | **Session** | メモリのみ | 作業中のみ |
 
 値が上位の既定と異なる項目には上書きマーク ● を出し、クリックで既定に戻せる。
@@ -127,7 +126,7 @@ graph LR
 1. タブから「選択の単位」と「表示設定」を削除した。前者は S/A として手元に、後者は D として 設定ウィンドウに置いた。
 2. 出力カードを基本（B）と ▸詳細（C）に分け、フッター上に出力サマリ行を追加した。詳細を開かなくても出力内容を確認できる。
 3. 粒度の広い項目（保存先・余白・反転・色・キー割当・言語）は Project / User に移し、毎回は見せない。
-4. ファイル名、解像度、UV、サブメッシュ、Base PNG、深度オフセット、X-Mirror の初期値は自動推定にした。
+4. ファイル名、解像度、UV、サブメッシュ、Base PNG、X-Mirror の初期値は自動推定にした。
 5. サブメッシュ・UV は、選択肢が複数ある時だけ表示する。
 6. ホットキーは Unity の Shortcut Manager に登録する。
 7. クイック出力は `Ctrl+Enter` に決定（`Ctrl+S` は Unity の「シーン保存」と競合するため不採用）。キーの扱いは §2.6.7。
@@ -266,9 +265,9 @@ graph LR
 - 開始バッジから親を対象にした場合は、シーン上でホバーした Renderer を縁取り、クリックしたものを対象にして開始する（タブへマウスを動かさない）。
 
 **自動処理（ユーザーに操作させない）**
-- 開始時: Read/Write 自動修復、UV 解析、`IsolateTargetMesh` による孤立表示、NDMF プレビューメッシュ取得、一時コライダー生成、対象オブジェクトへの自動カメラフォーカス（`SceneView.FrameSelected` 相当）、**前回の作業状態（選択・手塗り）の復元**。
-- 終了時: **作業状態の自動保存**、`ExitIsolation`、コライダー破棄、オーバーレイ解除。
-- 自動終了: Play モード開始、シーンの切替、スクリプトの再コンパイル、ウィンドウを閉じた時は終了処理を自動で行う（作業は保存）。孤立表示や一時コライダーをシーンに残さない。
+- 開始時: Read/Write 自動修復、UV 解析、`IsolateTargetMesh` による孤立表示、NDMF プレビューメッシュ取得、対象オブジェクトへの自動カメラフォーカス（`SceneView.FrameSelected` 相当）、**前回の作業状態（選択・手塗り）の復元**。
+- 終了時: **作業状態の自動保存**、`ExitIsolation`、オーバーレイ解除。
+- 自動終了: Play モード開始、シーンの切替、スクリプトの再コンパイル、ウィンドウを閉じた時は終了処理を自動で行う（作業は保存）。再コンパイルの後と Play モードから戻った時は、同じ対象で自動的に作業を再開する。孤立表示や一時オブジェクトをシーンに残さない。
 - UV チャンネルに UV が無い場合: UV0 へ自動フォールバックし、ステータスバーに警告（黄）を 1 行出すだけ。
 - 対象選択が変わった場合: 作業中は無視（切替は対象名のドロップダウンから）。Idle なら自動で対象欄を更新。
 
@@ -329,11 +328,11 @@ VisualElement.dennoko-root
 | カード | ランク | 内容（MaskSettings） | UX 判断 |
 | :--- | :--- | :--- | :--- |
 | **対象** | B | 対象 Renderer、`TargetSubmesh`、`UVChannel`、終了ボタン | Idle ではここに大きなドロップ欄（親を選択中は子 Renderer の一覧、§3）。Hierarchy で Renderer を選択中なら自動入力。Working では対象名がドロップダウンになり、同じアバター配下の Renderer へ切り替えられる（現在の作業は自動保存、切替先の前回作業を復元）。**サブメッシュ・UV は複数ある時だけ表示**。選んだ値は対象（Target）ごとに記憶し、次回は選び直し不要。サブメッシュはマテリアルスロット名で表示 |
-| **UV プレビュー** | B | ラベルマップ 2D ピッキング、ペイント兼用、`PreviewOverlayBaseTex`、`PreviewOverlayAlpha`、既存マスク取り込み、**UV 展開図出力** | シーンと**同じツール・同じモード**でそのまま操作可能。ホバーで該当グループをハイライト。ホイールでズーム、中ボタンでパン。重ねトグル ON の時だけ不透明度スライダーを表示。テクスチャをドロップすると既存マスクとして取り込む（黒い部分を手塗りに加算、Undo 可）。受付の枠と `取り込む` はドラッグ中だけ出す。<br>**UV 展開図の出力 (`[Camera]` ボタン)**: クリックで直下にミニポップアップを展開。解像度（512〜4096、既定 2048）、描画要素（☑ ポリゴン線、☑ シーム線、☐ 選択限定、☐ 色分け）、背景（透過/ベース）、線色（白/黒/シアン）を指定し、`[書き出し]` で `{FileName}_uv.png` を保存。設定は Target/User で自動保存 |
-| **出力（基本）** | B | `FileName`、`TextureSize`、`ChannelWriteEnabled` と R/G/B/A・Base PNG | テクスチャごとに決める項目だけを常時表示。ファイル名は `{Renderer名}_mask` を自動入力。解像度はベーステクスチャのサイズを自動採用（無ければ Project 既定）。チャンネル書き込みは OFF なら R/G/B/A と Base PNG を隠し、ON でインデント展開。Base PNG はマテリアルから候補を自動提示。値は対象ごとに記憶 |
+| **UV プレビュー** | B | 2D ピッキング（UV が重なった所はその全部に効く）、ペイント兼用、`PreviewOverlayBaseTex`、`PreviewOverlayAlpha`、既存マスク取り込み、**UV 展開図出力** | シーンと**同じツール・同じモード**でそのまま操作可能。ホバーで該当グループをハイライト。ホイールでズーム、中ボタンでパン。重ねトグル ON の時だけ不透明度スライダーを表示。テクスチャをドロップすると既存マスクとして取り込む（黒い部分を手塗りに加算、Undo 可）。受付の枠と `取り込む` はドラッグ中だけ出す。<br>**UV 展開図の出力 (`[Camera]` ボタン)**: クリックで直下にミニポップアップを展開。解像度（512〜4096、既定 2048）、描画要素（☑ ポリゴン線、☑ シーム線、☐ 選択限定、☐ 色分け）、背景（透過/ベース）、線色（白/黒/シアン）を指定し、`[書き出し]` で `{FileName}_uv.png` を保存。設定は Target/User で自動保存 |
+| **出力（基本）** | B | `FileName`、`TextureSize`、`ChannelWriteEnabled` と R/G/B/A・Base PNG | テクスチャごとに決める項目だけを常時表示。ファイル名は `{Renderer名}_mask` を自動入力。解像度はベーステクスチャのサイズを自動採用（無ければ Project 既定）。Base PNG を指定した時は解像度を Base PNG のサイズに固定する（ボタンは無効にしてサイズを表示）。解像度を下げるとシーンと UV ビューの表示も同じ粗さになり、出力結果をその場で確認できる（手塗りは内部で 4096 のまま保持するので、戻せば元に戻る）。チャンネル書き込みは OFF なら R/G/B/A と Base PNG を隠し、ON でインデント展開。Base PNG はマテリアルから候補を自動提示。値は対象ごとに記憶 |
 | **出力（▸詳細）** | C | `InvertMask`、`PixelMargin`、`SaveInvertedToo` | 既定で閉。Project 既定の値を使うので毎回は触らない。`SaveInvertedToo` は ON で実ファイル名（`name.png` / `name_inv.png`）を灰色でプレビュー。`PixelMargin` は解像度に応じた推奨値を既定にする |
 | **出力サマリ行**（フッター上） | C | 保存先と ▸詳細の値の要約 | 例: `[Folder] Textures  余白2`。カード上に見えている値（ファイル名・解像度）は重複させない。反転・反転同時保存は ON の時だけチップを出す。文章にせず値のチップだけを並べる。チップをクリックすると該当の詳細を開き、保存先チップは Project Settings を開く。値が Project 既定と違う項目には上書きマーク ● を付け、クリックで既定に戻す |
-| **設定アイコン（ヘッダー右）** | D | 表示色・シーム・AA・ホットキー・言語・ヒント | ここから Preferences（User）と Project Settings を開く。作業中のタブには置かない |
+| **設定アイコン（ヘッダー右）** | D | 表示色・シーム・ホットキー・言語・ヒント | ここから Preferences（User）と Project Settings を開く。作業中のタブには置かない |
 
 ### 4.4 出力時の挙動
 - 押下 → 成功で `.dennoko-status--success` に `保存: Body_mask.png`（ファイル名クリックで Ping）。4 秒で消える。書き出し中の表示は 0.3 秒以上かかった時だけ出す。シーンから出力した時はステータスバーには出さず、トースト（§6.2）だけにする。
@@ -452,7 +451,7 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
   - **適用先スロットは初回だけ選ぶ**: マスクの用途（影・発光・2nd カラーなど）はシェーダー側からは決められないため、自動では決め打ちしない。候補が 1 つなら即適用。複数ある時は [適用] の位置に候補リスト（マスク用の名前を上位に並べる。例: lilToon の `_MainColor2ndBlendMask`、Poiyomi の `_DecalMask`）を出し、選んだ時点で適用する。選んだスロットは Target ごとに記憶し、2 回目以降は 1 クリック。
   - 候補が無いシェーダーでは [適用] を出さない（押せないボタンを置かない）。
   - 再出力で同じファイルが既にスロットに入っている時は [適用] を出さず、トーストは `更新: Body_mask.png` だけにする（上書きなので割り当て直し不要）。
-  - 適用も作業履歴に 1 件として積み、直後の Ctrl+Z で取り消せる（内部では Unity の Undo を呼ぶ）。
+  - 適用も作業履歴に 1 件として積み、直後の Ctrl+Z で取り消せる（作業履歴そのものを Unity の Undo に載せているので、選択・手塗り・適用が 1 本の履歴になる）。
   - **効果**: 「Projectビューからファイルを探してマテリアルのInspectorにドラッグ＆ドロップする」手作業が、初回は 2 クリック、以後は 1 クリック（再出力時は 0 クリック）になる。
 
 ---
@@ -496,10 +495,9 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | `SaveInvertedToo` | C | 出力 ▸詳細 | — | — |
 | `UseTextureFolder` / `OutputDir` | C | 出力サマリ行の保存先チップ（クリックで Project Settings） | — | — |
 | `SelectedSceneColor` / `SeamColor` | D | 設定アイコン → Preferences | — | — |
-| `OverlaySeamThickness` / `DisableAA` | D | 設定アイコン → Preferences | — | — |
-| `OverlayDepthOffset`（自動算出。上書きのみ） | D | 設定アイコン → Preferences | — | — |
-| `ModeToggleHotkey` ほか全ホットキー | D | — | — | Shortcut Manager |
-| `Language` / `UseEnglish`（初回は Editor 言語から自動） | D | 設定アイコン → Preferences | — | — |
+| `OverlaySeamThickness` / `SceneMaskAlpha` | D | 設定アイコン → Preferences | — | — |
+| 全ホットキー | D | — | — | Shortcut Manager |
+| `Language`（初回は Editor 言語から自動） | D | 設定アイコン → Preferences | — | — |
 | 迷い検知ヒント（ON/OFF・リセット） | D | 設定アイコン → Preferences | — | — |
 | `BlackThreshold`（取り込みのしきい値） | D | 設定アイコン → Project Settings | — | — |
 
@@ -555,7 +553,6 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | メッシュ Read/Write 無効 | 情報 `Read/Write を有効化しました` | 自動修復→続行 |
 | 指定 UV が存在しない | 警告 `UV3 なし → UV0 を使用` | 自動フォールバック |
 | NDMF プレビュー未取得 | 情報 `元のメッシュで作業中` | 継続 |
-| 解像度変更でペイント履歴リセット | 変更の直後に情報 `手塗りの履歴をリセット`（手塗りがある場合のみ） | 変更を実行、手塗りは最近傍で拡縮 |
 | ピッキング一時停止中 | カプセルの一時停止ボタンが青枠、カーソルが標準形状に戻る | Space 解除で復帰 |
 | 前回の作業を復元した | 情報 `前回の作業を復元` | 開始時に自動。Ctrl+Z で空の状態に戻せる |
 | メッシュが変わり復元できない | 情報 `メッシュ変更のため復元なし` | 保存していた作業は破棄して空で開始 |
@@ -620,7 +617,7 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
   - `SceneView.duringSceneGui` または SceneViewのオーバーレイルート直下に UI Toolkit `VisualElement` を絶対座標配置。
   - `C` キーの `KeyDown` でマウス位置（`Event.current.mousePosition`）を中心に表示、`KeyUp` で選択確定＆非表示。
 - **左右対称判定ロジック**:
-  - `UVAnalyzer` 解析時に、各アイランドのバウンディングボックス中心座標 $X$ の符号反転位置にあるアイランドをペア（`MirrorPair`）として事前キャッシュ。
+  - 解析時に三角形ごとの対称相手（`MirrorTri`）を空間ハッシュで求め、グループの対応は投票で決める（`Docs/Impl/mesh_analysis.md` §8、`selection_system.md` §4.5）。
 - **マテリアル自動適用**:
   - ターゲットRendererの `sharedMaterials` を走査し、主要シェーダー（lilToon, Poiyomi, UTS2, Standard等）のプロパティ名リスト（`_MaskTex`, `_DecalMask`, `_MainTex` 等）を照合して即時割り当て＋Undo登録。
 - **UV 展開図ラスタライザ (UV Layout Exporter)**:
@@ -633,14 +630,14 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
   - 作業中は独自の `EditorTool` をアクティブにし、Shortcut Context をそれに紐付ける。Unity の他ツールへ切り替わったら一時停止扱いにする（§2.6.7）。
   - 作業中は `EventType.MouseEnterWindow` で SceneView に `Focus()` を移し、キーがマウス位置のビューに届くようにする。
 - **作業状態の保存と復元**:
-  - 選択は三角形インデックスのビット列、手塗りは PNG として `UserSettings/UVMaskMaker/sessions/` に保存する。メッシュの頂点数・三角形数・UV のハッシュで一致を確認し、不一致なら復元しない。
+  - 選択は三角形インデックスのビット列、手塗りは連長圧縮して `UserSettings/UVMaskMaker/targets/{TargetKey}/session.bin` に保存する。メッシュハッシュ（頂点数・サブメッシュ数・インデックス）で一致を確認し、不一致なら復元しない（`Docs/Impl/mask_processing.md` §3.5）。
   - 保存は終了・対象切替・出力の時と、変更後数秒の遅延で行う（クラッシュとドメインリロード対策）。
   - 自動終了は `EditorApplication.playModeStateChanged`、`EditorSceneManager.sceneClosing`、`AssemblyReloadEvents.beforeAssemblyReload` で拾う。
 - **上書き出力**:
   - Target ごとに前回の出力パスを記録し、同じファイル名ならそのパスへ上書きする。連番の解決（元/反転ペア）は、記録パス以外と衝突した時だけ行う。
 - **設定の階層と永続化**（§2.5.4）:
   - 値の解決順は `Session > Target > Project > User > 組み込み既定`。各層は `MaskSettings` の差分（上書き値のみ）を保持し、未設定の項目は上位層へフォールバック。
-  - 保存先: User=`EditorPrefs`、Project=`ProjectSettings/UVMaskMaker.json`、Target=`UserSettings/UVMaskMaker/targets.json`、Session=メモリのみ。
+  - 保存先: User=`EditorPrefs`、Project=`ProjectSettings/UVMaskMaker.json`、Target=`UserSettings/UVMaskMaker/targets/{TargetKey}/settings.json`、Session=メモリのみ。
   - 変更は全てイベント通知し、①と③は同じ解決済みの値を購読する。
   - ホットキーは `[Shortcut]` 属性で Unity の Shortcut Manager に登録し、再割当ては標準 UI に任せる。
 - **アイコン確認**:
@@ -652,9 +649,9 @@ VRChat 改変の代表的なユースケースでの**見積もり**（実測値
 - **テーマ検証**:
   - Personal Light/Dark の双方で文字・枠線・トーストの視認性を担保。`DennokoUIFont.Apply` を徹底。
 
-## 12. Impl 仕様への反映が必要な差分
+## 12. Impl 仕様への反映状況
 
-この設計で機能要件が変わる箇所。`Docs/Impl/*.md` を更新してから実装する。
+この設計で機能要件が変わる箇所。以下はすべて `Docs/Impl/*.md` に反映済み（2026-10-26）。
 
 | 対象 | 変更内容 | 根拠 |
 | :--- | :--- | :--- |

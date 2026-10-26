@@ -2,136 +2,133 @@
 
 ## 1. 概要
 
-本モジュール（`PngExporter` および `UVMaskExport`）は、合成されたマスク情報を画像ファイル（PNG）としてUnityプロジェクト内のストレージに出力する機能を規定します。
+本モジュールは、合成済みマスク D（[mask_processing.md](mask_processing.md) §2）を PNG としてプロジェクト内に書き出す処理、UV 展開図の書き出し、および出力したマスクのマテリアルへの適用を規定します。
 
 > [!NOTE]
 > 過去バージョンに存在した「頂点カラーへのベイク機能」は廃止され、テクスチャマスクのPNGエクスポートに特化しています。
 
 ---
 
-## 2. PNG画像エクスポート仕様
+## 2. マスク PNG 出力
 
 ### 2.1 出力モード
 
+`InvertMask` が ON の時は、以下の「選択」と「非選択」を入れ替えて扱います（D の代わりに ¬D を選択とみなす）。
+
 #### A. 通常マスク出力 (Classic Mode)
-- **色仕様**:
-  - 選択・ペイント領域: **黒** `(R:0, G:0, B:0, A:255)`
-  - 非選択領域: **白** `(R:255, G:255, B:255, A:255)`
-  - （※`InvertMask` 有効時は黒白が反転）
+- 選択画素: **黒** `(R:0, G:0, B:0, A:255)`
+- 非選択画素: **白** `(R:255, G:255, B:255, A:255)`
 
 #### B. チャンネル別書き込み (Channel Write Mode)
-既存のテクスチャ（Base PNG）または白背景に対して、指定された特定チャンネル（R / G / B / A）のみにマスク値を書き込みます。
+既存のテクスチャ（Base PNG）または白背景に対して、有効にしたチャンネル（R / G / B / A）にだけマスク値を書き込みます。
 
-| 状態 | 選択ピクセルの挙動 | 非選択ピクセルの挙動 |
+| 状態 | 選択画素 | 非選択画素 |
 | :--- | :--- | :--- |
-| **Base PNG あり** | 有効化されたチャンネル（R/G/B）に `0` を書き込み。Aチャンネル指定時は `255` を書き込み。 | Base PNG の既存ピクセル値をそのまま維持。 |
-| **Base PNG なし** | 有効化されたチャンネルに `0` を書き込み。 | 有効化されたチャンネルに `255` を書き込み。 |
+| **Base PNG あり** | 有効なチャンネル（R/G/B）に `0` を書く。A を有効にした時は A に `255` を書く。 | Base PNG の値をそのまま残す。 |
+| **Base PNG なし** | 有効なチャンネルに `0` を書く。 | 有効なチャンネルに `255` を書く。 |
 
-### 2.2 出力テクスチャのインポーター設定自動化 (TextureImporter Automation)
+- **Base PNG の読み込み**: テクスチャアセットからではなく、**元ファイルのバイト列**を `ImageConversion.LoadImage` で読む。インポート時の圧縮・sRGB 変換・最大サイズの縮小が元画像に書き戻されるのを防ぎ、書き込まないチャンネルと非選択画素はビット単位で元のまま残る。
+- **出力サイズ**: Base PNG がある時は、出力解像度を Base PNG のサイズに固定する（正方形でなくてもよい）。マスクの合成もそのサイズで行うので、プレビューと出力は一致する（UI では解像度ボタンを無効にしてサイズを表示）。
 
-マスクテクスチャはシェーダー等でデータテクスチャとして扱われることが前提となるため、**sRGBを無効化（Linear）**し、テクスチャストリーミング・最適化のために**Mipmapを有効化**します。
+### 2.2 インポーター設定
 
-PNG出力完了後、以下のインポート設定を自動適用して `SaveAndReimport()` を実行します：
-```csharp
-var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-if (importer != null)
-{
-    importer.sRGBTexture = false;       // デフォルトで無効 (Linearデータとして扱う)
-    importer.mipmapEnabled = true;      // Mipmapを有効化
-    importer.streamingMipmaps = true;   // Streaming Mipmapsを有効化
-    importer.isReadable = true;         // スクリプトからの再読み込みを許可
-    importer.textureCompression = TextureImporterCompression.Uncompressed; // 画質劣化防止
-    importer.SaveAndReimport();
-}
-```
+マスクはシェーダーでデータとして読まれるため、sRGB を無効にします。設定は書き出し後に `SaveAndReimport` で当て直すのではなく、`AssetPostprocessor.OnPreprocessTexture` で**最初のインポート時に**当てます。
+
+- 旧仕様の「書き出し直後に `AssetImporter.GetAtPath` で設定する」方式は、新規ファイルがまだインポートされておらず importer が null になるため、初回だけ sRGB ON・圧縮ありで取り込まれていた。また 2 回インポートが走っていた。
+- 本ツールが書き出したパスを登録しておき、そのパスが**初めてインポートされる時**（`assetImporter.importSettingsMissing == true`、つまり .meta がまだ無い時）だけ設定を当てる。再出力（上書き）では当て直さないので、ユーザーが後から変えたインポート設定は保たれる。
+
+| 項目 | 値 |
+| :--- | :--- |
+| `sRGBTexture` | `false`（リニアデータ） |
+| `mipmapEnabled` | `true` |
+| `streamingMipmaps` | `true` |
+| `isReadable` | `false`（本ツールは読み戻す時もファイルから読むので不要。ビルドに CPU 側のコピーを残さない） |
+| `textureCompression` | `Uncompressed` |
+| `textureType` | `Default`。Project 設定 `ImportAsSingleChannel` が ON の時は `SingleChannel`（Red）にしてメモリを 1/4 にする（シェーダーが .r 以外を読む場合は使えないので既定 OFF） |
+
+### 2.3 空の出力
+選択も手塗りも空の時も出力は止めず、警告 `選択なし（全白で出力）` を出します。
 
 ---
 
-## 3. 保存先パス解決と同時出力の競合回避
+## 3. 保存先パスと上書き・連番
 
 ### 3.1 保存先フォルダの解決
-1. **メインテクスチャ連動 (`UseTextureFolder = true`)**:
-   - ターゲットモデルのマテリアルからベーステクスチャ（`_BaseMap` または `_MainTex`）のアセットパスを取得し、その同一ディレクトリを出力先とします。
-2. **通常フォルダ指定 (`UseTextureFolder = false`)**:
-   - 設定された `OutputDir`（デフォルト: `Assets/GeneratedMasks`）を使用。フォルダが存在しない場合は階層を自動作成（`EnsureAssetFolderPath`）。
+1. **テクスチャと同じ場所 (`UseTextureFolder = true`、既定)**: 対象マテリアルのベーステクスチャ（`_BaseMap` → `_MainTex` の順）のアセットのフォルダ。ベーステクスチャが無い、またはフォルダが `Packages/` 以下（パッケージ更新で消える）の時は 2 にフォールバック。
+2. **フォルダ指定 (`UseTextureFolder = false`)**: `OutputDir`（既定 `Assets/GeneratedMasks`）。無ければ階層ごと作成。
 
-### 3.2 元マスク・反転マスクの同時出力時のファイル名競合回避アルゴリズム
-`SaveInvertedToo = true`（反転マスクも同時に保存）が指定されている場合、単にUnity標準の `GenerateUniqueAssetPath` を個別に呼ぶと、元マスクと反転マスクで番号がずれたり、既存の `_inv.png` を上書きしてしまうリスクがあります。
+### 3.2 上書きと連番
+調整 → 再出力のくり返しでファイルが増えず、マテリアルの割り当て直しも要らないように、**同じ対象からの再出力は前回のファイルを上書き**します。
 
-そのため、**元マスクと反転マスクの双方が同時に競合しなくなるまでインデックス番号をインクリメント**して決定します。
+1. 対象（Target）ごとに、前回出力したパス（`LastOutputPath`、反転同時保存時は `LastOutputInvPath`）を記録する。
+2. 今回のパス候補 `{folder}/{FileName}.png` が記録と同じなら、そのまま上書きする。
+3. 記録と違い、かつ既存ファイルと衝突する時（ファイル名を変えた、他のツールのファイルがある）だけ、次の規則で連番を付ける。
+4. 確定したパスを記録し直す。
 
-#### アルゴリズム
+#### 元マスクと反転マスクの連番
+`SaveInvertedToo = true` の時、`GenerateUniqueAssetPath` を個別に呼ぶと元と反転で番号がずれるため、**両方が同時に空いている番号**を探します。
+
 ```csharp
 public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
     string folder, string baseName, bool saveInvertedToo)
 {
-    int counter = 0;
-    while (true)
+    for (int counter = 0; ; counter++)
     {
-        string suffix = (counter == 0) ? "" : $" {counter}";
-        string mainCandidate = $"{folder}/{baseName}{suffix}.png";
-        
-        if (!saveInvertedToo)
-        {
-            if (!AssetExists(mainCandidate))
-                return (mainCandidate, null);
-        }
-        else
-        {
-            string invCandidate = $"{folder}/{baseName}{suffix}_inv.png";
-            // 元マスクと反転マスクの両方が存在しない場合のみ確定
-            if (!AssetExists(mainCandidate) && !AssetExists(invCandidate))
-            {
-                return (mainCandidate, invCandidate);
-            }
-        }
-        counter++;
+        string suffix = counter == 0 ? "" : $" {counter}";
+        string main = $"{folder}/{baseName}{suffix}.png";
+        string inv = saveInvertedToo ? $"{folder}/{baseName}{suffix}_inv.png" : null;
+        if (!File.Exists(main) && (inv == null || !File.Exists(inv)))
+            return (main, inv);
     }
-}
-
-private static bool AssetExists(string path)
-{
-    return File.Exists(path) || AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path) != null;
 }
 ```
 
-この処理により、例えば `uv_mask.png` と `uv_mask_inv.png` が常に同じサフィックス番号のペアとして安全に出力されます。
+これにより、`uv_mask.png` と `uv_mask_inv.png` は常に同じ番号のペアになります。
 
 ---
 
-## 4. UV展開図エクスポート仕様 (UV Layout Export)
+## 4. UV展開図エクスポート (UV Layout Export)
 
-外部ペイントソフト（CLIP STUDIO PAINT, Photoshop, Substance 3D 等）でテクスチャを描く際の下絵・ガイド用として、メッシュのUVワイヤーフレーム画像をPNG出力する機能です。
+外部ペイントソフト（CLIP STUDIO PAINT, Photoshop, Substance 3D 等）でテクスチャを描く際の下絵として、UV のワイヤーフレーム画像を出力します。
 
-### 4.1 パラメータ仕様
+### 4.1 パラメータ
 
 | パラメータ | 型 / 選択肢 | 既定値 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `UVLayoutSize` | `int` (512, 1024, 2048, 4096) | 2048 | 出力解像度（マスク解像度とは独立） |
-| `DrawWireframe` | `bool` | `true` | 全三角形（ポリゴン）のエッジ線を描画 |
-| `DrawSeams` | `bool` | `true` | UVアイランドの外形境界線を強調色（赤系）で太線描画 |
-| `SelectionOnly` | `bool` | `false` | 現在選択されているアイランド・パーツのみを描画 |
-| `ColorFillIslands` | `bool` | `false` | 各UVアイランドを半透明の識別カラーで塗り分け（パーツ判別用） |
-| `BackgroundMode` | `enum` (Transparent, BaseTexture) | `Transparent` | 透過背景、またはモデルのベーステクスチャ重ね |
-| `LineColor` | `enum` (White, Black, Cyan) | `White` | ワイヤーフレーム線の色（白: `#FFFFFF`, 黒: `#000000`, シアン: `#00E5FF`） |
+| `UVLayoutWireframe` | `bool` | `true` | 全三角形の辺を描く |
+| `UVLayoutSeams` | `bool` | `true` | UV 境界（`BorderEdges`）を強調色で太く描く |
+| `UVLayoutSelectionOnly` | `bool` | `false` | 選択済み三角形だけを描く |
+| `UVLayoutColorFill` | `bool` | `false` | 島ごとに半透明の識別色で塗り分ける |
+| `UVLayoutBackground` | `enum` (Transparent, BaseTexture) | `Transparent` | 透過背景、またはベーステクスチャ |
+| `UVLayoutLineColor` | `enum` (White, Black, Cyan) | `White` | 線の色（白 `#FFFFFF` / 黒 `#000000` / シアン `#00E5FF`） |
 
-### 4.2 レンダリングパイプライン
+描く対象は有効三角形（対象サブメッシュ）だけです。
 
-1. **バッファ初期化**:
-   - `BackgroundMode == Transparent`: 全ピクセル完全透明 `(0, 0, 0, 0)` の `Texture2D`（RGBA32）を用意。
-   - `BackgroundMode == BaseTexture`: モデルのベーステクスチャを解像度 $W \times H$ へ `Graphics.Blit` で取り込み。
-2. **アイランド色分け充填 (ColorFillIslands == true)**:
-   - 各アイランドごとに、インデックスのハッシュ値から生成したパステルカラー（Alpha: 0.35）を算出。
-   - アイランド内の三角形をスキャンライン/Edge関数でラスタライズ充填。
-3. **ワイヤーフレーム描画 (DrawWireframe == true)**:
-   - 対象三角形の各UV辺（$(u_0, v_0) \to (u_1, v_1) \to (u_2, v_2) \to (u_0, v_0)$）をピクセル座標にマッピング。
-   - Bresenhamアルゴリズムで `LineColor` のピクセルを描画（線幅 1px）。
-4. **シーム境界線描画 (DrawSeams == true)**:
-   - `UVAnalysis.SeamEdges2D` の各エッジを描画（線幅 2px、`SeamColor` 赤系 `#FF3333`）。
-5. **ファイル出力とインポート設定**:
-   - パス: `{folder}/{FileName}_uv.png`（競合時は連番で解決）。
-   - PNGバイト配列を書き出し後、テクスチャインポーターを設定：
-     - `sRGBTexture = true`（カラー画像として表示するためsRGB有効）
-     - `textureCompression = TextureImporterCompression.Uncompressed`
-     - `alphaIsTransparency = true`
+### 4.2 描画手順
+1. **背景**: Transparent は全画素 `(0,0,0,0)`。BaseTexture はベーステクスチャの元ファイルを `LoadImage` で読み、`UVLayoutSize` の正方形に引き伸ばして敷く。
+2. **島の塗り分け**（`UVLayoutColorFill`）: 島 $g$ の色相を $h_g = \text{frac}(g \times 0.618034)$（黄金比で隣の番号ほど色相が離れる）、彩度 0.45、明度 1.0、不透明度 0.35 とし、[mask_processing.md](mask_processing.md) §4 と同じ規則でラスタライズして重ねる。
+3. **ワイヤーフレーム**（`UVLayoutWireframe`）: 各三角形の 3 辺を線幅 1px のアンチエイリアス付き線で描く。共有辺は 1 回だけ描く。
+4. **UV 境界**（`UVLayoutSeams`）: `BorderEdges`（[mesh_analysis.md](mesh_analysis.md) §5.2）を線幅 2px、`#FF3333` で描く。
+5. **書き出し**: `{folder}/{FileName}_uv.png`。上書き・連番の規則は §3.2 と同じ（`LastUVLayoutPath` を記録）。インポーター設定は §2.2 と同じ仕組みで、初回インポート時に `sRGBTexture = true`、`alphaIsTransparency = true`、`mipmapEnabled = false`、`textureCompression = Uncompressed` を当てる。
 
+---
+
+## 5. マテリアル適用 (Smart Apply)
+
+出力したマスクを、対象のマテリアルのテクスチャスロットに割り当てます。
+
+### 5.1 適用先
+- **マテリアル**: `TargetSubmesh` のマテリアル（全体を対象にしている時は先頭のマテリアル）。FBX に内蔵されたマテリアルなど編集できないものには適用しない（[適用] を出さない）。
+- **候補スロット**: シェーダーのテクスチャプロパティのうち、名前または表示名に `Mask`（大文字小文字を区別しない）を含み、`HideInInspector` でないもの。例: lilToon の `_MainColor2ndBlendMask`、Poiyomi の `_DecalMask`。
+- 候補が無いシェーダーでは [適用] を出さない。
+
+### 5.2 スロットの決め方
+1. Target に記憶したスロット（`MaterialSlot`）があり、そのシェーダーに存在すれば、それを使う（1 クリック）。
+2. 無ければ、候補が 1 つなら即適用。複数なら候補リストを出し、選んだ時点で適用して `MaterialSlot` に記憶する。
+3. Project 設定 `AutoApplyMaterial` が ON で、記憶したスロットがある時は、出力の直後に自動で適用する。
+
+### 5.3 適用処理
+- マテリアルの変更は統合履歴に 1 件として積む（[mask_processing.md](mask_processing.md) §3.2）。直後の Ctrl+Z で割り当て前に戻る。
+- スロットに既に同じテクスチャが入っている時（上書きの再出力）は何もしない。トーストは `更新: Body_mask.png` だけにする。
+- マテリアルはアセットなので、同じマテリアルを使う他のオブジェクトにも反映される。
