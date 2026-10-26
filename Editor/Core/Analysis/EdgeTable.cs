@@ -35,10 +35,11 @@ namespace Dennoko.UVMaskMaker.Core
             var cursor = new int[triCount];
             Array.Copy(a.AdjStart, cursor, triCount);
 
+            var added = new List<long>(4);
             ForEachRun(keys, (s, e) =>
             {
                 FillAdjacency(a, occ, s, e, cursor);
-                CollectBorders(a, occ, s, e);
+                CollectBorders(a, occ, s, e, added);
             });
         }
 
@@ -71,9 +72,10 @@ namespace Dennoko.UVMaskMaker.Core
                 }
         }
 
-        private static void CollectBorders(MeshAnalysis a, int[] occ, int s, int e)
+        private static void CollectBorders(MeshAnalysis a, int[] occ, int s, int e, List<long> added)
         {
             bool anyBorder = false;
+            added.Clear(); // この位置で前のサブメッシュが追加した UV の辺（同じ辺に Repeat を付ける）
             // 同じ位置の辺の中で、サブメッシュごとに判定する（run は通常 2 本なので総当たりで十分）
             for (int i = s; i < e; i++)
             {
@@ -96,7 +98,11 @@ namespace Dennoko.UVMaskMaker.Core
                 }
                 if (count != 1 && !multipleUV) continue;
 
+                VertsOf(a, occ[i], out int va, out int vb);
+                a.SeamEdges3D.Add(new VertexEdge { A = va, B = vb, Tri = occ[i] / 3, Repeat = anyBorder });
                 anyBorder = true;
+
+                int addedBefore = added.Count;
                 for (int j = i; j < e; j++)
                 {
                     if (a.TriSubmesh[occ[j] / 3] != sub) continue;
@@ -104,23 +110,29 @@ namespace Dennoko.UVMaskMaker.Core
                     bool seen = false;
                     for (int m = i; m < j; m++)
                         if (a.TriSubmesh[occ[m] / 3] == sub && PosUVKey(a, occ[m]) == k) { seen = true; break; }
-                    if (!seen) a.BorderEdges.Add(MakeUVEdge(a, occ[j]));
+                    if (seen) continue;
+                    var edge = MakeUVEdge(a, occ[j]);
+                    int at = added.IndexOf(k);
+                    edge.Repeat = at >= 0 && at < addedBefore;
+                    a.BorderEdges.Add(edge);
+                    added.Add(k);
                 }
-            }
-
-            if (anyBorder)
-            {
-                VertsOf(a, occ[s], out int va, out int vb);
-                a.SeamEdges3D.Add(new VertexEdge { A = va, B = vb });
             }
         }
 
         private static List<UVEdge> BuildWireEdges(MeshAnalysis a)
         {
             var seen = new HashSet<long>();
+            var seenInSubmesh = new HashSet<(int, long)>();
             var list = new List<UVEdge>(a.TriangleCount * 3 / 2);
             for (int o = 0; o < a.TriangleCount * 3; o++)
-                if (seen.Add(PosUVKey(a, o))) list.Add(MakeUVEdge(a, o));
+            {
+                long k = PosUVKey(a, o);
+                if (!seenInSubmesh.Add((a.TriSubmesh[o / 3], k))) continue;
+                var edge = MakeUVEdge(a, o);
+                edge.Repeat = !seen.Add(k);
+                list.Add(edge);
+            }
             return list;
         }
 

@@ -136,14 +136,14 @@ namespace Dennoko.UVMaskMaker
             Mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e6f);
         }
 
-        /// <summary>UV 空間の辺から作る（z = 0）。</summary>
+        /// <summary>UV 空間の辺から作る（z = 0）。filterBits の三角形の辺だけ。null は全体。</summary>
         public void SetUV(IReadOnlyList<UVEdge> edges, int[] filterBits = null)
         {
             var a = new List<Vector3>(edges.Count);
             var b = new List<Vector3>(edges.Count);
             foreach (var e in edges)
             {
-                if (filterBits != null && !TriangleBits.Get(filterBits, e.Tri)) continue;
+                if (!e.VisibleIn(filterBits)) continue;
                 a.Add(e.A);
                 b.Add(e.B);
             }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Dennoko.UVMaskMaker.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +16,8 @@ namespace Dennoko.UVMaskMaker
             var gpu = s.Gpu;
             int size = Mathf.Clamp(SettingsService.Get(SettingKeys.UVLayoutSize), 64, 8192);
             bool selectionOnly = SettingsService.Get(SettingKeys.UVLayoutSelectionOnly);
-            var filter = selectionOnly ? EditState.instance.SelectedBits : null;
+            // 線は有効三角形（対象サブメッシュ）の物だけ。選択限定ならさらに選択済みに絞る
+            var filter = selectionOnly ? TriangleBits.And(EditState.instance.SelectedBits, s.Active) : s.EdgeFilter;
 
             var rt = gpu.CreateColorRT("UVLayout", size, size);
             var wire = new LineMesh(gpu, "LayoutWire");

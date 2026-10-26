@@ -79,7 +79,7 @@
 - 旧仕様の「頂点を法線方向に `OverlayDepthOffset` だけ押し出す」方式と、その設定は廃止（メッシュのスケールによって適切な値が変わるため）。
 
 ### 3.2 UV シームの描画
-- `SeamEdges3D`（[mesh_analysis.md](mesh_analysis.md) §5.2）を、画面上の太さ `OverlaySeamThickness` px のアンチエイリアス付き線で描く。色は `SeamColor`。
+- `SeamEdges3D`（[mesh_analysis.md](mesh_analysis.md) §5.2）のうち対象サブメッシュの物を、画面上の太さ `OverlaySeamThickness` px のアンチエイリアス付き線で描く。色は `SeamColor`。
 - 深度の扱いは §3.1 と同じ（X-Ray で最前面）。
 - 旧仕様の「AA 無効化（`DisableAA`）」設定は廃止（線の描画が常に 1 回の描画命令で済み、速度差が無いため）。
 
@@ -88,7 +88,10 @@
 - ペイントモード: Brush / Eraser は、交点を中心に表面の向きに沿った円（半径 $r$、[mask_processing.md](mask_processing.md) §6.4）を描く。メッシュから外れている時は画面上の円。Rect / Lasso はドラッグ中の図形を画面上に描く。
 
 ### 3.4 UV ビューの描画
-UV ビュー（ツールタブ）は SceneView と同じ D を表示し、その上に全三角形の辺（薄い線）、`BorderEdges`、ホバーの縁取り、ブラシの円を描きます。`PreviewOverlayBaseTex` が ON の時はベーステクスチャを不透明度 `PreviewOverlayAlpha` で下に敷きます。
+UV ビュー（ツールタブ）は SceneView と同じ D を表示し、その上に有効三角形（対象サブメッシュ）の辺（薄い線）と `BorderEdges`、ホバーの縁取り、ブラシの円を描きます。
+
+### 3.5 対象サブメッシュでの絞り込み
+サブメッシュが複数あるメッシュでは、シーンと UV ビューのどちらも、対象サブメッシュ（選んでいるマテリアルが割り当てられた三角形）の物だけを描きます。マスクは有効三角形だけで作り（§3.1）、シーム・境界・ワイヤーは辺ごとに持つ三角形番号で絞ります。対象を切り替えると線を作り直します（再解析はしない）。全体（-1）を対象にしている時は、別のサブメッシュと重なる同じ辺を 1 回だけ描きます。`PreviewOverlayBaseTex` が ON の時はベーステクスチャを不透明度 `PreviewOverlayAlpha` で下に敷きます。
 
 ---
 

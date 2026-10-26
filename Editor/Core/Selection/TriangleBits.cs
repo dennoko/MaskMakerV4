@@ -39,6 +39,14 @@ namespace Dennoko.UVMaskMaker.Core
 
         public static int[] Copy(int[] bits) => (int[])bits.Clone();
 
+        /// <summary>両方に立っているビットだけの新しいビット列。</summary>
+        public static int[] And(int[] a, int[] b)
+        {
+            var result = new int[a.Length];
+            for (int i = 0; i < a.Length; i++) result[i] = a[i] & b[i];
+            return result;
+        }
+
         private static int PopCount(uint v)
         {
             v = v - ((v >> 1) & 0x55555555u);

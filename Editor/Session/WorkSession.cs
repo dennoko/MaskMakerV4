@@ -102,9 +102,7 @@ namespace Dennoko.UVMaskMaker
             HoverLines3D = new LineMesh(gpu, "HoverLines3D");
             HoverLinesUV = new LineMesh(gpu, "HoverLinesUV");
             UVView = new UVViewRenderer(gpu);
-            BorderLinesUV.SetUV(Analysis.BorderEdges);
-            WireLinesUV.SetUV(Analysis.WireEdges);
-            RebuildSeamLines();
+            RebuildEdgeLines();
         }
 
         // ── 毎フレームの更新 ──
@@ -117,7 +115,7 @@ namespace Dennoko.UVMaskMaker
                 Mesh.Rebake();
                 Raycaster.SetVertices(Mesh.Vertices);
                 Tri.UpdatePose(Mesh);
-                RebuildSeamLines();
+                RebuildEdgeLines();
                 SceneView.RepaintAll();
             }
             if (ActiveSubmesh != SettingsService.Get(SettingKeys.TargetSubmesh)) UpdateActive();
@@ -129,7 +127,11 @@ namespace Dennoko.UVMaskMaker
             if (ActiveSubmesh >= Mesh.SubmeshCount) ActiveSubmesh = -1;
             Active = TriangleBits.ActiveMask(Analysis.TriSubmesh, ActiveSubmesh);
             _flagsSelectionRevision = -1;
-            if (Tri != null) Tri.UpdateFlags(EditState.instance.SelectedBits, Active, true);
+            if (Tri != null)
+            {
+                Tri.UpdateFlags(EditState.instance.SelectedBits, Active, true);
+                RebuildEdgeLines();
+            }
             _countKey = (-1, SelectionGranularity.UVIsland, int.MinValue);
         }
 
@@ -147,12 +149,20 @@ namespace Dennoko.UVMaskMaker
             Pipeline.Ensure(size.x, size.y, EffectiveMargin(size));
         }
 
-        private void RebuildSeamLines()
+        /// <summary>対象サブメッシュの三角形（全体なら null）。シーム・ワイヤーの表示をこれで絞る。</summary>
+        public int[] EdgeFilter => ActiveSubmesh >= 0 ? Active : null;
+
+        /// <summary>シーム（3D）と UV ビューの境界・ワイヤーを、ポーズと対象サブメッシュに合わせて作り直す。</summary>
+        private void RebuildEdgeLines()
         {
+            var filter = EdgeFilter;
+            BorderLinesUV.SetUV(Analysis.BorderEdges, filter);
+            WireLinesUV.SetUV(Analysis.WireEdges, filter);
             var a = new List<Vector3>(Analysis.SeamEdges3D.Count);
             var b = new List<Vector3>(Analysis.SeamEdges3D.Count);
             foreach (var e in Analysis.SeamEdges3D)
             {
+                if (!e.VisibleIn(filter)) continue;
                 a.Add(Mesh.Vertices[e.A]);
                 b.Add(Mesh.Vertices[e.B]);
             }

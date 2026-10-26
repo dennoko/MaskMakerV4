@@ -25,17 +25,28 @@ namespace Dennoko.UVMaskMaker.Core
         public int VertexCount => Positions.Length;
     }
 
-    /// <summary>UV 空間の辺（Tri はその辺を持つ三角形の 1 つ）。</summary>
+    /// <summary>
+    /// UV 空間の辺。サブメッシュごとに 1 本あり、Tri はそのサブメッシュでこの辺を持つ三角形の 1 つ。
+    /// Repeat は同じ辺を別のサブメッシュで既に持っている印（全体を表示する時は重ねて描かない）。
+    /// </summary>
     public struct UVEdge
     {
         public Vector2 A, B;
         public int Tri;
+        public bool Repeat;
+
+        /// <summary>filter（三角形のビット列）で絞った表示に含まれるか。null は全体。</summary>
+        public bool VisibleIn(int[] filter) => filter == null ? !Repeat : TriangleBits.Get(filter, Tri);
     }
 
-    /// <summary>3D の辺（作業メッシュの頂点番号）。</summary>
+    /// <summary>3D の辺（作業メッシュの頂点番号）。Tri と Repeat は UVEdge と同じ。</summary>
     public struct VertexEdge
     {
         public int A, B;
+        public int Tri;
+        public bool Repeat;
+
+        public bool VisibleIn(int[] filter) => filter == null ? !Repeat : TriangleBits.Get(filter, Tri);
     }
 
     /// <summary>グループの外周辺。3D 描画と UV 描画の両方に使う。</summary>

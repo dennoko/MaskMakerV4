@@ -36,6 +36,37 @@ namespace Dennoko.UVMaskMaker.Tests
         }
 
         [Test]
+        public void SubmeshEdges_FilterBySubmeshWithoutDuplicates()
+        {
+            // 各四角形が別のサブメッシュ。共有辺は UV もつながっているので、両方のサブメッシュで同じ辺になる
+            var a = MeshAnalyzer.Analyze(TestMeshes.TwoQuads(separateUV: false, secondSubmesh: true));
+            var sub0 = TriangleBits.ActiveMask(a.TriSubmesh, 0);
+            var sub1 = TriangleBits.ActiveMask(a.TriSubmesh, 1);
+
+            int Count<T>(System.Collections.Generic.List<T> edges, System.Func<T, bool> visible)
+            {
+                int n = 0;
+                foreach (var e in edges) if (visible(e)) n++;
+                return n;
+            }
+
+            // シーム（3D）: 全体は外周 6 + 共有辺 1、各サブメッシュは自分の外周 3 + 共有辺 1
+            Assert.AreEqual(7, Count(a.SeamEdges3D, e => e.VisibleIn(null)));
+            Assert.AreEqual(4, Count(a.SeamEdges3D, e => e.VisibleIn(sub0)));
+            Assert.AreEqual(4, Count(a.SeamEdges3D, e => e.VisibleIn(sub1)));
+            // UV の境界も同じ数
+            Assert.AreEqual(7, Count(a.BorderEdges, e => e.VisibleIn(null)));
+            Assert.AreEqual(4, Count(a.BorderEdges, e => e.VisibleIn(sub0)));
+            Assert.AreEqual(4, Count(a.BorderEdges, e => e.VisibleIn(sub1)));
+            // ワイヤー: 四角形ごとに 4 辺 + 対角線 1、共有辺は全体で 1 本
+            Assert.AreEqual(9, Count(a.WireEdges, e => e.VisibleIn(null)));
+            Assert.AreEqual(5, Count(a.WireEdges, e => e.VisibleIn(sub0)));
+            Assert.AreEqual(5, Count(a.WireEdges, e => e.VisibleIn(sub1)));
+            foreach (var e in a.WireEdges)
+                if (e.VisibleIn(sub0)) Assert.AreEqual(0, a.TriSubmesh[e.Tri]);
+        }
+
+        [Test]
         public void Cube_SixIslandsOnePart()
         {
             var a = MeshAnalyzer.Analyze(TestMeshes.Cube());
