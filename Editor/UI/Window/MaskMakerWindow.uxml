@@ -1,0 +1,128 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+
+    <!-- ヘッダー: タイトル + バージョン + 更新確認 + 設定 -->
+    <ui:VisualElement class="dennoko-header">
+        <ui:VisualElement class="dennoko-header-titlegroup">
+            <ui:Label text="MaskMaker V4" class="dennoko-title" />
+            <ui:Label name="version-label" text="" class="dennoko-version-label" />
+            <ui:Button name="version-reload-button" text="↻" class="dennoko-version-reload-button" />
+        </ui:VisualElement>
+        <ui:Button name="settings-button" class="dennoko-version-reload-button" />
+    </ui:VisualElement>
+    <ui:VisualElement class="dennoko-separator" />
+
+    <ui:ScrollView class="dennoko-scroll">
+
+        <!-- 対象（見出しなし） -->
+        <ui:VisualElement name="target-card" class="dennoko-card">
+            <ui:VisualElement name="target-idle">
+                <uie:ObjectField name="target-field" type="UnityEngine.Renderer, UnityEngine.CoreModule" allow-scene-objects="true" />
+                <ui:VisualElement name="target-list" class="mm-target-list" />
+            </ui:VisualElement>
+            <ui:VisualElement name="target-working">
+                <ui:VisualElement class="mm-row">
+                    <ui:VisualElement name="target-icon" class="mm-target-icon" />
+                    <ui:DropdownField name="target-dropdown" class="mm-grow" />
+                    <ui:Button name="end-button" text="終了" class="dennoko-button-secondary" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row">
+                    <ui:DropdownField name="submesh-dropdown" class="mm-grow" />
+                    <ui:DropdownField name="uv-dropdown" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- UV ビュー（見出しなし。Working のみ） -->
+        <ui:VisualElement name="uv-card" class="dennoko-card">
+            <ui:VisualElement name="uv-host" class="mm-uv-host">
+                <ui:VisualElement name="uv-tools" class="mm-uv-tools">
+                    <ui:Button name="base-overlay-button" class="mm-icon-button" />
+                    <ui:Button name="layout-button" class="mm-icon-button" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Slider name="base-alpha-slider" low-value="0" high-value="1" show-input-field="true" />
+
+            <ui:VisualElement name="layout-popup" class="mm-uv-export-popup">
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="layout-size-512" text="512" class="mm-choice" />
+                    <ui:Button name="layout-size-1024" text="1024" class="mm-choice" />
+                    <ui:Button name="layout-size-2048" text="2048" class="mm-choice" />
+                    <ui:Button name="layout-size-4096" text="4096" class="mm-choice" />
+                </ui:VisualElement>
+                <ui:Toggle name="layout-wire" text="ポリゴン線" />
+                <ui:Toggle name="layout-seams" text="シーム線" />
+                <ui:Toggle name="layout-selection-only" text="選択限定" />
+                <ui:Toggle name="layout-color-fill" text="色分け" />
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="layout-bg-transparent" text="透過" class="mm-choice" />
+                    <ui:Button name="layout-bg-base" text="ベース" class="mm-choice" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="layout-line-white" text="白" class="mm-choice" />
+                    <ui:Button name="layout-line-black" text="黒" class="mm-choice" />
+                    <ui:Button name="layout-line-cyan" text="シアン" class="mm-choice" />
+                </ui:VisualElement>
+                <ui:Button name="layout-write" text="書き出し" class="dennoko-button-secondary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- 出力（Working のみ。基本 + 詳細） -->
+        <ui:VisualElement name="output-card" class="dennoko-card">
+            <ui:Label name="output-header" text="出力" class="dennoko-section-title dennoko-card-header" />
+            <ui:VisualElement class="mm-row">
+                <ui:TextField name="file-name" class="mm-grow" />
+                <ui:Label text=".png" class="dennoko-text-tertiary" />
+            </ui:VisualElement>
+            <ui:VisualElement name="size-row" class="mm-row">
+                <ui:Button name="size-512" text="512" class="mm-choice" />
+                <ui:Button name="size-1024" text="1024" class="mm-choice" />
+                <ui:Button name="size-2048" text="2048" class="mm-choice" />
+                <ui:Button name="size-4096" text="4096" class="mm-choice" />
+                <ui:Label name="size-locked" text="" class="dennoko-text-tertiary" />
+            </ui:VisualElement>
+            <ui:Toggle name="channel-toggle" text="チャンネル" />
+            <ui:VisualElement name="channel-group" class="mm-indent">
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="ch-r" text="R" class="mm-choice" />
+                    <ui:Button name="ch-g" text="G" class="mm-choice" />
+                    <ui:Button name="ch-b" text="B" class="mm-choice" />
+                    <ui:Button name="ch-a" text="A" class="mm-choice" />
+                </ui:VisualElement>
+                <uie:ObjectField name="base-png" type="UnityEngine.Texture2D, UnityEngine.CoreModule" allow-scene-objects="false" />
+            </ui:VisualElement>
+            <ui:Foldout name="details-foldout" text="詳細" value="false">
+                <ui:VisualElement class="mm-row">
+                    <ui:Toggle name="invert-toggle" text="反転" class="mm-grow" />
+                    <ui:VisualElement name="invert-dot" class="mm-override-dot" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row">
+                    <ui:SliderInt name="margin-slider" label="余白" low-value="0" high-value="32" show-input-field="true" class="mm-grow" />
+                    <ui:VisualElement name="margin-dot" class="mm-override-dot" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row">
+                    <ui:Toggle name="save-inverted-toggle" text="反転も保存" class="mm-grow" />
+                    <ui:VisualElement name="save-inverted-dot" class="mm-override-dot" />
+                </ui:VisualElement>
+                <ui:Label name="inverted-preview" text="" class="dennoko-text-tertiary mm-indent" />
+            </ui:Foldout>
+        </ui:VisualElement>
+
+    </ui:ScrollView>
+
+    <ui:VisualElement class="dennoko-separator" />
+
+    <!-- 出力サマリ（値のチップ） -->
+    <ui:VisualElement name="summary-row" class="mm-summary" />
+
+    <!-- 主ボタン（画面ごとに 1 つ） -->
+    <ui:VisualElement class="dennoko-card dennoko-footer">
+        <ui:Button name="primary-button" text="作業開始" class="dennoko-button-primary" />
+    </ui:VisualElement>
+
+    <!-- ステータスバー（平常時は空） -->
+    <ui:VisualElement class="mm-status-row">
+        <ui:Label name="status-label" text="" class="dennoko-status mm-grow" />
+        <ui:Button name="status-action" text="" class="dennoko-button-secondary" />
+    </ui:VisualElement>
+
+</ui:UXML>

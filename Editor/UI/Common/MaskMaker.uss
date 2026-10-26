@@ -1,0 +1,309 @@
+/* MaskMaker V4 固有クラス。必ず .dennoko-root を前置する（uss-conventions）。色は var(--dennoko-*) のみ */
+
+.dennoko-root .mm-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.dennoko-root .mm-grow {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.dennoko-root .mm-indent {
+    margin-left: 16px;
+}
+
+.dennoko-root .mm-hidden {
+    display: none;
+}
+
+/* アイコンだけのボタン */
+.dennoko-root .mm-icon-button {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    padding: 3px;
+    margin: 1px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-text-align: middle-center;
+    font-size: 11px;
+}
+
+.dennoko-root .mm-icon-button:hover {
+    background-color: var(--dennoko-surface-2);
+}
+
+/* 選択肢のボタン（解像度、R/G/B/A、島/パーツ/面） */
+.dennoko-root .mm-choice {
+    min-width: 34px;
+    height: 24px;
+    margin: 1px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+    -unity-text-align: middle-center;
+}
+
+.dennoko-root .mm-choice:hover {
+    background-color: var(--dennoko-surface-2);
+}
+
+.dennoko-root .mm-success-frame {
+    border-color: var(--dennoko-semantic-success);
+}
+
+.dennoko-root .mm-segment {
+    flex-direction: row;
+    align-items: center;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-right-width: 1px;
+    border-right-color: var(--dennoko-outline);
+}
+
+/* 上書きマーク ● */
+.dennoko-root .mm-override-dot {
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
+    border-radius: 4px;
+    background-color: var(--dennoko-semantic-info);
+}
+
+/* 対象 */
+.dennoko-root .mm-target-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+}
+
+.dennoko-root .mm-target-list {
+    margin-top: 4px;
+}
+
+.dennoko-root .mm-target-row {
+    flex-direction: row;
+    align-items: center;
+    height: 24px;
+    margin: 1px;
+    padding-left: 6px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+    -unity-text-align: middle-left;
+}
+
+.dennoko-root .mm-target-row:hover {
+    background-color: var(--dennoko-surface-2);
+}
+
+/* UV ビュー */
+.dennoko-root .mm-uv-host {
+    height: 320px;
+    min-height: 160px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--dennoko-surface-0);
+}
+
+.dennoko-root .mm-uv-view {
+    flex-grow: 1;
+}
+
+.dennoko-root .mm-uv-image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.dennoko-root .mm-uv-tools {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    flex-direction: row;
+}
+
+.dennoko-root .mm-drop-target {
+    border-width: 2px;
+    border-color: var(--dennoko-semantic-info);
+}
+
+.dennoko-root .mm-drop-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 45%;
+    -unity-text-align: middle-center;
+    color: var(--dennoko-semantic-info);
+}
+
+.dennoko-root .mm-uv-export-popup {
+    margin-top: 4px;
+    padding: 8px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+}
+
+/* 出力サマリ */
+.dennoko-root .mm-summary {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 2px;
+}
+
+.dennoko-root .mm-chip {
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+    margin-right: 6px;
+    padding-left: 4px;
+    padding-right: 4px;
+    border-radius: 4px;
+    background-color: var(--dennoko-surface-1);
+    border-width: 0;
+}
+
+.dennoko-root .mm-chip-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 3px;
+}
+
+.dennoko-root .mm-status-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* シーン上のフローティング UI */
+.dennoko-root.mm-hud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.dennoko-root.mm-capsule {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 0;
+    height: 32px;
+    padding-left: 4px;
+    padding-right: 6px;
+    border-radius: 16px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+}
+
+.dennoko-root .mm-count {
+    margin-left: 6px;
+    color: var(--dennoko-text-primary);
+    -unity-font-style: bold;
+}
+
+.dennoko-root .mm-radial-menu {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 90px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-1);
+}
+
+.dennoko-root .mm-radial-slice {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-2);
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-text-align: middle-center;
+    font-size: 11px;
+}
+
+.dennoko-root .mm-radial-hot {
+    border-color: var(--dennoko-accent);
+    border-width: 2px;
+}
+
+.dennoko-root .mm-radial-center {
+    position: absolute;
+    left: 40px;
+    top: 80px;
+    width: 100px;
+    -unity-text-align: middle-center;
+    color: var(--dennoko-text-primary);
+}
+
+.dennoko-root .mm-radial-key {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -14px;
+    font-size: 9px;
+    -unity-text-align: middle-center;
+    color: var(--dennoko-text-tertiary);
+}
+
+.dennoko-root .mm-toast {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--dennoko-outline);
+    background-color: var(--dennoko-surface-2);
+}
+
+.dennoko-root .mm-toast-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.dennoko-root .mm-cursor-hint {
+    position: absolute;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: var(--dennoko-surface-2);
+    color: var(--dennoko-text-primary);
+}
+
+.dennoko-root .mm-start-badge {
+    position: absolute;
+    right: 12px;
+    top: 34px;
+}
+
+.dennoko-root.mm-overlay-root {
+    flex-grow: 0;
+    background-color: rgba(0, 0, 0, 0);
+}

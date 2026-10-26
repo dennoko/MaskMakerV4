@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <!-- 手元カプセル（UI 設計 §6.1）。アイコンのみ。名前とキーはツールチップ -->
+    <ui:VisualElement name="capsule" class="dennoko-root mm-capsule">
+        <ui:VisualElement class="mm-segment">
+            <ui:Button name="mode-select" class="mm-icon-button" />
+            <ui:Button name="mode-paint" class="mm-icon-button" />
+        </ui:VisualElement>
+        <ui:VisualElement name="seg-units" class="mm-segment">
+            <ui:Button name="unit-island" text="島" class="mm-choice" />
+            <ui:Button name="unit-part" text="パーツ" class="mm-choice" />
+            <ui:Button name="unit-face" text="面" class="mm-choice" />
+        </ui:VisualElement>
+        <ui:VisualElement name="seg-tools" class="mm-segment">
+            <ui:Button name="tool-brush" class="mm-icon-button" />
+            <ui:Button name="tool-rect" class="mm-icon-button" />
+            <ui:Button name="tool-lasso" class="mm-icon-button" />
+            <ui:Button name="tool-eraser" class="mm-icon-button" />
+            <ui:Label name="brush-size" text="" class="dennoko-text-tertiary" />
+        </ui:VisualElement>
+        <ui:VisualElement class="mm-segment">
+            <ui:Button name="symmetry" class="mm-icon-button" />
+        </ui:VisualElement>
+        <ui:VisualElement class="mm-segment">
+            <ui:Button name="xray" class="mm-icon-button" />
+            <ui:Button name="isolate" class="mm-icon-button" />
+        </ui:VisualElement>
+        <ui:VisualElement class="mm-segment">
+            <ui:Button name="pause" class="mm-icon-button" />
+        </ui:VisualElement>
+        <ui:VisualElement class="mm-segment">
+            <ui:Button name="undo" class="mm-icon-button" />
+            <ui:Button name="redo" class="mm-icon-button" />
+            <ui:Button name="clear" class="mm-icon-button" />
+        </ui:VisualElement>
+        <ui:Button name="export" class="mm-icon-button" />
+        <ui:Label name="count" text="" class="mm-count" />
+    </ui:VisualElement>
+</ui:UXML>
