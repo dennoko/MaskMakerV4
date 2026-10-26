@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -7,11 +9,18 @@ namespace Dennoko.UVMaskMaker
 {
     /// <summary>
     /// UV 展開図の書き出しウィンドウ（UI 設計 §4.3）。UV ビューの [Camera] ボタンで、フローティングで開く。
-    /// 書き出しかキャンセルで閉じる。状態を持たず、表示はすべて SettingsService / SessionController から作る。
+    /// 左に書き出し結果と同じ見た目のプレビュー、右に設定を並べ、書き出しかキャンセルで閉じる。
+    /// 設定は持たず、表示はすべて SettingsService / SessionController から作る。
     /// </summary>
     internal sealed class UVLayoutWindow : EditorWindow
     {
-        private static readonly Vector2 DefaultSize = new Vector2(320, 520);
+        private static readonly Vector2 DefaultSize = new Vector2(760, 560);
+
+        private VisualElement _previewHost;
+        private IMGUIContainer _preview;
+        private Label _previewEmpty;
+        private GpuResources _previewGpu; // プレビュー RT を作った作業の GPU 資源（作業が変わったら作り直す）
+        private RenderTexture _previewRT;
 
         private Label _status;
         private IVisualElementScheduledItem _statusReset;
@@ -26,7 +35,7 @@ namespace Dennoko.UVMaskMaker
                 return;
             }
             var w = CreateInstance<UVLayoutWindow>();
-            w.minSize = new Vector2(280, 320);
+            w.minSize = new Vector2(560, 400);
             w.position = CenteredOn(OwnerRect(), DefaultSize);
             w.ShowUtility();
         }
@@ -52,6 +61,7 @@ namespace Dennoko.UVMaskMaker
         private void OnDisable()
         {
             Notifier.Posted -= OnMessage;
+            ReleasePreview();
         }
 
         public void CreateGUI()
@@ -107,6 +117,11 @@ namespace Dennoko.UVMaskMaker
             };
             Bind.Choice(fillItems, SettingKeys.UVLayoutFill, () => SettingsService.Get(SettingKeys.UVLayoutFill));
 
+            // 色の設定は、該当する描画要素が ON の時だけ出す
+            ShowWhen(root, "layout-seam-color-group", SettingKeys.UVLayoutSeams);
+            ShowWhen(root, "layout-wire-color-group", SettingKeys.UVLayoutWireframe);
+            ShowWhen(root, "layout-fill-group", SettingKeys.UVLayoutColorFill);
+
             // 書き出せたら閉じる。失敗時は開いたまま、このウィンドウのステータスにエラーを出す
             var write = Text(root, "layout-write", "button.writeLayout");
             write.clicked += () =>
@@ -123,15 +138,26 @@ namespace Dennoko.UVMaskMaker
                 Dismiss();
             }, TrickleDown.TrickleDown);
 
-            // 対象・保存名・書き出しの可否は作業の有無に従う
+            _previewEmpty = root.Q<Label>("layout-preview-empty");
+            _previewEmpty.text = L10n.T("layout.noSession");
+            _preview = new IMGUIContainer(DrawPreview);
+            _preview.style.position = Position.Absolute;
+            _preview.style.left = _preview.style.top = _preview.style.right = _preview.style.bottom = 0;
+            _previewHost = root.Q("layout-preview");
+            _previewHost.Add(_preview);
+            // 表示サイズで描くので、大きさが変わったら描き直す
+            _previewHost.RegisterCallback<GeometryChangedEvent>(_ => RefreshPreview(SessionController.Current));
+
+            // 対象・保存名・書き出しの可否・プレビューは作業の有無と設定に従う
             var target = root.Q<Label>("layout-target");
             var file = root.Q<Label>("layout-file");
             UiHub.Watch(root, () =>
             {
                 var s = SessionController.Current;
                 target.text = s != null ? s.Target.name : string.Empty;
-                file.text = s != null ? s.EffectiveFileName + "_uv.png" : L10n.T("layout.noSession");
+                file.text = s != null ? Path.GetFileName(UVLayoutExporter.PlannedPath(s)) : L10n.T("layout.noSession");
                 write.SetEnabled(s != null);
+                RefreshPreview(s);
             });
 
             _status = root.Q<Label>("status-label");
@@ -143,6 +169,74 @@ namespace Dennoko.UVMaskMaker
         {
             Close();
             if (HasOpenInstances<MaskMakerWindow>()) FocusWindowIfItsOpen<MaskMakerWindow>();
+        }
+
+        // ── プレビュー（表示サイズの RT に、線を太めにして描く） ──
+
+        private void RefreshPreview(WorkSession s)
+        {
+            if (s == null || s.Gpu == null)
+            {
+                ReleasePreview();
+            }
+            else
+            {
+                int size = PreviewPixels();
+                if (size > 0)
+                {
+                    if (_previewGpu != s.Gpu || _previewRT == null || _previewRT.width != size)
+                    {
+                        ReleasePreview();
+                        _previewGpu = s.Gpu;
+                        _previewRT = s.Gpu.CreateColorRT("UVLayoutPreview", size, size);
+                    }
+                    try
+                    {
+                        UVLayoutExporter.RenderPreview(s, _previewRT);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        Debug.LogException(e);
+                        ReleasePreview();
+                    }
+                }
+            }
+            Bind.Show(_previewEmpty, s == null);
+            _preview.MarkDirtyRepaint();
+        }
+
+        /// <summary>プレビューの一辺（実ピクセル）。書き出し解像度は超えない。レイアウト前は 0。</summary>
+        private int PreviewPixels()
+        {
+            var r = _previewHost.contentRect;
+            float side = Mathf.Min(r.width, r.height);
+            if (float.IsNaN(side) || side < 8f) return 0;
+            return Mathf.Min(Mathf.RoundToInt(side * EditorGUIUtility.pixelsPerPoint), UVLayoutExporter.OutputSize());
+        }
+
+        private void DrawPreview()
+        {
+            if (_previewRT == null || !_previewRT.IsCreated()) return;
+            var r = _preview.contentRect;
+            float side = Mathf.Min(r.width, r.height);
+            if (side < 1f) return;
+            var rect = new Rect((r.width - side) * 0.5f, (r.height - side) * 0.5f, side, side);
+            // 透過部分は市松模様で見せる
+            EditorGUI.DrawTextureTransparent(rect, _previewRT, ScaleMode.ScaleToFit);
+        }
+
+        /// <summary>作業が終わっていれば GPU 資源ごと破棄済みなので、Release は何もしない。</summary>
+        private void ReleasePreview()
+        {
+            _previewGpu?.Release(_previewRT);
+            _previewGpu = null;
+            _previewRT = null;
+        }
+
+        private static void ShowWhen(VisualElement root, string name, Setting<bool> s)
+        {
+            var e = root.Q(name);
+            UiHub.Watch(e, () => Bind.Show(e, SettingsService.Get(s)));
         }
 
         private static void Toggle(VisualElement root, string name, string textKey, Setting<bool> s)
@@ -198,7 +292,7 @@ namespace Dennoko.UVMaskMaker
         private void PingStatus()
         {
             if (string.IsNullOrEmpty(_statusAsset)) return;
-            var obj = AssetDatabase.LoadAssetAtPath<Object>(_statusAsset);
+            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(_statusAsset);
             if (obj != null) EditorGUIUtility.PingObject(obj);
         }
     }

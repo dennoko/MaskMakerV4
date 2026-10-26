@@ -153,12 +153,37 @@
     color: var(--dennoko-semantic-info);
 }
 
-/* UV 展開図タブの項目見出し（2 つ目以降は上に間を空ける） */
+/* UV 展開図ウィンドウの本体（左: プレビュー、右: 設定） */
+.dennoko-root .mm-layout-body {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.dennoko-root .mm-layout-preview {
+    flex-grow: 1;
+    min-width: 160px;
+    margin: 8px;
+    justify-content: center;
+}
+
+.dennoko-root .mm-layout-preview-empty {
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.dennoko-root .dennoko-scroll.mm-layout-settings {
+    flex-grow: 0;
+    width: 300px;
+}
+
+/* UV 展開図ウィンドウの項目見出し（2 つ目以降は上に間を空ける） */
 .dennoko-root .mm-layout-label {
     margin-top: 10px;
 }
 
-/* UV 展開図タブのキャンセル（主ボタンの横に同じ高さで並べる） */
+/* UV 展開図ウィンドウのキャンセル（主ボタンの横に同じ高さで並べる） */
 .dennoko-root .unity-button.mm-footer-cancel {
     height: 34px;
     padding-left: 12px;

@@ -9,23 +9,82 @@ namespace Dennoko.UVMaskMaker
     /// <summary>UV 展開図の書き出し（Impl export §4）。</summary>
     internal static class UVLayoutExporter
     {
+        public static int OutputSize() => Mathf.Clamp(SettingsService.Get(SettingKeys.UVLayoutSize), 64, 8192);
+
+        /// <summary>保存先のパス（同名のファイルがあれば番号付き）。フォルダは作らない。</summary>
+        public static string PlannedPath(WorkSession s) =>
+            OutputPaths.ResolveUnique(OutputPaths.FolderFor(s), s.EffectiveFileName + "_uv");
+
         /// <summary>書き出して true を返す。書き込みに失敗したら false（エラーは通知済み）。</summary>
         public static bool Export(WorkSession s)
         {
             var gpu = s.Gpu;
-            int size = Mathf.Clamp(SettingsService.Get(SettingKeys.UVLayoutSize), 64, 8192);
+            int size = OutputSize();
+            var rt = gpu.CreateColorRT("UVLayout", size, size);
+            Texture2D baseTex = null;
+            try
+            {
+                if (SettingsService.Get(SettingKeys.UVLayoutBackgroundMode) == UVLayoutBackground.BaseTexture)
+                    baseTex = LoadBaseTexture(s);
+                Render(s, rt, baseTex);
+
+                byte[] rgba = GpuReadback.ReadRGBA32(rt);
+                string folder = OutputPaths.ResolveFolder(s);
+                string path = OutputPaths.ResolveUnique(folder, s.EffectiveFileName + "_uv");
+                MaskExporter.Write(path, rgba, new Vector2Int(size, size));
+                MaskTexturePostprocessor.Register(path, MaskTexturePostprocessor.Kind.Layout);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                Notifier.Post(new UserMessage
+                {
+                    Level = MessageLevel.Success,
+                    Text = L10n.F("status.layoutSaved", Path.GetFileName(path)),
+                    Origin = MessageOrigin.Window,
+                    AssetPath = path,
+                });
+                return true;
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is InvalidOperationException)
+            {
+                Debug.LogException(e);
+                Notifier.Post(MessageLevel.Error, L10n.T("status.writeFailed"));
+                return false;
+            }
+            finally
+            {
+                if (baseTex != null) UnityEngine.Object.DestroyImmediate(baseTex);
+                gpu.Release(rt);
+            }
+        }
+
+        /// <summary>プレビューの線幅の倍率（縮小表示でも線が見えるように太くする）。</summary>
+        private const float PreviewLineScale = 1.5f;
+
+        /// <summary>
+        /// 書き出しウィンドウのプレビュー。表示サイズの rt に、線を太めにして描く。
+        /// 背景はベーステクスチャのアセットをそのまま使う（元ファイルの読み込みは書き出し時だけ）。
+        /// </summary>
+        public static void RenderPreview(WorkSession s, RenderTexture rt)
+        {
+            Texture background = SettingsService.Get(SettingKeys.UVLayoutBackgroundMode) == UVLayoutBackground.BaseTexture ? s.BaseTexture : null;
+            Render(s, rt, background, PreviewLineScale);
+        }
+
+        /// <summary>展開図を rt に描く（背景 → アイランド着色 → ワイヤー → 縁）。background が null なら透過。</summary>
+        private static void Render(WorkSession s, RenderTexture rt, Texture background, float lineScale = 1f)
+        {
+            var gpu = s.Gpu;
+            int size = rt.width;
             bool selectionOnly = SettingsService.Get(SettingKeys.UVLayoutSelectionOnly);
             // 線は有効三角形（対象サブメッシュ）の物だけ。選択限定ならさらに選択済みに絞る
             var filter = selectionOnly ? TriangleBits.And(EditState.instance.SelectedBits, s.Active) : s.EdgeFilter;
 
-            var rt = gpu.CreateColorRT("UVLayout", size, size);
             var wire = new LineMesh(gpu, "LayoutWire");
             var seams = new LineMesh(gpu, "LayoutSeams");
             GraphicsBuffer colors = null;
             try
             {
                 s.EnsureGpu();
-                DrawBackground(s, rt);
+                DrawBackground(rt, background);
 
                 using (new RenderTargetScope(rt))
                 {
@@ -51,61 +110,41 @@ namespace Dennoko.UVMaskMaker
                     if (SettingsService.Get(SettingKeys.UVLayoutWireframe))
                     {
                         wire.SetUV(s.Analysis.WireEdges, filter);
-                        Draw(line, wire, LineColor(SettingsService.Get(SettingKeys.UVLayoutWireColor)), 1f);
+                        Draw(line, wire, LineColor(SettingsService.Get(SettingKeys.UVLayoutWireColor)), 1f * lineScale);
                     }
                     if (SettingsService.Get(SettingKeys.UVLayoutSeams))
                     {
                         seams.SetUV(s.Analysis.BorderEdges, filter);
-                        Draw(line, seams, LineColor(SettingsService.Get(SettingKeys.UVLayoutSeamColor)), 2f);
+                        Draw(line, seams, LineColor(SettingsService.Get(SettingKeys.UVLayoutSeamColor)), 2f * lineScale);
                     }
                 }
-
-                byte[] rgba = GpuReadback.ReadRGBA32(rt);
-                string folder = OutputPaths.ResolveFolder(s);
-                string path = OutputPaths.ResolveSingle(folder, s.EffectiveFileName + "_uv", SettingKeys.LastUVLayoutPath);
-                MaskExporter.Write(path, rgba, new Vector2Int(size, size));
-                MaskTexturePostprocessor.Register(path, MaskTexturePostprocessor.Kind.Layout);
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-                SettingsService.Set(SettingKeys.LastUVLayoutPath, path);
-                Notifier.Post(new UserMessage
-                {
-                    Level = MessageLevel.Success,
-                    Text = L10n.F("status.layoutSaved", Path.GetFileName(path)),
-                    Origin = MessageOrigin.Window,
-                    AssetPath = path,
-                });
-                return true;
-            }
-            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is InvalidOperationException)
-            {
-                Debug.LogException(e);
-                Notifier.Post(MessageLevel.Error, L10n.T("status.writeFailed"));
-                return false;
             }
             finally
             {
                 gpu.Release(colors);
                 gpu.Release(wire.Mesh);
                 gpu.Release(seams.Mesh);
-                gpu.Release(rt);
             }
         }
 
-        private static void DrawBackground(WorkSession s, RenderTexture rt)
+        /// <summary>ベーステクスチャの元ファイルを読む（インポート時の圧縮・縮小を避ける）。読めなければ null。</summary>
+        private static Texture2D LoadBaseTexture(WorkSession s)
         {
-            Texture2D baseTex = null;
-            if (SettingsService.Get(SettingKeys.UVLayoutBackgroundMode) == UVLayoutBackground.BaseTexture && s.BaseTexture != null
-                && SourceImage.TryLoadRgba(AssetDatabase.GetAssetPath(s.BaseTexture), out byte[] rgba, out int w, out int h))
-            {
-                baseTex = new Texture2D(w, h, TextureFormat.RGBA32, false, false) { hideFlags = HideFlags.HideAndDontSave };
-                baseTex.LoadRawTextureData(rgba);
-                baseTex.Apply(false, false);
-            }
+            if (s.BaseTexture == null
+                || !SourceImage.TryLoadRgba(AssetDatabase.GetAssetPath(s.BaseTexture), out byte[] rgba, out int w, out int h))
+                return null;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false, false) { hideFlags = HideFlags.HideAndDontSave };
+            tex.LoadRawTextureData(rgba);
+            tex.Apply(false, false);
+            return tex;
+        }
+
+        private static void DrawBackground(RenderTexture rt, Texture background)
+        {
             var prev = RenderTexture.active;
-            if (baseTex != null)
+            if (background != null)
             {
-                Graphics.Blit(baseTex, rt);
-                UnityEngine.Object.DestroyImmediate(baseTex);
+                Graphics.Blit(background, rt);
             }
             else
             {

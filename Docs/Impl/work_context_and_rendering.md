@@ -145,7 +145,7 @@ $$\text{Session} \;>\; \text{Target} \;>\; \text{Project} \;>\; \text{User} \;>\
 | `UVLayoutLineColor`（内部エッジ） | enum | White | Target | |
 | `UVLayoutSeamColor`（縁） | enum | Red | Target | |
 | `MaterialSlot` | string | なし | Target | [export.md](export.md) §5.2 |
-| `LastOutputPath` / `LastOutputInvPath` / `LastUVLayoutPath` | string | なし | Target | 上書き判定用（UI には出さない） |
+| `LastOutputPath` / `LastOutputInvPath` | string | なし | Target | 上書き判定用（UI には出さない） |
 | `InvertMask` | bool | false | Target | 下の層（Project）が既定 |
 | `PixelMargin` | int | 自動 | Target | 自動 = `TextureSize / 256`。下の層（Project）が既定 |
 | `SaveInvertedToo` | bool | false | Target | 下の層（Project）が既定 |

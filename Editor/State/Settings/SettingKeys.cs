@@ -86,7 +86,6 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<string> MaterialSlot = new Setting<string>("MaterialSlot", "", T);
         public static readonly Setting<string> LastOutputPath = new Setting<string>("LastOutputPath", "", T);
         public static readonly Setting<string> LastOutputInvPath = new Setting<string>("LastOutputInvPath", "", T);
-        public static readonly Setting<string> LastUVLayoutPath = new Setting<string>("LastUVLayoutPath", "", T);
         public static readonly Setting<bool> InvertMask = new Setting<bool>("InvertMask", false, T);
         public static readonly Setting<int> PixelMargin = new Setting<int>("PixelMargin", -1, T);
         public static readonly Setting<bool> SaveInvertedToo = new Setting<bool>("SaveInvertedToo", false, T);

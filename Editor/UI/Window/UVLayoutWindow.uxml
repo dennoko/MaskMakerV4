@@ -9,53 +9,66 @@
     </ui:VisualElement>
     <ui:VisualElement class="dennoko-separator" />
 
-    <ui:ScrollView class="dennoko-scroll">
-        <ui:VisualElement class="dennoko-card">
-            <ui:Label name="layout-size-label" text="解像度" class="dennoko-text-tertiary" />
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="layout-size-512" text="512" class="mm-choice" />
-                <ui:Button name="layout-size-1024" text="1024" class="mm-choice" />
-                <ui:Button name="layout-size-2048" text="2048" class="mm-choice" />
-                <ui:Button name="layout-size-4096" text="4096" class="mm-choice" />
-            </ui:VisualElement>
-
-            <ui:Label name="layout-elements-label" text="描画要素" class="dennoko-text-tertiary mm-layout-label" />
-            <ui:Toggle name="layout-wire" text="ポリゴン線" />
-            <ui:Toggle name="layout-seams" text="シーム線" />
-            <ui:Toggle name="layout-selection-only" text="選択限定" />
-            <ui:Toggle name="layout-color-fill" text="色分け" />
-
-            <ui:Label name="layout-background-label" text="背景" class="dennoko-text-tertiary mm-layout-label" />
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="layout-bg-transparent" text="透過" class="mm-choice" />
-                <ui:Button name="layout-bg-base" text="ベース" class="mm-choice" />
-            </ui:VisualElement>
-
-            <ui:Label name="layout-seam-color-label" text="縁の色" class="dennoko-text-tertiary mm-layout-label" />
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="layout-seam-red" text="赤" class="mm-choice" />
-                <ui:Button name="layout-seam-white" text="白" class="mm-choice" />
-                <ui:Button name="layout-seam-black" text="黒" class="mm-choice" />
-                <ui:Button name="layout-seam-cyan" text="シアン" class="mm-choice" />
-            </ui:VisualElement>
-
-            <ui:Label name="layout-wire-color-label" text="内部エッジの色" class="dennoko-text-tertiary mm-layout-label" />
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="layout-wire-red" text="赤" class="mm-choice" />
-                <ui:Button name="layout-wire-white" text="白" class="mm-choice" />
-                <ui:Button name="layout-wire-black" text="黒" class="mm-choice" />
-                <ui:Button name="layout-wire-cyan" text="シアン" class="mm-choice" />
-            </ui:VisualElement>
-
-            <ui:Label name="layout-fill-label" text="面色" class="dennoko-text-tertiary mm-layout-label" />
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="layout-fill-islands" text="島ごと" class="mm-choice" />
-                <ui:Button name="layout-fill-white" text="白" class="mm-choice" />
-                <ui:Button name="layout-fill-black" text="黒" class="mm-choice" />
-                <ui:Button name="layout-fill-cyan" text="シアン" class="mm-choice" />
-            </ui:VisualElement>
+    <!-- 本体: 左にプレビュー（書き出し結果と同じ見た目）、右に設定 -->
+    <ui:VisualElement class="mm-layout-body">
+        <ui:VisualElement name="layout-preview" class="mm-layout-preview">
+            <ui:Label name="layout-preview-empty" text="" class="dennoko-text-tertiary mm-layout-preview-empty" />
         </ui:VisualElement>
-    </ui:ScrollView>
+        <ui:ScrollView class="dennoko-scroll mm-layout-settings">
+            <ui:VisualElement class="dennoko-card">
+                <ui:Label name="layout-size-label" text="解像度" class="dennoko-text-tertiary" />
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="layout-size-512" text="512" class="mm-choice" />
+                    <ui:Button name="layout-size-1024" text="1024" class="mm-choice" />
+                    <ui:Button name="layout-size-2048" text="2048" class="mm-choice" />
+                    <ui:Button name="layout-size-4096" text="4096" class="mm-choice" />
+                </ui:VisualElement>
+
+                <ui:Label name="layout-elements-label" text="描画要素" class="dennoko-text-tertiary mm-layout-label" />
+                <ui:Toggle name="layout-wire" text="ポリゴン線" />
+                <ui:Toggle name="layout-seams" text="シーム線" />
+                <ui:Toggle name="layout-selection-only" text="選択限定" />
+                <ui:Toggle name="layout-color-fill" text="アイランド着色" />
+
+                <ui:Label name="layout-background-label" text="背景" class="dennoko-text-tertiary mm-layout-label" />
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="layout-bg-transparent" text="透過" class="mm-choice" />
+                    <ui:Button name="layout-bg-base" text="ベース" class="mm-choice" />
+                </ui:VisualElement>
+
+                <!-- 色の設定は、該当する描画要素が ON の時だけ出す -->
+                <ui:VisualElement name="layout-seam-color-group">
+                    <ui:Label name="layout-seam-color-label" text="縁の色" class="dennoko-text-tertiary mm-layout-label" />
+                    <ui:VisualElement class="mm-row">
+                        <ui:Button name="layout-seam-red" text="赤" class="mm-choice" />
+                        <ui:Button name="layout-seam-white" text="白" class="mm-choice" />
+                        <ui:Button name="layout-seam-black" text="黒" class="mm-choice" />
+                        <ui:Button name="layout-seam-cyan" text="シアン" class="mm-choice" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="layout-wire-color-group">
+                    <ui:Label name="layout-wire-color-label" text="内部エッジの色" class="dennoko-text-tertiary mm-layout-label" />
+                    <ui:VisualElement class="mm-row">
+                        <ui:Button name="layout-wire-red" text="赤" class="mm-choice" />
+                        <ui:Button name="layout-wire-white" text="白" class="mm-choice" />
+                        <ui:Button name="layout-wire-black" text="黒" class="mm-choice" />
+                        <ui:Button name="layout-wire-cyan" text="シアン" class="mm-choice" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="layout-fill-group">
+                    <ui:Label name="layout-fill-label" text="アイランド色" class="dennoko-text-tertiary mm-layout-label" />
+                    <ui:VisualElement class="mm-row">
+                        <ui:Button name="layout-fill-islands" text="島ごと" class="mm-choice" />
+                        <ui:Button name="layout-fill-white" text="白" class="mm-choice" />
+                        <ui:Button name="layout-fill-black" text="黒" class="mm-choice" />
+                        <ui:Button name="layout-fill-cyan" text="シアン" class="mm-choice" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
 
     <ui:VisualElement class="dennoko-separator" />
 

@@ -99,8 +99,8 @@ public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
 | `UVLayoutWireframe` | `bool` | `true` | 全三角形の辺を描く |
 | `UVLayoutSeams` | `bool` | `true` | UV 境界（`BorderEdges`）を強調色で太く描く |
 | `UVLayoutSelectionOnly` | `bool` | `false` | 選択済み三角形だけを描く |
-| `UVLayoutColorFill` | `bool` | `false` | 半透明の識別色または単色でポリゴン面を塗り分ける |
-| `UVLayoutFillColor` | `enum` (Islands, White, Black, Cyan) | `Islands` | 面の塗り色（島ごと / 白 / 黒 / シアン、不透明度 0.35） |
+| `UVLayoutColorFill` | `bool` | `false` | UI 名「アイランド着色」。半透明の識別色または単色でポリゴン面を塗り分ける |
+| `UVLayoutFillColor` | `enum` (Islands, White, Black, Cyan) | `Islands` | UI 名「アイランド色」（アイランド着色 ON の時だけ表示）。面の塗り色（島ごと / 白 / 黒 / シアン、不透明度 0.35） |
 | `UVLayoutBackground` | `enum` (Transparent, BaseTexture) | `Transparent` | 透過背景、またはベーステクスチャ |
 | `UVLayoutSeamColor` | `enum` (Red, White, Black, Cyan) | `Red` | 縁（UV 境界）の線の色（赤 `#FF3333` / 白 `#FFFFFF` / 黒 `#000000` / シアン `#00E5FF`） |
 | `UVLayoutLineColor` | `enum` (Red, White, Black, Cyan) | `White` | 内部エッジ（ワイヤーフレーム）の線の色。色の値は `UVLayoutSeamColor` と同じ |
@@ -109,10 +109,11 @@ public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
 
 ### 4.2 描画手順
 1. **背景**: Transparent は全画素 `(0,0,0,0)`。BaseTexture はベーステクスチャの元ファイルを `LoadImage` で読み、`UVLayoutSize` の正方形に引き伸ばして敷く。
-2. **面の塗り分け**（`UVLayoutColorFill`）: `UVLayoutFillColor` が `Islands` の場合は島 $g$ の色相を $h_g = \text{frac}(g \times 0.618034)$（黄金比で隣の番号ほど色相が離れる）、彩度 0.45、明度 1.0、不透明度 0.35 とする。単色（White / Black / Cyan）の場合は各色の不透明度 0.35 とし、[mask_processing.md](mask_processing.md) §4 と同じ規則でラスタライズして重ねる。
+2. **アイランド着色**（`UVLayoutColorFill`）: `UVLayoutFillColor` が `Islands` の場合は島 $g$ の色相を $h_g = \text{frac}(g \times 0.618034)$（黄金比で隣の番号ほど色相が離れる）、彩度 0.45、明度 1.0、不透明度 0.35 とする。単色（White / Black / Cyan）の場合は各色の不透明度 0.35 とし、[mask_processing.md](mask_processing.md) §4 と同じ規則でラスタライズして重ねる。
 3. **ワイヤーフレーム**（`UVLayoutWireframe`）: 各三角形の 3 辺を線幅 1px のアンチエイリアス付き線で、`UVLayoutLineColor` の色で描く。共有辺は 1 回だけ描く。
 4. **UV 境界**（`UVLayoutSeams`）: `BorderEdges`（[mesh_analysis.md](mesh_analysis.md) §5.2）を線幅 2px、`UVLayoutSeamColor` の色で描く。
-5. **書き出し**: `{folder}/{FileName}_uv.png`。上書き・連番の規則は §3.2 と同じ（`LastUVLayoutPath` を記録）。インポーター設定は §2.2 と同じ仕組みで、初回インポート時に `sRGBTexture = true`、`alphaIsTransparency = true`、`mipmapEnabled = false`、`textureCompression = Uncompressed` を当てる。
+5. **書き出し**: `{folder}/{FileName}_uv.png`。上書きはしない。同名のファイルがあれば `{FileName}_uv 1.png`、`{FileName}_uv 2.png` … と空いている番号を付ける（書き出しウィンドウの保存名にも、実際に使う名前を出す）。インポーター設定は §2.2 と同じ仕組みで、初回インポート時に `sRGBTexture = true`、`alphaIsTransparency = true`、`mipmapEnabled = false`、`textureCompression = Uncompressed` を当てる。
+6. **プレビュー**: 書き出しウィンドウには 1.〜4. と同じ描画を、表示サイズ（実ピクセル。書き出し解像度が上限）の RT に行い、市松模様の上に表示する。縮小表示でも線が見えるよう、線幅は 1.5 倍にする（書き出す画像の線幅は変えない）。背景のベーステクスチャは元ファイルではなくインポート済みのアセットを使う。設定・選択・作業・ウィンドウの大きさが変わるたびに描き直す。
 
 ---
 

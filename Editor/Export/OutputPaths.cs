@@ -6,7 +6,16 @@ namespace Dennoko.UVMaskMaker
     /// <summary>保存先フォルダ・上書き・連番（Impl export §3）。</summary>
     internal static class OutputPaths
     {
+        /// <summary>保存先フォルダを決めて、無ければ作る。</summary>
         public static string ResolveFolder(WorkSession s)
+        {
+            var dir = FolderFor(s);
+            EnsureAssetFolder(dir);
+            return dir;
+        }
+
+        /// <summary>保存先フォルダ（作らない。表示用）。</summary>
+        public static string FolderFor(WorkSession s)
         {
             if (SettingsService.Get(SettingKeys.UseTextureFolder))
             {
@@ -17,9 +26,7 @@ namespace Dennoko.UVMaskMaker
             }
             var dir = SettingsService.Get(SettingKeys.OutputDir);
             if (string.IsNullOrWhiteSpace(dir) || !dir.Replace('\\', '/').StartsWith("Assets")) dir = SettingKeys.OutputDir.Default;
-            dir = dir.Replace('\\', '/').TrimEnd('/');
-            EnsureAssetFolder(dir);
-            return dir;
+            return dir.Replace('\\', '/').TrimEnd('/');
         }
 
         /// <summary>
@@ -35,10 +42,11 @@ namespace Dennoko.UVMaskMaker
             return ResolveUniqueMaskPaths(folder, baseName, saveInverted);
         }
 
-        public static string ResolveSingle(string folder, string baseName, Setting<string> lastPath)
+        /// <summary>上書きしない。同名のファイルがあれば「名前 1.png」「名前 2.png」… の空いている番号にする。</summary>
+        public static string ResolveUnique(string folder, string baseName)
         {
             string path = $"{folder}/{baseName}.png";
-            if (path == SettingsService.Get(lastPath) || !File.Exists(path)) return path;
+            if (!File.Exists(path)) return path;
             for (int i = 1; ; i++)
             {
                 path = $"{folder}/{baseName} {i}.png";
