@@ -377,7 +377,7 @@ VisualElement.dennoko-root
 
 ### 5.2 カーソル直下ラジアルメニュー (Pie Menu) の仕様
 
-`C` キーを押し下げている間、**カーソル直下に直径 180px のリング状メニュー**を出す（Surface1 + Outline）。スライスは**アイコンのみ**で、ポインタが向いているスライスの名前だけを中心に表示する。
+`C` キーを押し下げている間、**カーソル直下に直径 180px のリング状メニュー**を出す（Surface1 + Outline）。スライスは**アイコンのみ**で、ポインタが向いているスライスの名前だけを中心に表示する。SceneView 上だけの機能で、カーソルが UV ビューなど他のウィンドウ上にある時は（SceneView にフォーカスが残っていても）出さない。
 
 位置が固定の 3 方向（↑ モード、↗ 対称、↖ クリア）は両モード共通にし、残りはモードに応じて差し替える。
 
@@ -517,7 +517,7 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | 固定フッター | `.dennoko-footer` + `.dennoko-card` |
 | ステータスバー | `.dennoko-status`（`--success` / `--error`） |
 | フローティングカプセル | `.dennoko-toolbar` + `.dennoko-card` (角丸カプセル型) |
-| カーソル直下ラジアルメニュー | `.dennoko-root .mm-radial-menu` (Surface1 + Outline、扇形スライス群) |
+| カーソル直下ラジアルメニュー | `.dennoko-root .mm-radial-menu`（枠なしの容れ物）+ `.mm-radial-bg`（Surface1 + Outline の円）+ `.mm-radial-slice`（扇形スライス群。汎用ボタンの margin / padding は 0 に戻す） |
 | 出力完了トースト | `.dennoko-root .mm-toast` (Surface2 + Outline + 影、カーソル近傍出現) |
 | UV 展開図ウィンドウ | フローティングの EditorWindow（`ShowUtility`。本体は `.mm-layout-body` で左にプレビュー（IMGUIContainer + `DrawTextureTransparent`）、右に幅 300px の設定。ヘッダー + `.dennoko-card` の設定 + `.dennoko-footer` の主ボタン・キャンセル + ステータス）。項目見出しは `.dennoko-root .mm-layout-label`、キャンセルは `.dennoko-button-secondary` を主ボタンと同じ高さにする `.mm-footer-cancel` |
 | 主ボタン（作業開始/出力。画面ごとに 1 つ） | `.dennoko-button-primary` |

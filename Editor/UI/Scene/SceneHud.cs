@@ -195,8 +195,9 @@ namespace Dennoko.UVMaskMaker
         {
             var s = SessionController.Current;
             if (s == null || _radial != null) return;
-            var view = s.Interaction.PointerView ?? SceneView.lastActiveSceneView;
-            if (view == null || !Huds.TryGetValue(view, out var hud)) return;
+            // シーン上だけの機能。UV ビュー等の上では SceneView にフォーカスが残っていても出さない
+            if (!(EditorWindow.mouseOverWindow is SceneView view) || s.Interaction.PointerView != view) return;
+            if (!Huds.TryGetValue(view, out var hud)) return;
 
             _slices = BuildSlices();
             _radialHud = hud;
@@ -208,6 +209,10 @@ namespace Dennoko.UVMaskMaker
             _radial.AddToClassList("mm-radial-menu");
             _radial.style.left = _radialCenterPos.x - 90f;
             _radial.style.top = _radialCenterPos.y - 90f;
+            // 背景は枠なしの容れ物の子に置く（容れ物に枠を付けると子の基準位置が枠の分ずれる）
+            var bg = new VisualElement { pickingMode = PickingMode.Ignore };
+            bg.AddToClassList("mm-radial-bg");
+            _radial.Add(bg);
             _radialCenter = new Label { pickingMode = PickingMode.Ignore };
             _radialCenter.AddToClassList("mm-radial-center");
             _radial.Add(_radialCenter);

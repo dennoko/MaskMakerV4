@@ -1,246 +1,283 @@
-# UV Mask Maker V4 User Manual (English)
+# UV Mask Maker V4 User Manual
 
-This is the user manual for **UV Mask Maker V4**, an intuitive Unity editor extension designed to create, edit, and apply mask textures directly on 3D models in Unity.
-
----
-
-## 1. Tool Overview
-
-**UV Mask Maker V4** is a Unity editor extension that allows you to select polygons/UVs and paint directly on 3D meshes (`SkinnedMeshRenderer` / `MeshRenderer`)—such as VRChat avatars and costumes—within the Unity SceneView to generate, export, and apply black-and-white mask textures.
-
-Without round-tripping between external painting applications (Photoshop, Clip Studio Paint, etc.) and Unity, you can preview changes directly on the model in Unity and generate/assign masks in just a few simple steps.
-
-### Key Highlights
-
-- **Zero-Travel Workflow**: No need to move your mouse back and forth to screen edges. Operations are completed under your hand via the Radial Menu under the cursor (`Hold C`) and in-place brush resizing (`Ctrl + Right-Drag`).
-- **Smart Toggle & Intuitive Selection**: No separate "Add" and "Remove" modes. Clicking an unselected region adds it, while clicking a selected region removes it. Double-clicking instantly selects an entire connected garment piece or accessory.
-- **Symmetry Editing (X-Mirror)**: Automatically identifies symmetrical mesh counterparts across the X-axis. Selections and brush strokes on arms, legs, or shoes are instantly mirrored to the other side, cutting operations in half.
-- **One-Click Start & Auto-Recovery**: Selecting an object and clicking "Start" automatically handles mesh analysis, isolation, camera framing, and session recovery.
-- **Quick Export & Smart Apply**: Press `Ctrl + Enter` to export instantly. Click the **[Apply]** button on the toast notification to assign the generated mask directly into shader mask slots (lilToon, Poiyomi, etc.).
-- **UV Wireframe Export**: Export clean UV wireframe PNGs with one click to use as reference backdrops in external painting software.
+This manual provides instructions, workflows, and configuration details for **UV Mask Maker V4**, a Unity editor extension designed to create, edit, and apply mask textures directly on 3D models within the Unity Editor.
 
 ---
 
-## 2. Quick Start (Minimal Usage)
+## 1. Product Overview
 
-Here is the quickest workflow to select part of a costume, export a mask, and apply it to a material:
+### 1.1 Purpose and Summary
+**UV Mask Maker V4** enables users to select polygons and UVs or hand-paint directly on 3D meshes (such as VRChat avatars and clothing) in the SceneView to generate and assign black-and-white mask textures.
+
+By eliminating round-trips between external image editing software (e.g., Photoshop, CLIP STUDIO PAINT) and Unity, you can inspect changes in real time and complete the entire workflow—from mask generation to material assignment—within the Unity Editor.
+
+### 1.2 System Requirements and Prerequisites
+- **Supported Environment**: Unity 2022.3 LTS or later
+- **Target Objects**: GameObjects containing `SkinnedMeshRenderer` or `MeshRenderer` components
+- **Supported Shaders**: Shaders featuring mask texture input slots (e.g., lilToon, Poiyomi Toon Shader, Sunao Shader)
+- **Mesh Requirements**: Target meshes must have valid primary UV layout (UV0)
+
+---
+
+## 2. Interface Overview and Component Layout
+
+The interface is structured into the following operational areas to maximize workflow efficiency:
 
 ```
-[Select in Hierarchy] → [Right-Click to Start] → [Click Mesh to Select] → [Ctrl+Enter to Export] → [Click [Apply]]
++-------------------------------------------------------------------+
+| Main Window (EditorWindow / Tool Tab)                             |
+| [Target Renderer Picker] [Start / Stop Editing]                   |
+| +---------------------------------------------------------------+ |
+| | UV View (2D UV layout preview / picking / painting)           | |
+| +---------------------------------------------------------------+ |
+| [Export Settings: File Name / Resolution / Channel / Advanced]   |
+| [Export Button (Ctrl+Enter)]                                      |
++-------------------------------------------------------------------+
+
+In SceneView:
+  - Floating Toolbar (Draggable, can be placed anywhere in SceneView)
+  - Radial Menu (Summoned directly under cursor by holding C)
+  - Notification Panel (Toast message with Apply button upon export)
+```
+
+### 2.1 Main Window (Tool Tab)
+Opened via top menu: **`dennokoworks` > `MaskMaker V4`**.
+- **Target Object Selection**: Specifies the active Renderer and starts/ends editing sessions.
+- **UV View**: Allows direct polygon selection and brush painting on the 2D UV layout.
+- **Export Settings**: Configures texture file names, resolutions, target color channels, and edge dilation (padding).
+- **Language Switch**: Toggles the display language between Japanese (`JA`) and English (`EN`) in the top-right header.
+
+### 2.2 SceneView Floating Toolbar
+Appears inside the SceneView when an editing session begins. Can be repositioned by dragging.
+- **Mode Toggle**: Switches between Selection Mode and Paint Mode.
+- **Selection Granularity**: Toggles between Island, Part, and Face modes.
+- **Paint Tools**: Selects between Brush, Rectangle fill, Lasso fill, and Eraser.
+- **Utilities**: Toggles Symmetry Editing (X-Mirror), Target Isolation, and X-Ray (Translucent) display.
+- **History & Actions**: Executes Undo, Redo, Clear Selection, and Quick Export.
+
+### 2.3 Radial Menu
+Holding the **`C` key** in the SceneView summons a circular context menu directly under your mouse cursor. Move the cursor toward the desired tool and release the key to switch tools instantly without moving your cursor to screen edges.
+
+### 2.4 Notification Panel (Toast UI)
+Appears temporarily on-screen upon completing an export or specific operations. Clicking the **`Apply`** button inside the notification automatically assigns the exported mask texture to the appropriate material slot.
+
+---
+
+## 3. Basic Workflow (Quick Start)
+
+The standard procedure for selecting mesh regions, exporting a mask, and applying it to a material:
+
+```
+[Select in Hierarchy] → [Right-Click to Start] → [Click Mesh to Select] → [Ctrl+Enter to Export] → [Click Apply]
 ```
 
 ### Step 1: Start Editing
-1. In the **Hierarchy**, select the object (mesh of an avatar or outfit) you want to create a mask for.
-2. Right-click and choose **`dennokoworks` > `MaskMaker V4`**.
-   - *(Alternatively, open the window from the top menu `dennokoworks` > `MaskMaker V4` and click **"Start"**)*.
-3. The target mesh is automatically isolated, and the SceneView camera frames it.
+1. In the Hierarchy, select the GameObject containing the mesh you wish to mask (e.g., outfit or avatar component).
+2. Right-click the object and select **`dennokoworks` > `MaskMaker V4`**.
+   *(Alternatively, open the main window and click the **Start** button).*
+3. Non-target scene objects are temporarily hidden (isolated), and the SceneView camera automatically frames the target mesh.
 
-### Step 2: Select Regions to Mask
-1. In the **SceneView**, **Left-Click** the part you want to mask.
-   - The clicked UV island is selected and displayed with a mask overlay.
-   - Clicking an already selected island unselects it.
-   - **Double-Click** to select the entire connected part (e.g., ribbon, shoe, button).
-2. For symmetrical parts like sleeves or gloves, press **`X`** to turn on X-Mirror. Clicking one side will automatically select the matching opposite side.
+### Step 2: Define Mask Areas
+1. In the SceneView, **Left-Click** on the mesh surface you want to mask:
+   - Clicking an unselected region adds it to the mask.
+   - Clicking an already selected region removes it.
+   - **Double-Click** to select an entire connected mesh component.
+2. For symmetrical components (e.g., sleeves or shoes), press the **`X` key** to enable Symmetry Editing. Selecting one side automatically selects the corresponding geometry on the opposite side.
 
-### Step 3: Export and Apply to Material
-1. Press **`Ctrl + Enter`** on your keyboard (or click the "Export" button on the UI).
-2. Once exported, a toast notification appears beside your cursor: **`[SaveAs] (FileName).png  [Apply]`**.
-3. Click the **`[Apply]`** button inside the toast.
-   - The texture is automatically assigned to the material's mask slot (e.g., lilToon's 2nd Color Mask or Poiyomi's Decal Mask).
-   - If multiple mask slots are available, a quick candidate list appears for you to pick the desired slot.
+### Step 3: Export and Assign to Material
+1. Press **`Ctrl + Enter`** (or click the Export button on the main window / floating toolbar).
+2. Once the image is generated, a notification toast appears on-screen.
+3. Click **`Apply`** within the notification. The tool inspects shader properties and assigns the texture to the appropriate mask slot.
+   *(If multiple candidate slots exist, choose the desired slot from the displayed list).*
 
 ---
 
-## 3. Feature List
+## 4. Feature Summary Table
 
 | Category | Feature | Description |
 | :--- | :--- | :--- |
-| **Selection System** | **Smart Toggle** | Click unselected to add, click selected to remove (no mode switching needed) |
-| | **Stroke Selection** | Left-drag to continuously select or deselect multiple islands |
-| | **Part Selection** | Double-click to select an entire physically connected mesh component |
-| | **Selection Granularity** | Switch between "Island" (UV island), "Part" (connected mesh), and "Face" (triangle polygon) |
-| | **Grow / Shrink** | `Shift + Mouse Wheel` expands or shrinks selection to adjacent polygons |
-| | **Symmetry (X-Mirror)** | Press `X` to toggle. Automatically mirrors selections across the X-axis |
-| | **Select All / Invert / Clear** | Standard shortcuts: `Ctrl + A` (Select All), `Ctrl + I` (Invert), and Clear |
-| | **Hover Outline Preview** | White outline previews addition; red outline previews removal before clicking |
-| **Painting System** | **4 Paint Tools** | Brush, Rectangle fill, Lasso fill, and Eraser |
-| | **In-Place Brush Resizing** | `Ctrl + Right-Drag` horizontally to smoothly adjust brush radius under the cursor |
-| | **Instant Eraser** | Hold `Ctrl` while painting with any tool to temporarily erase |
-| | **Ultra-HD Internal Buffer** | Hand-painted strokes are stored internally at 4096×4096 px with zero quality degradation |
-| **View & Preview** | **SceneView Overlay** | Real-time mask projection and UV seam edge visualization on 3D meshes |
-| | **2D UV View** | Integrated 2D UV layout editor supporting direct clicking, dragging, and painting |
-| | **Base Texture Overlay** | Display the model's base texture underneath the UV view for accurate alignment |
-| | **Target Isolation** | Temporarily hides unrelated scene objects while working |
-| | **X-Ray View** | View and select through occluded backfaces and inner geometry |
-| | **Pause Picking** | Hold `Space` to pause tool picking and use normal Unity camera/transform tools |
-| **Export & Apply** | **B&W Mask PNG Export** | Exports linear/non-sRGB PNG with appropriate mipmap settings |
-| | **Padding / Dilation** | Automatically dilates mask edges into empty UV space to prevent mipmap seam bleeding |
-| | **Inverted Mask Export** | Export an inverted mask or generate both normal and inverted masks simultaneously |
-| | **Channel Packing** | Inject the mask into a specific RGBA channel of an existing texture |
-| | **In-Place Overwrite** | Re-exporting overwrites the previous file, keeping existing material references intact |
-| | **Smart Material Apply** | 1-click assignment to shader mask slots directly from the export toast |
-| | **UV Wireframe Export** | Export UV wireframe images as reference templates for external paint programs |
-| | **Import Mask Image** | Drag and drop an existing mask image into the UV View to import it into the paint layer |
-| **UI & Workflow** | **Radial Pie Menu** | Hold `C` to summon a circular tool menu directly beneath the cursor |
-| | **Floating Capsule Toolbar** | Compact, dockable toolbar floating inside the SceneView |
-| | **Unified Undo / Redo** | Selection, painting, and material application share a unified history stack (`Ctrl+Z` / `Ctrl+Y`) |
-| | **Auto-Save & Restore** | Automatically saves edit states; work persists across recompilations and Unity restarts |
-| | **Language Switch (JA / EN)** | 1-click toggle between Japanese and English right from the header (`[JA]` / `[EN]`) |
+| **Selection** | **Click Selection** | Toggle selection on and off by clicking mesh regions |
+| | **Drag Selection** | Continuously select or deselect polygons along the cursor path |
+| | **Part Selection** | Double-click to select an entire connected geometric component |
+| | **Granularity Switching** | Switch selection scale between Island, Part, and Face modes |
+| | **Grow and Shrink** | Shift + Mouse Wheel to expand or shrink the selection across adjacent faces |
+| | **Symmetry Editing** | Press X to mirror selections and paint strokes across the mesh's X-axis |
+| | **Select All / Invert / Clear** | Ctrl+A to select all, Ctrl+I to invert selection, and Clear via menu |
+| **Painting** | **Paint Tools** | Brush, Rectangle fill, Lasso fill, and Eraser tools |
+| | **Brush Size Adjustment** | Ctrl + Right-Drag to dynamically adjust brush radius under the cursor |
+| | **Instant Eraser** | Hold Ctrl while painting with any tool to temporarily erase |
+| **View** | **Mesh Mask Overlay** | Renders mask areas and UV seam lines directly on the 3D surface |
+| | **UV View** | Inspect and edit 2D UV layouts with direct selection and painting |
+| | **Base Texture Overlay** | Overlays the original model texture as the background of the UV View |
+| | **Target Isolation** | Temporarily hides unselected scene objects during editing |
+| | **X-Ray View** | Renders geometry translucent to view and select occluded backfaces |
+| | **Pause Picking** | Hold Space to suspend tool inputs and use default camera controls |
+| **Export** | **Mask Texture Export** | Generates linear black-and-white PNG mask textures at specified resolutions |
+| | **Padding (Dilation)** | Dilates mask boundaries outward to prevent texture filtering seams |
+| | **Inverted Mask Export** | Exports inverted masks, or saves normal and inverted versions simultaneously |
+| | **Channel Packing** | Injects masks directly into specific channels (R, G, B, or A) of existing textures |
+| | **Safe Overwriting** | Re-exporting overwrites previous files so linked materials update automatically |
+| | **Material Auto-Apply** | 1-click shader slot assignment from post-export notification toasts |
+| | **UV Wireframe Export** | Exports wireframe layout PNG images for external paint programs |
+| | **Import Mask Image** | Drag and drop black-and-white images into the UV View to merge into paint |
+| **Workflow** | **Radial Menu** | Hold C to summon a circular tool picker under the cursor |
+| | **SceneView Toolbar** | Floating, movable toolbar inside the SceneView |
+| | **Unified Undo / Redo** | Full history tracking for selections, paint strokes, and settings via Ctrl+Z / Ctrl+Y |
+| | **Auto-Save & Restore** | Persists edit states across scene changes, recompiles, and Unity restarts |
+| | **Multi-Language Support** | Instant toggle between Japanese (`JA`) and English (`EN`) |
 
 ---
 
-## 4. Detailed Guide
+## 5. Detailed Feature Guide
 
-### 4.1 Selection Mode in Detail
+### 5.1 Selection Mode
 
-Selection mode (switched with `Tab`) is the primary mode for masking regions along the polygon structure of the mesh.
+Selection Mode assigns mask coverage based on the underlying polygon geometry. Press **`Tab`** to switch between Selection Mode and Paint Mode.
 
-#### 3 Selection Granularities
-Switch using keys `1`, `2`, `3` or via the Radial Menu / Capsule Toolbar:
-- **1: Island (UV Island)** *(Default)*: Selects by UV island boundary. Ideal for selecting specific fabric patterns, sleeves, or accessory sections.
-- **2: Part (Connected Mesh)**: Selects the entire connected geometric component sharing vertices (equivalent to double-clicking).
-- **3: Face (Polygon Triangle)**: Selects individual triangle polygons. Ideal for trimming or carving out tiny sections from an island.
+#### Selection Granularity
+Switch using keys **`1` / `2` / `3`**, the toolbar, or the Radial Menu:
+- **1: Island**: Selects by UV island boundaries (seams). Recommended for quickly selecting distinct fabric or garment sections.
+- **2: Part**: Selects connected geometric mesh elements. Double-clicking any polygon triggers the same action.
+- **3: Face**: Selects individual triangle polygons. Useful for trimming small sections from an island or part.
 
-> [!TIP]
-> **Switching granularity preserves existing selections**  
-> Fine selections made in "Face" mode are not lost when switching to "Island" mode. The granularity setting only dictates *the size of the unit for your next click*.
+*Note: Changing the selection granularity preserves your active selection.*
 
-#### Mouse & Keyboard Techniques
-- **Smart Toggle**: Clicking unselected geometry adds it; clicking selected geometry removes it.
-- **Stroke Selection (Left-Drag)**: Click and drag across multiple islands to continuously select or deselect them in one fluid motion.
-- **Forced Add / Forced Remove**:
-  - `Shift + Click / Drag`: Forces **addition**, regardless of whether the target was already selected.
-  - `Ctrl + Click / Drag`: Forces **removal / deselection**.
-- **Grow / Shrink Selection**:
-  - `Shift + Mouse Wheel Up`: Expands the selection boundary outward by one adjacent polygon step.
-  - `Shift + Mouse Wheel Down`: Shrinks the selection boundary inward by one step.
-
-#### X-Mirror (Symmetry)
-- Press **`X`** to toggle symmetry.
-- When enabled, the corresponding geometry across the avatar's center plane (X=0) is highlighted and updated simultaneously.
-- Cuts camera navigation and click counts in half when working on symmetrical clothing, sleeves, gloves, or shoes.
+#### Selection Controls
+- **Smart Toggle**: Clicking unselected areas adds them; clicking selected areas removes them.
+- **Drag Selection**: Drag with the left mouse button held down to select or deselect all geometry under the cursor path.
+- **Modifier Keys**:
+  - `Shift` + Click / Drag: Forces addition to the selection.
+  - `Ctrl` + Click / Drag: Forces removal from the selection.
+- **Grow and Shrink**:
+  - `Shift` + Mouse Wheel Up: Expands the selection outward by one adjacent polygon step.
+  - `Shift` + Mouse Wheel Down: Contracts the selection inward by one step.
+- **Symmetry Editing (X-Mirror)**:
+  - Press `X` to toggle symmetry.
+  - Polygons mirrored across the mesh's local X=0 plane are selected or deselected simultaneously.
 
 ---
 
-### 4.2 Paint Mode in Detail
+### 5.2 Paint Mode
 
-Press **`Tab`** to enter Paint Mode. Use this when you want freehand control across or within polygons.
+Paint Mode provides freehand drawing capabilities independent of polygon topology. Press **`Tab`** to toggle between Paint Mode and Selection Mode.
 
-#### 4 Paint Tools
-Quickly switch tools using the Radial Menu (`Hold C`) or hotkeys:
-1. **Brush (`B`)**: Projects a circular brush onto the 3D surface.
-2. **Rectangle (`M`)**: Fills a rectangular screen-space region in one drag.
-3. **Lasso (`L`)**: Fills a freehand lasso region.
-4. **Eraser (`Shift + B`)**: Erases painted mask strokes.
+#### Paint Tools
+Switch using the Radial Menu (hold `C`) or hotkeys:
+- **Brush (`B`)**: Projects a circular brush onto the 3D surface.
+- **Rectangle (`M`)**: Fills a rectangular screen-space bounding box.
+- **Lasso (`L`)**: Fills an arbitrary freehand enclosed region.
+- **Eraser (`Shift + B`)**: Erases painted strokes.
 
-#### In-Place Brush Resizing (`Ctrl + Right-Drag`)
-- Hold **`Ctrl` and drag the Right Mouse Button horizontally** over the mesh to smoothly resize the brush circle right under your cursor.
-- Eliminates mouse travel to top sliders.
-- You can also tap `[` (decrease) and `]` (increase).
+#### Brush Size Adjustment
+- **`Ctrl` + Right-Drag**: Drag horizontally on the mesh to smoothly resize the brush circle under your cursor.
+- **`[` / `]` Keys**: Press `[` to decrease and `]` to increase brush diameter.
 
-#### Instant Eraser Modifier
-- In any paint tool, holding **`Ctrl` while painting acts as an eraser**. You do not need to switch tools back and forth.
-
-#### Ultra-HD Internal Buffer
-- All hand-painted strokes are preserved internally at **4096×4096 px**.
-- Changing the export resolution preview to 512 or 1024 will display the resulting pixelated look in real-time, but does not degrade the underlying stroke data. You can return to 2048 or 4096 at any time with crisp fidelity.
+#### Instant Eraser
+Holding **`Ctrl` while painting with any tool temporarily switches to the eraser**. Releasing `Ctrl` returns to the active tool.
 
 ---
 
-### 4.3 Working with the 2D UV View
+### 5.3 UV View
 
-The **UV View** in the central section of the tool tab allows working directly on the unwrapped 2D UV layout.
+The UV View in the center of the main window enables inspection and editing directly on the flattened 2D UV layout.
 
-- **Unified Interaction**: The same selection tools, brush tools, and hotkeys function identically on the 2D UV canvas as in the 3D SceneView.
-- **Navigation Controls**:
-  - Mouse Wheel: Zoom in / Zoom out
-  - Middle Mouse Drag: Pan across canvas
-  - Frame Button (top-right zoom icon or `F` key): Reset view to center and 100% zoom
+- **Unified Navigation & Controls**: The same selection and paint tools operate identically in the UV View as in the 3D SceneView.
+- **Canvas Navigation**:
+  - Mouse Wheel: Zoom in and out
+  - Middle Mouse Drag (or Alt + Left Drag): Pan canvas
+  - Focus button (top-right) or `F` key: Reset zoom and center UV layout
 - **Base Texture Overlay**:
-  - Click the texture icon in the UV View's top-right corner to display the model's base texture as a semi-transparent backdrop, making it easy to align masks with existing texture art.
-- **Importing Existing Masks**:
-  - **Drag and drop** any black-and-white texture file from your Project window into the UV View. Dark areas will be imported directly into the hand-painted mask layer (Undo supported).
+  - Click the texture icon in the top right of the UV View to display the model's active texture in the background for visual alignment.
+- **Importing Mask Images**:
+  - Drag and drop any black-and-white texture file into the UV View to import dark areas directly into the paint layer.
 
 ---
 
-### 4.4 Export Settings & Material Application
+### 5.4 Export and Material Application
 
-When ready, click "Export" or press **`Ctrl + Enter`** to write out the mask texture.
+Export textures from the main window's export panel or by pressing **`Ctrl + Enter`**.
 
-#### Primary Export Options
+#### Export Parameters
 - **File Name**: Defaults to `{RendererName}_mask.png`.
-- **Resolution**: Choose from `512`, `1024`, `2048`, or `4096` (automatically detected from the base texture).
-- **Channel Packing (Optional)**:
-  - When checked, writes the mask specifically into the chosen channel (R, G, B, or A) of an existing texture (Base PNG).
-  - Perfect for metallic, smoothness, or ambient occlusion composite maps.
+- **Resolution**: Select from 512, 1024, 2048, or 4096 pixels.
+- **Channel Packing**:
+  - Export as a standalone grayscale texture or pack into a specific channel (R, G, B, or A) of an existing texture.
+- **Advanced Settings**:
+  - **Invert**: Inverts black and white values.
+  - **Padding (Dilation)**: Dilates mask boundaries outward by a specified number of pixels. This prevents mipmap filtering artifacts and seam bleeding at UV edges.
+  - **Save Inverted Too**: Generates both normal and inverted versions in one operation.
 
-#### Advanced Options (Expand ▸ Details)
-- **Invert Mask**: Inverts black and white values.
-- **Pixel Margin (Padding)**: Dilates mask boundaries outward into unused UV space. This prevents dark or discolored mipmap bleeding along UV seams in-game.
-- **Save Inverted Too**: Generates both the standard mask (`_mask.png`) and the inverted mask (`_mask_inv.png`) simultaneously.
-
-#### Overwriting & Smart Material Assignment
-- **Safe Overwriting**: Re-exporting from the same target mesh overwrites the previously exported file without creating cluttering numbered files (`_mask 1.png`, etc.). Existing material links update automatically.
-- **Smart Apply Button**:
-  - The toast notification displaying **`[SaveAs] (FileName).png  [Apply]`** allows instant assignment to your shader.
-  - It inspects popular avatar shaders (lilToon, Poiyomi, UTS2, Standard) and assigns the texture to the appropriate mask property (e.g., Decal Mask, 2nd Main Color Mask).
-  - Selected slot preferences are remembered per mesh.
+#### Material Assignment and Safe Overwriting
+- Re-exporting an existing target overwrites the previous texture file. Because materials reference this file on disk, the material automatically updates in the scene without manual reassignment.
+- Clicking **`Apply`** in the completion toast automatically analyzes shader properties and assigns the file to the correct mask slot.
 
 ---
 
-### 4.5 UV Wireframe Export
+### 5.5 UV Wireframe Export
 
-Export clean wireframe layout images for use as template layers in Clip Studio Paint, Photoshop, or other external software.
+Export UV wireframe layout images for reference in external painting applications.
 
-1. Click the **`[Camera]` icon button** in the top right of the UV View.
-2. The "UV Layout Export" dialog will appear.
-3. Configure the output:
-   - **Resolution**: 512 to 4096 (Default: 2048).
-   - **Elements**:
-     - Polygon Wireframe (internal triangle edges).
-     - Seam Lines (outer UV boundary edges).
-     - Selection Only (renders only currently selected islands/polygons).
-     - Island Coloring (fills each UV island with a distinct pastel color).
-   - **Background**: Transparent or Base Texture.
-   - **Colors**: Customize wireframe, seam, and island fill colors.
-4. Click **`[Export]`** to save `{FileName}_uv.png` into your project.
+1. Click the **Camera icon button** in the top right of the UV View.
+2. The "Export UV Layout" configuration dialog opens.
+3. Configure settings:
+   - **Resolution**: 512 to 4096
+   - **Render Elements**: Toggle polygon lines, seam lines, selection filter, and island coloring
+   - **Background**: Transparent background or base texture overlay
+   - **Color Settings**: Custom colors for wireframes, seams, and fills
+4. Click **`Export`** to save the PNG image into your project.
 
 ---
 
-### 4.6 Interface & Shortcut Reference
+## 6. Shortcut Key Reference
 
-#### UI Layout
-1. **Tool Tab (EditorWindow)**:
-   - Opened via `dennokoworks` > `MaskMaker V4`.
-   - Contains Target Mesh picker, UV View, Export settings, and the primary action button.
-   - **Header**: Displays the title, version label, update check button (↻), **Language toggle buttons (`[JA]` / `[EN]`)**, and Settings icon (⚙) for opening Preferences and Project Settings. Clicking the language buttons rebuilds and translates the entire UI instantly across all open windows and overlays.
-2. **Floating Capsule Toolbar**:
-   - A rounded floating bar appearing inside the SceneView during editing. Drag to reposition anywhere.
-   - Houses Mode toggle, Granularity, Paint Tools, X-Mirror, Isolation, Undo/Redo, Export, and Selection counter.
-3. **Cursor Radial Menu**:
-   - Hold **`C`** anywhere in the SceneView or UV View to open a circular menu centered directly under the cursor.
-   - Flick the cursor in the direction of the desired tool and release `C` to select instantly.
+| Hotkey | Category | Action |
+| :--- | :--- | :--- |
+| **`Tab`** | Mode | Switch between Selection Mode and Paint Mode |
+| **`Left Click`** | Selection | Toggle selection on and off |
+| **`Double Click`** | Selection | Select or deselect entire connected component |
+| **`Left Drag`** | Selection / Paint | Continuous drag selection or brush painting |
+| **`Shift` + Click / Drag** | Selection / Paint | Force Add to selection (Force paint in Paint Mode) |
+| **`Ctrl` + Click / Drag** | Selection / Paint | Force Remove from selection (Instant Eraser in Paint Mode) |
+| **`Ctrl` + Right-Drag** | Paint Settings | Interactively adjust brush radius under cursor |
+| **`[` / `]`** | Paint Settings | Decrease / Increase brush size |
+| **`Shift` + Mouse Wheel** | Selection Assist | Expand (Wheel Up) / Shrink (Wheel Down) selection |
+| **`X`** | Selection Assist | Toggle Symmetry Editing (X-Mirror) |
+| **`1` / `2` / `3`** | Granularity | Switch selection granularity (1: Island / 2: Part / 3: Face) |
+| **`B`** | Tool Picker | Select Brush tool |
+| **`M`** | Tool Picker | Select Rectangle Fill tool |
+| **`L`** | Tool Picker | Select Lasso Fill tool |
+| **`Shift + B`** | Tool Picker | Select Eraser tool |
+| **`C` (Hold)** | Interface | Summon Radial Menu under cursor |
+| **`Space` (Hold)** | Control Assist | Suspend tool input (use default camera controls) |
+| **`Ctrl + A`** | Selection Action | Select all polygons |
+| **`Ctrl + I`** | Selection Action | Invert selection |
+| **`Ctrl + Z`** | History | Undo previous action |
+| **`Ctrl + Y`** | History | Redo undone action |
+| **`Ctrl + Enter`** | Export | Quick export mask texture |
+| **`F`** | View Navigation | Center and reset UV View zoom |
 
-#### Shortcut Reference Table
+---
 
-| Key | Action |
-| :--- | :--- |
-| **`Tab`** | Toggle Selection Mode ⇄ Paint Mode |
-| **`Left Click`** | Smart Toggle (Select if unselected, Deselect if selected) |
-| **`Double Click`** | Select / Deselect entire connected component |
-| **`Left Drag`** | Continuous stroke selection / painting |
-| **`Shift` + Click / Drag** | Force Add (Force Paint in Paint Mode) |
-| **`Ctrl` + Click / Drag** | Force Remove (Temporary Eraser in Paint Mode) |
-| **`Ctrl` + Right-Drag** | In-place smooth brush resizing |
-| **`Shift` + Mouse Wheel** | Grow (Up) / Shrink (Down) selection |
-| **`X`** | Toggle Symmetry (X-Mirror) |
-| **`1` / `2` / `3`** | Selection Granularity (1: Island / 2: Part / 3: Face) |
-| **`B` / `M` / `L` / `Shift+B`** | Paint Tools (B: Brush / M: Rect / L: Lasso / Shift+B: Eraser) |
-| **`[` / `]`** | Decrease / Increase brush size |
-| **`C` (Hold)** | Open Radial Menu under cursor |
-| **`Space` (Hold)** | Pause picking (enables standard Unity camera and transform tools) |
-| **`Ctrl + A`** | Select All |
-| **`Ctrl + I`** | Invert Selection |
-| **`Ctrl + Z` / `Ctrl + Y`** | Unified Undo / Redo |
-| **`Ctrl + Enter`** | Quick Export with current settings |
-| **`F`** | Reset UV View zoom and pan to center |
+## 7. Notes and Troubleshooting
+
+### Frequently Asked Questions
+
+#### Q. Applying the exported mask does not change the model appearance in the scene.
+- **A.** Check the following:
+  1. Ensure that the corresponding shader feature utilizing masks (e.g., lilToon's "Outfit Mask", "Alpha Mask", or "Rimlight Mask") is enabled on the material.
+  2. If the mesh contains multiple material slots, verify that the mask was applied to the intended submesh material.
+  3. Verify that the texture import settings (such as `Alpha Source` or `sRGB (Color Texture)`) match shader requirements (the automatic `Apply` action sets recommended values automatically).
+
+#### Q. Dark or light fringes (bleeding) appear along UV seams in the distance.
+- **A.** This is typically caused by mipmap downsampling blending the mask edge with background pixels. In the main window, open **Advanced Settings > Padding** and increase the padding value (e.g., 8–16 px) before re-exporting. Dilating the boundary colors outward eliminates seam bleeding.
+
+#### Q. Symmetry Editing (X key) does not affect the opposite side.
+- **A.** Consider the following factors:
+  1. Symmetry Editing detects pairs relative to the mesh's local coordinate center (X = 0). If the model's pivot is offset from its visual centerline, symmetric pairs cannot be identified.
+  2. Asymmetrical mesh geometry or mismatched UV mapping between left and right sides cannot be mirrored automatically. In this scenario, disable Symmetry Editing and select the regions individually.
+
+#### Q. What happens if Unity is closed unexpectedly or scripts recompile during editing?
+- **A.** Edit states (selection buffers and paint layers) are automatically cached to persistent disk storage. When reopening the project or returning after script compilation, selecting the same target object restores your work session seamlessly.
+
+#### Q. Can I undo an accidental selection clear?
+- **A.** Yes. Press **`Ctrl + Z`** to revert. All actions—including selections, brush strokes, and clearing—are recorded in a unified undo stack.

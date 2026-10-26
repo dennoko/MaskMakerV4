@@ -319,10 +319,25 @@
     position: absolute;
     width: 180px;
     height: 180px;
+}
+
+.dennoko-root .mm-radial-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 180px;
+    height: 180px;
     border-radius: 90px;
     border-width: 1px;
     border-color: var(--dennoko-outline);
     background-color: var(--dennoko-surface-1);
+}
+
+/* 汎用の .dennoko-root .unity-button の margin / padding が位置をずらすので詳細度を上げて打ち消す
+   （枠と背景はここに書かない。書くと .dennoko-button-active の青枠に勝ってしまう） */
+.dennoko-root .unity-button.mm-radial-slice {
+    margin: 0;
+    padding: 0;
 }
 
 .dennoko-root .mm-radial-slice {
