@@ -50,7 +50,7 @@ namespace Dennoko.UVMaskMaker
             Target = target;
             TargetKey = targetKey;
             Mesh = mesh;
-            _pose = new PoseWatcher(target);
+            _pose = new PoseWatcher(target, mesh.Deformer);
         }
 
         // ── 開始時の手順（SessionController が StartTransaction の中で順に呼ぶ） ──

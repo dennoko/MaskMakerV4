@@ -97,8 +97,7 @@ namespace Dennoko.UVMaskMaker
             { "status.version.update", ("v{0} 更新あり", "v{0} available") },
             { "status.version.error", ("確認できません", "Check failed") },
             { "info.readWriteEnabled", ("Read/Write を有効化しました", "Enabled Read/Write") },
-            { "info.originalMesh", ("元のメッシュで作業中", "Working on the original mesh") },
-
+            { "info.ndmfMismatch", ("NDMF プレビューの頂点数が元のメッシュと異なるため、元のメッシュで作業中", "NDMF preview has a different vertex count; working on the original mesh") },
             // エラー
             { "error.noMesh", ("メッシュがありません", "No mesh") },
             { "error.notReadable", ("メッシュを読み込めません", "Mesh is not readable") },

@@ -1,0 +1,27 @@
+{
+    "name": "Dennoko.UVMaskMaker.Ndmf",
+    "rootNamespace": "Dennoko.UVMaskMaker.Ndmf",
+    "references": [
+        "Dennoko.UVMaskMaker.Editor",
+        "nadena.dev.ndmf"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UVMM_NDMF"
+    ],
+    "versionDefines": [
+        {
+            "name": "nadena.dev.ndmf",
+            "expression": "1.7.0",
+            "define": "UVMM_NDMF"
+        }
+    ],
+    "noEngineReferences": false
+}

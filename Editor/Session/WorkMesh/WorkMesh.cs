@@ -7,6 +7,21 @@ using UnityEngine.Rendering;
 namespace Dennoko.UVMaskMaker
 {
     /// <summary>
+    /// 変形後の頂点の供給元（NDMF プレビューなど）。三角形の並びと UV は変えず、頂点の位置だけを差し替える。
+    /// </summary>
+    internal interface IMeshDeformer
+    {
+        /// <summary>変形の状態のハッシュ。変わったら焼き直す（PoseWatcher が使う）。</summary>
+        int StateHash(Renderer target);
+
+        /// <summary>
+        /// 変形後のメッシュを返す。SkinnedMeshRenderer は scratch に焼いて返してよい。
+        /// localToWorld はそのメッシュのローカル → ワールド。変形が無ければ false（元のメッシュで作業する）。
+        /// </summary>
+        bool TryGetDeformed(Renderer target, Mesh scratch, out Mesh mesh, out Matrix4x4 localToWorld);
+    }
+
+    /// <summary>
     /// 作業メッシュ（Impl work_context_and_rendering §2.4）。頂点・法線は Renderer のローカル空間。
     /// 三角形の並びと UV は元のメッシュのもので、ポーズが変わっても変わらない。
     /// </summary>
@@ -14,21 +29,33 @@ namespace Dennoko.UVMaskMaker
     {
         public Renderer Renderer { get; }
         public Mesh SourceMesh { get; }
+        public IMeshDeformer Deformer { get; }
         public Vector3[] Vertices { get; private set; }
         public Vector3[] Normals { get; private set; }
         public int[] Indices { get; }
         public int[] TriSubmesh { get; }
         public int SubmeshCount { get; }
         public int PoseRevision { get; private set; }
-        public string Info { get; }
 
+        /// <summary>直近の焼き直しで変形後の頂点を使ったか。</summary>
+        public bool Deformed { get; private set; }
+
+        /// <summary>変形後のメッシュの頂点数が元と違い、使えなかったか。</summary>
+        public bool DeformMismatch { get; private set; }
+
+        public string Info => DeformMismatch
+            ? (_info != null ? _info + "\n" : "") + L10n.T("info.ndmfMismatch")
+            : _info;
+
+        private readonly string _info;
         private readonly Mesh _baked;
 
-        public WorkMesh(Renderer renderer, Mesh source, string info)
+        public WorkMesh(Renderer renderer, Mesh source, string info, IMeshDeformer deformer = null)
         {
             Renderer = renderer;
             SourceMesh = source;
-            Info = info;
+            Deformer = deformer;
+            _info = info;
             SubmeshCount = source.subMeshCount;
 
             var indices = new List<int>();
@@ -43,32 +70,60 @@ namespace Dennoko.UVMaskMaker
             Indices = indices.ToArray();
             TriSubmesh = triSub.ToArray();
 
-            if (renderer is SkinnedMeshRenderer)
-            {
+            if (renderer is SkinnedMeshRenderer || deformer != null)
                 _baked = new Mesh { name = "UVMaskMaker/BakedMesh", hideFlags = HideFlags.HideAndDontSave };
-                Rebake();
-            }
-            else
-            {
-                Vertices = source.vertices;
-                Normals = source.normals;
-                if (Normals == null || Normals.Length != Vertices.Length) Normals = new Vector3[Vertices.Length];
-            }
+            Rebake();
         }
 
         public Matrix4x4 LocalToWorld => Renderer.transform.localToWorldMatrix;
 
         public int TriangleCount => Indices.Length / 3;
 
-        /// <summary>現在のポーズで焼き直す（SkinnedMeshRenderer のみ）。</summary>
+        /// <summary>現在のポーズ（と変形）で焼き直す。</summary>
         public void Rebake()
         {
-            if (!(Renderer is SkinnedMeshRenderer smr) || _baked == null) return;
-            // useScale: true で Renderer の本来のローカル空間になる（false はスケール抜きの空間で、LocalToWorld と合わない）
-            smr.BakeMesh(_baked, true);
-            Vertices = _baked.vertices;
-            Normals = _baked.normals;
+            DeformMismatch = false;
+            if (Deformer != null && Renderer != null
+                && Deformer.TryGetDeformed(Renderer, _baked, out var deformed, out var deformedToWorld) && deformed != null)
+            {
+                if (deformed.vertexCount == SourceMesh.vertexCount)
+                {
+                    Assign(deformed, Renderer.transform.worldToLocalMatrix * deformedToWorld);
+                    Deformed = true;
+                    return;
+                }
+                DeformMismatch = true;
+            }
+
+            bool wasDeformed = Deformed;
+            Deformed = false;
+            if (Renderer is SkinnedMeshRenderer smr)
+            {
+                // useScale: true で Renderer の本来のローカル空間になる（false はスケール抜きの空間で、LocalToWorld と合わない）
+                smr.BakeMesh(_baked, true);
+                Assign(_baked, Matrix4x4.identity);
+            }
+            else if (Vertices == null || wasDeformed)
+            {
+                Assign(SourceMesh, Matrix4x4.identity);
+            }
+        }
+
+        /// <summary>mesh の頂点・法線を toLocal で Renderer のローカル空間へ移して持つ。</summary>
+        private void Assign(Mesh mesh, Matrix4x4 toLocal)
+        {
+            Vertices = mesh.vertices;
+            Normals = mesh.normals;
             if (Normals == null || Normals.Length != Vertices.Length) Normals = new Vector3[Vertices.Length];
+            if (!toLocal.isIdentity)
+            {
+                var normalMatrix = toLocal.inverse.transpose;
+                for (int i = 0; i < Vertices.Length; i++)
+                {
+                    Vertices[i] = toLocal.MultiplyPoint3x4(Vertices[i]);
+                    Normals[i] = normalMatrix.MultiplyVector(Normals[i]).normalized;
+                }
+            }
             PoseRevision++;
         }
 
@@ -171,14 +226,22 @@ namespace Dennoko.UVMaskMaker
         public bool TryCreate(Renderer target, out WorkMesh mesh, out string error)
         {
             mesh = null;
+            if (!TryPrepareSource(target, out var source, out string info, out error)) return false;
+            mesh = new WorkMesh(target, source, info);
+            return true;
+        }
+
+        /// <summary>元のメッシュを読める状態で取り出す（Read/Write が無ければ自動で有効にする）。他の供給元からも使う。</summary>
+        public static bool TryPrepareSource(Renderer target, out Mesh source, out string info, out string error)
+        {
+            info = null;
             error = null;
-            var source = TargetKey.SourceMesh(target);
+            source = TargetKey.SourceMesh(target);
             if (source == null)
             {
                 error = L10n.T("error.noMesh");
                 return false;
             }
-            string info = null;
             if (!source.isReadable)
             {
                 if (!TryMakeReadable(source))
@@ -189,7 +252,6 @@ namespace Dennoko.UVMaskMaker
                 info = L10n.T("info.readWriteEnabled");
                 source = TargetKey.SourceMesh(target);
             }
-            mesh = new WorkMesh(target, source, info);
             return true;
         }
 
@@ -207,13 +269,15 @@ namespace Dennoko.UVMaskMaker
     internal sealed class PoseWatcher
     {
         private readonly Renderer _renderer;
+        private readonly IMeshDeformer _deformer;
         private int _lastHash;
         private double _changedAt = -1;
         private const double Settle = 0.2;
 
-        public PoseWatcher(Renderer renderer)
+        public PoseWatcher(Renderer renderer, IMeshDeformer deformer = null)
         {
             _renderer = renderer;
+            _deformer = deformer;
             _lastHash = Compute();
         }
 
@@ -249,6 +313,7 @@ namespace Dennoko.UVMaskMaker
                 int count = mesh != null ? mesh.blendShapeCount : 0;
                 for (int i = 0; i < count; i++) h = h * 31 + smr.GetBlendShapeWeight(i).GetHashCode();
             }
+            if (_deformer != null) h = h * 31 + _deformer.StateHash(_renderer);
             return h;
         }
     }

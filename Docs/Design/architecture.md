@@ -92,7 +92,7 @@
 │  │  ├─ SessionSupport.cs                StartTransaction・Isolation・InteractionState
 │  │  ├─ WorkSession.cs                   作業 1 回分の実行時オブジェクト（キャッシュを所有）
 │  │  ├─ SessionCommands.cs               ユーザー操作の意味づけ（UI・ショートカット・入力はここだけを呼ぶ）
-│  │  └─ WorkMesh/WorkMesh.cs             WorkMesh・IWorkMeshSource・WorkMeshSources・RendererMeshSource・PoseWatcher
+│  │  └─ WorkMesh/WorkMesh.cs             WorkMesh・IMeshDeformer・IWorkMeshSource・WorkMeshSources・RendererMeshSource・PoseWatcher
 │  │
 │  ├─ Gpu/
 │  │  ├─ GpuResources.cs                  資源の生成・解放・リーク掃除、RenderTargetScope、ShaderIds
@@ -138,6 +138,9 @@
 │  │  │  └─ SceneHud.cs                   ラジアル・トースト・ヒント
 │  │  ├─ SettingsPages/MaskMakerSettingsPages.cs   Preferences / Project Settings、Hierarchy の右クリック
 │  │  └─ Version/  DennokoVersionChecker.cs, MaskMakerVersion.cs
+│  │
+│  ├─ Ndmf/                               … [asmdef] Dennoko.UVMaskMaker.Ndmf（NDMF 1.7.0 以降がある時だけ）
+│  │  └─ NdmfMeshSource.cs                NdmfMeshSource（登録）・NdmfPreviewDeformer（プロキシ探索と頂点の取得）
 │  │
 │  └─ Shaders/
 │     ├─ UVMaskMakerCommon.hlsl           UV → クリップ座標（上下反転はここだけ）、フラグ、距離関数
@@ -217,6 +220,8 @@ public interface IWorkMeshSource
 }
 ```
 `WorkMeshSources` は登録された供給元を優先度順に試します。`Dennoko.UVMaskMaker.Ndmf` は `[InitializeOnLoad]` で `NdmfMeshSource` を登録するだけで、本体は NDMF の有無を知りません。
+
+`NdmfMeshSource` は元のメッシュで `WorkMesh` を作り、`IMeshDeformer`（`NdmfPreviewDeformer`）を渡します。`WorkMesh` は焼き直しのたびに Deformer から変形後のメッシュを受け取り、頂点数が元と同じ時だけ頂点位置を差し替えます。三角形の並びと UV は元のメッシュのままなので、解析・選択・保存は NDMF の有無で変わりません。
 
 ---
 

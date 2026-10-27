@@ -16,8 +16,12 @@
 
 ### 2.2 その場（In-Place）作業と NDMF 連携
 - オブジェクトを移動・複製せず、**アバター本来のワールド位置・姿勢のまま**作業します。
-- Modular Avatar 等を使うアバターでは、生のメッシュには衣装の体型追従やメッシュ統合が反映されていません。NDMF のプレビュー機構から**変形適用後のメッシュ**を取得できる場合はそれを作業メッシュとし、取得できない場合は元のメッシュで作業します（情報 `元のメッシュで作業中`）。
-- NDMF は任意依存です。NDMF が入っていないプロジェクトでも動作します。
+- Modular Avatar 等を使うアバターでは、生のメッシュには衣装の体型追従やメッシュ統合が反映されていません。NDMF のプレビュー機構から**変形適用後の頂点位置**を取得できる場合はそれを作業メッシュに使い、取得できない場合は元のメッシュで作業します。
+- NDMF は任意依存です。NDMF が入っていないプロジェクトでも動作します（`Dennoko.UVMaskMaker.Ndmf` アセンブリ自体がコンパイルされない）。
+- **取得方法（公開 API のみ。リフレクションで内部に触れない）**: NDMF のプレビュー用シーン（`NDMFPreviewSceneManager.IsPreviewScene`）にあるプロキシ Renderer のうち、`NDMFPreview.GetOriginalObjectForProxy` が対象の GameObject を返すものを対象のプロキシとする。見つけたプロキシは覚えておき、対応が外れたら 0.5 秒間隔で探し直す。
+- **使い方**: プロキシが SkinnedMeshRenderer なら `BakeMesh(mesh, true)`、MeshRenderer なら `MeshFilter.sharedMesh` の頂点を、プロキシの `localToWorldMatrix` → 対象の `worldToLocalMatrix` で対象 Renderer のローカル空間へ移す。三角形の並び・UV・解析・選択・保存は元のメッシュのまま（TargetKey と MeshHash は変わらない）。
+- **使えない場合**: プレビューが無効、対象に NDMF の変形が無い（プロキシが無い）時は元のメッシュで作業する。プロキシの頂点数が元のメッシュと違う時（頂点を削除・統合する処理がある時）も元のメッシュで作業し、開始時に情報 `NDMF プレビューの頂点数が元のメッシュと異なるため、元のメッシュで作業中` を出す。
+- 対応する NDMF: 1.7.0 以降（`versionDefines` で `UVMM_NDMF` を定義）。
 
 ### 2.3 作業メッシュの孤立表示 (Isolation)
 作業対象以外の服・装飾・背景が重なって作業の邪魔になるのを防ぎます。
@@ -28,10 +32,10 @@
 - 旧仕様の方式2（一時作業ステージ / PreviewScene）は採用しない。
 
 ### 2.4 作業メッシュとポーズ追従
-- **MeshRenderer**: `MeshFilter.sharedMesh`（NDMF 適用後があればそれ）を作業メッシュとする。
+- **MeshRenderer**: `MeshFilter.sharedMesh`（NDMF プレビューがあればその頂点位置。§2.2）を作業メッシュとする。
 - **SkinnedMeshRenderer**: 現在のポーズで変形したメッシュを `BakeMesh(mesh, useScale: true)`（スケールを含む Renderer ローカル）で作り、Renderer の `localToWorldMatrix` で配置する。
 - 作業メッシュの頂点は Renderer のローカル空間で保持する（ピッキング・ワールド空間ブラシ・オーバーレイ描画が共有）。
-- **ポーズの変化**: Renderer とボーンの `localToWorldMatrix` から作る軽いハッシュを SceneView の再描画ごとに比べ、変わっていたら焼き直す（ドラッグ中は 0.2 秒まとめる）。三角形の並びは変わらないので、解析・選択・手塗りはそのまま使える。
+- **ポーズの変化**: Renderer とボーンの `localToWorldMatrix`・ブレンドシェイプ（NDMF プレビューがあればプロキシとそのメッシュ・ブレンドシェイプも）から作る軽いハッシュを毎フレーム比べ、変わっていたら焼き直す（ドラッグ中は 0.2 秒まとめる）。三角形の並びは変わらないので、解析・選択・手塗りはそのまま使える。
 
 ### 2.5 対象の識別子 (TargetKey)
 作業状態と Target 設定を対象ごとに保存するための識別子です。

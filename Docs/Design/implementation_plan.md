@@ -25,7 +25,7 @@
 
 - M1〜M7 の実装は完了。Unity 同梱のコンパイラで Core / Editor / Tests の 3 アセンブリがコンパイルでき、Unity 外（mono）で実行できるテスト 35 件（Core 32、Persistence 2、出力パス 1）は全て通る。
 - 上の表の項目と GPU テスト（§3.2）、ライフサイクルの手動確認（§3.3）は、Unity エディタ上での確認が必要（未実施）。
-- M8（NDMF 連携）は未着手。この環境に NDMF が無く API を確かめられないため、拡張点（`IWorkMeshSource` / `WorkMeshSources.Register`）だけを用意してある。
+- M8（NDMF 連携）を実装（2026-10-27）。`Editor/Ndmf/` の `NdmfMeshSource` が NDMF の公開 API だけでプレビューのプロキシを探し、頂点位置を作業メッシュに使う（Impl work_context_and_rendering §2.2）。M0-5 の確認と NDMF がある / 無いプロジェクトでの動作確認は Unity 上で行う（未実施）。作業メッシュが Deformer の頂点を使う・使わない判断のテスト（`Tests/Editor/Session/WorkMeshTests.cs`、4 件）は Unity の Mesh を使うため、Unity のテストランナーでだけ走る。
 
 ---
 
