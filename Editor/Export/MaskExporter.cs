@@ -129,7 +129,7 @@ namespace Dennoko.UVMaskMaker
             if (!assetImporter.importSettingsMissing) return;
             var ti = (TextureImporter)assetImporter;
             ti.textureCompression = TextureImporterCompression.Uncompressed;
-            ti.isReadable = false;
+            ti.isReadable = true;
             if (kind == Kind.Mask)
             {
                 ti.sRGBTexture = false;

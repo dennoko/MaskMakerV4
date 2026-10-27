@@ -42,7 +42,7 @@
 | `sRGBTexture` | `false`（リニアデータ） |
 | `mipmapEnabled` | `true` |
 | `streamingMipmaps` | `true` |
-| `isReadable` | `false`（本ツールは読み戻す時もファイルから読むので不要。ビルドに CPU 側のコピーを残さない） |
+| `isReadable` | `true`（Read/Write 有効） |
 | `textureCompression` | `Uncompressed` |
 | `textureType` | `Default`。Project 設定 `ImportAsSingleChannel` が ON の時は `SingleChannel`（Red）にしてメモリを 1/4 にする（シェーダーが .r 以外を読む場合は使えないので既定 OFF） |
 
