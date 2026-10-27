@@ -140,7 +140,8 @@
 │  │  └─ Version/  DennokoVersionChecker.cs, MaskMakerVersion.cs
 │  │
 │  ├─ Ndmf/                               … [asmdef] Dennoko.UVMaskMaker.Ndmf（NDMF 1.7.0 以降がある時だけ）
-│  │  └─ NdmfMeshSource.cs                NdmfMeshSource（登録）・NdmfPreviewDeformer（プロキシ探索と頂点の取得）
+│  │  ├─ NdmfMeshSource.cs                NdmfMeshSource（登録）・NdmfPreviewDeformer（プロキシ探索と頂点の取得）
+│  │  └─ NdmfIsolation.cs                 孤立表示で隠れたプレビュー用シーンを表示に戻す
 │  │
 │  └─ Shaders/
 │     ├─ UVMaskMakerCommon.hlsl           UV → クリップ座標（上下反転はここだけ）、フラグ、距離関数

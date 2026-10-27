@@ -26,7 +26,8 @@
 ### 2.3 作業メッシュの孤立表示 (Isolation)
 作業対象以外の服・装飾・背景が重なって作業の邪魔になるのを防ぎます。
 
-- **開始時**: `SceneVisibilityManager.instance.Isolate(target, true)`。対象とその子階層以外を SceneView 上で非表示にする。
+- **開始時**: `SceneVisibilityManager.instance.Isolate(target, true)`。対象とその子階層以外を SceneView 上で非表示にする。対象の祖先は（子孫を含めず）表示に戻す。
+- **NDMF プレビュー**: `Isolate` は読み込まれた全シーンを隠すため、NDMF のプレビュー用シーンにあるプロキシも隠れる。プレビュー中の対象は元の Renderer の代わりにプロキシが描画されるので、そのままでは対象が見えなくなる。NDMF 連携（`NdmfIsolation`）は孤立表示の直後（と孤立表示中にプレビュー用シーンが開き直された時）にプレビュー用シーンを `Show(scene)` で表示に戻す。元が非表示のプロキシは NDMF 自身がシーンビューで描画しないので、見えるのは対象だけになる。孤立表示中の変更なので `ExitIsolation()` で元に戻る。
 - **終了時**: 本ツールが孤立表示を始めた場合だけ `ExitIsolation()` を呼ぶ。作業開始前からユーザーが孤立表示していた場合はその状態に触れない。
 - カプセルの孤立表示ボタンで作業中に ON/OFF できる（`IsolateTargetMesh`）。
 - 旧仕様の方式2（一時作業ステージ / PreviewScene）は採用しない。

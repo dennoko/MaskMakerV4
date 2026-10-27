@@ -34,7 +34,13 @@ namespace Dennoko.UVMaskMaker
     /// <summary>孤立表示。自分が始めた時だけ解除する（Impl work_context_and_rendering §2.3）。</summary>
     internal sealed class Isolation
     {
+        /// <summary>孤立表示を始めた直後に呼ばれる（NDMF 連携がプレビュー用シーンを表示に戻す）。</summary>
+        public static event Action Applied;
+
         private bool _ours;
+
+        /// <summary>本ツールが始めた孤立表示の最中か。</summary>
+        public bool Active => _ours;
 
         public void Apply(GameObject target, bool on)
         {
@@ -46,6 +52,8 @@ namespace Dennoko.UVMaskMaker
                 // 親が非表示だと対象まで見えなくなることがあるため、祖先は（子孫を含めず）表示に戻す
                 for (var p = target.transform.parent; p != null; p = p.parent) svm.Show(p.gameObject, false);
                 _ours = true;
+                try { Applied?.Invoke(); }
+                catch (Exception e) { Debug.LogException(e); }
             }
             else
             {
