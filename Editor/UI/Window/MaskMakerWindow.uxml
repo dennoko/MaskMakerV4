@@ -18,7 +18,7 @@
     <ui:ScrollView class="dennoko-scroll">
 
         <!-- 対象（見出しなし） -->
-        <ui:VisualElement name="target-card" class="dennoko-card">
+        <ui:VisualElement name="target-card" class="dennoko-card mm-target-card">
             <ui:VisualElement name="target-idle">
                 <ui:VisualElement class="mm-row">
                     <uie:ObjectField name="target-field" type="UnityEngine.Renderer, UnityEngine.CoreModule" allow-scene-objects="true" class="mm-grow" />
@@ -32,7 +32,7 @@
                     <ui:DropdownField name="target-dropdown" class="mm-grow" />
                     <ui:Button name="end-button" text="終了" class="dennoko-button-secondary" />
                 </ui:VisualElement>
-                <ui:VisualElement class="mm-row">
+                <ui:VisualElement name="target-sub-row" class="mm-row">
                     <ui:DropdownField name="submesh-dropdown" class="mm-grow" />
                     <ui:DropdownField name="uv-dropdown" />
                 </ui:VisualElement>
@@ -60,7 +60,7 @@
         </ui:VisualElement>
 
         <!-- 出力（Working のみ。基本 + 詳細） -->
-        <ui:VisualElement name="output-card" class="dennoko-card">
+        <ui:VisualElement name="output-card" class="dennoko-card mm-output-card">
             <ui:Label name="output-header" text="出力" class="dennoko-section-title dennoko-card-header" />
             <ui:VisualElement class="mm-row">
                 <ui:TextField name="file-name" class="mm-grow" />

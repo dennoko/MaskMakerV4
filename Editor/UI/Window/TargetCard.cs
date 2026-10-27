@@ -134,7 +134,8 @@ namespace Dennoko.UVMaskMaker
             targetDrop.SetValueWithoutNotify(s.Target.name);
 
             var submesh = _root.Q<DropdownField>("submesh-dropdown");
-            Bind.Show(submesh, UiRules.ShowSubmesh(s));
+            bool showSub = UiRules.ShowSubmesh(s);
+            Bind.Show(submesh, showSub);
             var subNames = new List<string> { L10n.T("term.all") };
             var mats = s.Target.sharedMaterials;
             for (int i = 0; i < s.Mesh.SubmeshCount; i++)
@@ -145,11 +146,15 @@ namespace Dennoko.UVMaskMaker
 
             var uv = _root.Q<DropdownField>("uv-dropdown");
             var channels = UiRules.UVChannels(s);
-            Bind.Show(uv, channels.Count > 1);
+            bool showUv = channels.Count > 1;
+            Bind.Show(uv, showUv);
             var uvNames = new List<string>();
             foreach (int c in channels) uvNames.Add("UV" + c);
             uv.choices = uvNames;
             uv.SetValueWithoutNotify("UV" + s.UVChannelUsed);
+
+            var subRow = _root.Q("target-sub-row");
+            if (subRow != null) Bind.Show(subRow, showSub || showUv);
         }
     }
 }

@@ -82,10 +82,61 @@
 }
 
 /* 対象 */
-.dennoko-root .mm-target-icon {
+.dennoko-root .mm-target-card {
+    padding: 4px 6px;
+    margin-bottom: 6px;
+}
+
+.dennoko-root #target-idle > .mm-row,
+.dennoko-root #target-working > .mm-row {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.dennoko-root #target-idle .unity-base-field,
+.dennoko-root #target-working .unity-base-field {
+    margin: 0;
+}
+
+.dennoko-root #target-idle .unity-base-field__input,
+.dennoko-root #target-working .unity-base-field__input {
+    height: 22px;
+    min-height: 22px;
+    padding: 1px 4px 1px 6px;
+}
+
+.dennoko-root #target-idle #edit-button {
+    height: 22px;
+    min-height: 22px;
+    padding: 0 8px;
+    margin: 0 0 0 4px;
+}
+
+.dennoko-root #target-working .mm-target-icon {
     width: 18px;
     height: 18px;
     margin-right: 4px;
+    margin-left: 0;
+}
+
+.dennoko-root #target-working #target-dropdown {
+    margin-right: 4px;
+}
+
+.dennoko-root #target-working #end-button {
+    height: 22px;
+    min-height: 22px;
+    padding: 0 8px;
+    margin: 0;
+}
+
+.dennoko-root #target-working #submesh-dropdown {
+    margin-right: 4px;
+}
+
+.dennoko-root #target-working #uv-dropdown {
+    margin: 0;
+    min-width: 54px;
 }
 
 .dennoko-root .mm-target-list {
@@ -252,6 +303,17 @@
     padding-right: 12px;
 }
 
+/* 出力カード */
+.dennoko-root .mm-output-card {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+}
+
+.dennoko-root .mm-output-card .dennoko-card-header {
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+}
+
 /* 出力サマリ */
 .dennoko-root .mm-summary {
     flex-direction: row;
@@ -260,6 +322,7 @@
     padding-left: 8px;
     padding-right: 8px;
     padding-top: 2px;
+    margin-bottom: 4px;
 }
 
 .dennoko-root .mm-chip {

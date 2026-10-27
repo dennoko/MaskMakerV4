@@ -527,6 +527,15 @@
     flex-shrink: 0;
 }
 
+.dennoko-root .dennoko-card.dennoko-footer {
+    padding: 4px 6px;
+    margin: 0 8px 6px 8px;
+}
+
+.dennoko-root .dennoko-footer > .unity-button {
+    margin: 2px 0;
+}
+
 /* ツールバー行
    ⚠ カード上端に密着させる場合、カードの padding (12px) と角丸 (8px) を
    はみ出す。カード側に overflow: hidden を付けるか、ツールバー側に
