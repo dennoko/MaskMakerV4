@@ -43,6 +43,8 @@ namespace Dennoko.UVMaskMaker
             {
                 if (_ours || svm.IsCurrentStageIsolated()) return;
                 svm.Isolate(target, true);
+                // 親が非表示だと対象まで見えなくなることがあるため、祖先は（子孫を含めず）表示に戻す
+                for (var p = target.transform.parent; p != null; p = p.parent) svm.Show(p.gameObject, false);
                 _ours = true;
             }
             else
