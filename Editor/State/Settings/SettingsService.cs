@@ -30,10 +30,13 @@ namespace Dennoko.UVMaskMaker
 
         public static T Get<T>(Setting<T> s) => GetFrom(s, SettingLayer.Session);
 
-        /// <summary>from の層から下だけで解決した値（上書きマークや設定画面の表示に使う）。</summary>
+        /// <summary>
+        /// from の層から下だけで解決した値（上書きマークや設定画面の表示に使う）。
+        /// 書き込み先より上の層は見ない（層を下げた設定の古い値が残っていても効かないように）。
+        /// </summary>
         public static T GetFrom<T>(Setting<T> s, SettingLayer from)
         {
-            for (int l = (int)from; l <= (int)SettingLayer.User; l++)
+            for (int l = Math.Max((int)from, (int)s.WriteLayer); l <= (int)SettingLayer.User; l++)
             {
                 if (Layer((SettingLayer)l).TryGet(s.Key, out string text) && SettingCodec.TryParse(text, out T value))
                     return value;

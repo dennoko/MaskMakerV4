@@ -65,7 +65,6 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<int> UVChannel = new Setting<int>("UVChannel", 0, T);
         public static readonly Setting<int> TargetSubmesh = new Setting<int>("TargetSubmesh", 0, T);
         public static readonly Setting<string> FileName = new Setting<string>("FileName", "", T);
-        public static readonly Setting<int> TextureSize = new Setting<int>("TextureSize", 0, T);
         public static readonly Setting<bool> ChannelWriteEnabled = new Setting<bool>("ChannelWriteEnabled", false, T);
         public static readonly Setting<bool> WriteR = new Setting<bool>("WriteR", true, T);
         public static readonly Setting<bool> WriteG = new Setting<bool>("WriteG", false, T);
@@ -87,10 +86,11 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<string> LastOutputPath = new Setting<string>("LastOutputPath", "", T);
         public static readonly Setting<string> LastOutputInvPath = new Setting<string>("LastOutputInvPath", "", T);
         public static readonly Setting<bool> InvertMask = new Setting<bool>("InvertMask", false, T);
-        public static readonly Setting<int> PixelMargin = new Setting<int>("PixelMargin", -1, T);
-        public static readonly Setting<bool> SaveInvertedToo = new Setting<bool>("SaveInvertedToo", false, T);
 
         // ── Project ──
+        public static readonly Setting<int> TextureSize = new Setting<int>("TextureSize", 0, P);
+        public static readonly Setting<int> PixelMargin = new Setting<int>("PixelMargin", -1, P);
+        public static readonly Setting<bool> SaveInvertedToo = new Setting<bool>("SaveInvertedToo", false, P);
         public static readonly Setting<int> DefaultTextureSize = new Setting<int>("DefaultTextureSize", 512, P);
         public static readonly Setting<bool> UseTextureFolder = new Setting<bool>("UseTextureFolder", true, P);
         public static readonly Setting<string> OutputDir = new Setting<string>("OutputDir", "Assets/GeneratedMasks", P);

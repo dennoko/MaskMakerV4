@@ -136,7 +136,6 @@ $$\text{Session} \;>\; \text{Target} \;>\; \text{Project} \;>\; \text{User} \;>\
 | `UVChannel` | int | 0 | Target | UV が複数ある時だけ表示 |
 | `TargetSubmesh` | int | 0 | Target | -1 は全体。サブメッシュが複数ある時だけ表示 |
 | `FileName` | string | `{Renderer名}_mask` | Target | |
-| `TextureSize` | int | 自動 | Target | ベーステクスチャのサイズ、無ければ `DefaultTextureSize` |
 | `ChannelWriteEnabled` | bool | false | Target | |
 | `WriteR` / `WriteG` / `WriteB` / `WriteA` | bool | true / false / false / false | Target | |
 | `BasePng` | asset GUID | なし | Target | 候補はマテリアルから提示 |
@@ -152,8 +151,9 @@ $$\text{Session} \;>\; \text{Target} \;>\; \text{Project} \;>\; \text{User} \;>\
 | `MaterialSlot` | string | なし | Target | [export.md](export.md) §5.2 |
 | `LastOutputPath` / `LastOutputInvPath` | string | なし | Target | 上書き判定用（UI には出さない） |
 | `InvertMask` | bool | false | Target | 下の層（Project）が既定 |
-| `PixelMargin` | int | 自動 | Target | 自動 = `TextureSize / 256`。下の層（Project）が既定 |
-| `SaveInvertedToo` | bool | false | Target | 下の層（Project）が既定 |
+| `TextureSize` | int | 自動 | Project | 自動 = ベーステクスチャのサイズ、無ければ `DefaultTextureSize` |
+| `PixelMargin` | int | 自動 | Project | 自動 = `TextureSize / 256` |
+| `SaveInvertedToo` | bool | false | Project | |
 | `DefaultTextureSize` | int | 512 | Project | ベーステクスチャが無い時の解像度 |
 | `UseTextureFolder` | bool | true | Project | |
 | `OutputDir` | string | `Assets/GeneratedMasks` | Project | |
@@ -168,7 +168,9 @@ $$\text{Session} \;>\; \text{Target} \;>\; \text{Project} \;>\; \text{User} \;>\
 | `Language` | enum | Auto | User | Auto = Editor の言語。ja / en |
 | `HintShownCount.*` | int | 0 | User | 迷い検知ヒントの表示回数 |
 
-`InvertMask` / `PixelMargin` / `SaveInvertedToo` は Project 層にも値を持てます（Project Settings で変更）。Target 層に値が無ければ Project 層の値を使います。
+`InvertMask` は Project 層にも値を持てます（Project Settings で変更）。Target 層に値が無ければ Project 層の値を使います。
+
+値は書き込み先の層から下だけで解決します。書き込み先より上の層に残った値（`TextureSize` / `PixelMargin` / `SaveInvertedToo` を Target 層に置いていた頃の値など）は使いません。
 
 **廃止した設定**: `AddMode`（スマートトグルで不要）、`ModeToggleHotkey`（Shortcut Manager に移行）、`OverlayDepthOffset`（§3.1）、`DisableAA`（§3.2）、`UseEnglish`（`Language` に統合）。
 
