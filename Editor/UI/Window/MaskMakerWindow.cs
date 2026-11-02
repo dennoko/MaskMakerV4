@@ -179,10 +179,8 @@ namespace Dennoko.UVMaskMaker
                 row.Clear();
                 var s = SessionController.Current;
                 if (s == null) return;
-                string folder = SettingsService.Get(SettingKeys.UseTextureFolder) && s.BaseTexture != null
-                    ? Path.GetFileName(OutputFolderPreview(s))
-                    : Path.GetFileName(SettingsService.Get(SettingKeys.OutputDir).TrimEnd('/'));
-                row.Add(Chip(Icons.Folder, folder, false, () => SettingsService_Open(false)));
+                string folder = OutputFolderPreview(s);
+                row.Add(Chip(Icons.Folder, folder, SettingsService.IsOverridden(SettingKeys.CreateMaskSubfolder), () => SettingsService_Open(false)));
                 row.Add(Chip(null, L10n.T("output.margin") + UiRules.EffectiveMargin(s), SettingsService.IsOverridden(SettingKeys.PixelMargin), OpenDetails));
                 if (SettingsService.Get(SettingKeys.InvertMask))
                     row.Add(Chip(null, L10n.T("output.invert"), SettingsService.IsOverridden(SettingKeys.InvertMask), OpenDetails));
@@ -199,8 +197,10 @@ namespace Dennoko.UVMaskMaker
 
         private static string OutputFolderPreview(WorkSession s)
         {
-            var path = AssetDatabase.GetAssetPath(s.BaseTexture);
-            return string.IsNullOrEmpty(path) ? SettingsService.Get(SettingKeys.OutputDir) : Path.GetDirectoryName(path);
+            string baseDir = OutputPaths.BaseFolderFor(s);
+            string baseName = Path.GetFileName(baseDir);
+            string resolved = OutputPaths.FolderFor(s);
+            return resolved == baseDir ? baseName : baseName + "/" + OutputPaths.MaskSubfolderName;
         }
 
         private static VisualElement Chip(string icon, string text, bool overridden, System.Action onClick)

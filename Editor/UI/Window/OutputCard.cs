@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -82,8 +83,15 @@ namespace Dennoko.UVMaskMaker
                 var s = SessionController.Current;
                 bool on = SettingsService.Get(SettingKeys.SaveInvertedToo) && s != null;
                 Bind.Show(preview, on);
-                if (on) preview.text = s.EffectiveFileName + ".png / " + s.EffectiveFileName + "_inv.png";
+                if (on)
+                {
+                    var (main, inv) = OutputPaths.ResolveMask(OutputPaths.FolderFor(s), s.EffectiveFileName, true);
+                    preview.text = Path.GetFileName(main) + " / " + Path.GetFileName(inv);
+                }
             });
+            var maskSub = root.Q<Toggle>("mask-subfolder-toggle");
+            maskSub.text = L10n.T("output.maskSubfolder");
+            Bind.Toggle(maskSub, SettingKeys.CreateMaskSubfolder, root.Q("mask-subfolder-dot"));
         }
     }
 }

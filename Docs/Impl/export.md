@@ -51,22 +51,18 @@
 
 ---
 
-## 3. 保存先パスと上書き・連番
+## 3. 保存先パスと重複回避連番
 
 ### 3.1 保存先フォルダの解決
 1. **テクスチャと同じ場所 (`UseTextureFolder = true`、既定)**: 対象マテリアルのベーステクスチャ（`_BaseMap` → `_MainTex` の順）のアセットのフォルダ。ベーステクスチャが無い、またはフォルダが `Packages/` 以下（パッケージ更新で消える）の時は 2 にフォールバック。
 2. **フォルダ指定 (`UseTextureFolder = false`)**: `OutputDir`（既定 `Assets/GeneratedMasks`）。無ければ階層ごと作成。
+3. **`Mask/` サブフォルダの作成 (`CreateMaskSubfolder = true`、既定)**: 1 または 2 で決まったフォルダ内に `Mask/` を作成してその中に保存する。ただし、元のメインテクスチャ自体が既に `Mask/` 内にあった場合（または指定フォルダの末尾が `Mask` の場合）は、フォルダを入れ子にせずそのままそのフォルダに保存する。有効時は保存時に Project タブでその `Mask/` フォルダが開かれる（保存されたマスクが Ping 表示される）。
 
-### 3.2 上書きと連番
-調整 → 再出力のくり返しでファイルが増えず、マテリアルの割り当て直しも要らないように、**同じ対象からの再出力は前回のファイルを上書き**します。
-
-1. 対象（Target）ごとに、前回出力したパス（`LastOutputPath`、反転同時保存時は `LastOutputInvPath`）を記録する。
-2. 今回のパス候補 `{folder}/{FileName}.png` が記録と同じなら、そのまま上書きする。
-3. 記録と違い、かつ既存ファイルと衝突する時（ファイル名を変えた、他のツールのファイルがある）だけ、次の規則で連番を付ける。
-4. 確定したパスを記録し直す。
+### 3.2 重複回避と連番
+保存時に重複するファイル名がある場合は上書きせず、末尾に ` 1`、` 2` …（スペース + ナンバリングの Unity 標準方式）を付けて重複回避します。
 
 #### 元マスクと反転マスクの連番
-`SaveInvertedToo = true` の時、`GenerateUniqueAssetPath` を個別に呼ぶと元と反転で番号がずれるため、**両方が同時に空いている番号**を探します。
+`SaveInvertedToo = true` の時、`GenerateUniqueAssetPath` を個別に呼ぶと元と反転で番号がずれるため、**元マスクと反転マスクの両方が同時に空いている番号**になるまでインクリメントし、同じ番号で保存します。
 
 ```csharp
 public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
@@ -76,14 +72,14 @@ public static (string mainPath, string invPath) ResolveUniqueMaskPaths(
     {
         string suffix = counter == 0 ? "" : $" {counter}";
         string main = $"{folder}/{baseName}{suffix}.png";
-        string inv = saveInvertedToo ? $"{folder}/{baseName}{suffix}_inv.png" : null;
+        string inv = saveInvertedToo ? $"{folder}/{baseName}_inv{suffix}.png" : null;
         if (!File.Exists(main) && (inv == null || !File.Exists(inv)))
             return (main, inv);
     }
 }
 ```
 
-これにより、`uv_mask.png` と `uv_mask_inv.png` は常に同じ番号のペアになります。
+これにより、`uv_mask 1.png` と `uv_mask_inv 1.png` は常に同じ番号のペアになります。
 
 ---
 

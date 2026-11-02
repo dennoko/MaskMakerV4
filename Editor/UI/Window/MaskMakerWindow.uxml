@@ -97,6 +97,10 @@
                     <ui:VisualElement name="save-inverted-dot" class="mm-override-dot" />
                 </ui:VisualElement>
                 <ui:Label name="inverted-preview" text="" class="dennoko-text-tertiary mm-indent" />
+                <ui:VisualElement class="mm-row">
+                    <ui:Toggle name="mask-subfolder-toggle" text="Mask/ に保存" class="mm-grow" />
+                    <ui:VisualElement name="mask-subfolder-dot" class="mm-override-dot" />
+                </ui:VisualElement>
             </ui:Foldout>
         </ui:VisualElement>
 

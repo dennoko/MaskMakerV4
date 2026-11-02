@@ -51,6 +51,7 @@ namespace Dennoko.UVMaskMaker
                     IntChoiceRow(page, "project.defaultSize", SettingKeys.DefaultTextureSize, SettingKeys.TextureSizes);
                     BoolRow(page, "project.useTextureFolder", SettingKeys.UseTextureFolder, SettingLayer.Project);
                     TextRow(page, "project.outputDir", SettingKeys.OutputDir, SettingLayer.Project);
+                    BoolRow(page, "project.maskSubfolder", SettingKeys.CreateMaskSubfolder, SettingLayer.Project);
                     BoolRow(page, "project.invert", SettingKeys.InvertMask, SettingLayer.Project);
                     IntRow(page, "project.margin", SettingKeys.PixelMargin, SettingLayer.Project, -1, SettingKeys.MaxPixelMargin);
                     BoolRow(page, "project.saveInverted", SettingKeys.SaveInvertedToo, SettingLayer.Project);

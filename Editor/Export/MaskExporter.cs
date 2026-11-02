@@ -22,6 +22,7 @@ namespace Dennoko.UVMaskMaker
 
                 bool invert = SettingsService.Get(SettingKeys.InvertMask);
                 bool saveInv = SettingsService.Get(SettingKeys.SaveInvertedToo);
+                bool createSubfolder = SettingsService.Get(SettingKeys.CreateMaskSubfolder);
                 string folder = OutputPaths.ResolveFolder(s);
                 var (mainPath, invPath) = OutputPaths.ResolveMask(folder, s.EffectiveFileName, saveInv);
 
@@ -44,18 +45,25 @@ namespace Dennoko.UVMaskMaker
                 AssetDatabase.ImportAsset(mainPath, ImportAssetOptions.ForceUpdate);
                 if (invPath != null) AssetDatabase.ImportAsset(invPath, ImportAssetOptions.ForceUpdate);
 
-                bool overwrote = mainPath == SettingsService.Get(SettingKeys.LastOutputPath);
-                SettingsService.Set(SettingKeys.LastOutputPath, mainPath);
-                SettingsService.Set(SettingKeys.LastOutputInvPath, invPath ?? string.Empty);
                 SessionPersistence.FlushPending();
 
-                PostResult(s, mainPath, overwrote, empty, origin);
+                if (createSubfolder) OpenFolderInProject(mainPath, folder);
+
+                PostResult(s, mainPath, empty, origin);
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is InvalidOperationException)
             {
                 Debug.LogException(e);
                 Notifier.Post(MessageLevel.Error, L10n.T("status.writeFailed"), origin);
             }
+        }
+
+        private static void OpenFolderInProject(string mainPath, string folder)
+        {
+            EditorUtility.FocusProjectWindow();
+            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(mainPath)
+                      ?? AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(folder);
+            if (obj != null) EditorGUIUtility.PingObject(obj);
         }
 
         private static byte[] Encode(byte[] mask, byte[] baseRgba, bool channel, bool invert)
@@ -72,7 +80,7 @@ namespace Dennoko.UVMaskMaker
             File.WriteAllBytes(path, png);
         }
 
-        private static void PostResult(WorkSession s, string path, bool overwrote, bool empty, MessageOrigin origin)
+        private static void PostResult(WorkSession s, string path, bool empty, MessageOrigin origin)
         {
             if (empty)
             {
@@ -97,7 +105,7 @@ namespace Dennoko.UVMaskMaker
             var msg = new UserMessage
             {
                 Level = MessageLevel.Success,
-                Text = L10n.F(overwrote ? "status.updated" : "status.saved", name),
+                Text = L10n.F("status.saved", name),
                 Origin = origin,
                 AssetPath = path,
             };

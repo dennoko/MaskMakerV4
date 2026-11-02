@@ -83,8 +83,6 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<UVLayoutLineColor> UVLayoutWireColor = new Setting<UVLayoutLineColor>("UVLayoutLineColor", UVLayoutLineColor.White, T);
         public static readonly Setting<UVLayoutLineColor> UVLayoutSeamColor = new Setting<UVLayoutLineColor>("UVLayoutSeamColor", UVLayoutLineColor.Red, T);
         public static readonly Setting<string> MaterialSlot = new Setting<string>("MaterialSlot", "", T);
-        public static readonly Setting<string> LastOutputPath = new Setting<string>("LastOutputPath", "", T);
-        public static readonly Setting<string> LastOutputInvPath = new Setting<string>("LastOutputInvPath", "", T);
         public static readonly Setting<bool> InvertMask = new Setting<bool>("InvertMask", false, T);
 
         // ── Project ──
@@ -94,6 +92,7 @@ namespace Dennoko.UVMaskMaker
         public static readonly Setting<int> DefaultTextureSize = new Setting<int>("DefaultTextureSize", 512, P);
         public static readonly Setting<bool> UseTextureFolder = new Setting<bool>("UseTextureFolder", true, P);
         public static readonly Setting<string> OutputDir = new Setting<string>("OutputDir", "Assets/GeneratedMasks", P);
+        public static readonly Setting<bool> CreateMaskSubfolder = new Setting<bool>("CreateMaskSubfolder", true, P);
         public static readonly Setting<bool> AutoApplyMaterial = new Setting<bool>("AutoApplyMaterial", false, P);
         public static readonly Setting<int> BlackThreshold = new Setting<int>("BlackThreshold", 128, P);
         public static readonly Setting<float> MirrorTolerance = new Setting<float>("MirrorTolerance", 0f, P);

@@ -31,11 +31,31 @@ namespace Dennoko.UVMaskMaker.Tests
             File.WriteAllBytes(f + "/m_inv.png", new byte[1]);
             (main, inv) = OutputPaths.ResolveUniqueMaskPaths(f, "m", true);
             Assert.AreEqual(f + "/m 1.png", main, "the inverted file alone also blocks the pair");
-            Assert.AreEqual(f + "/m 1_inv.png", inv);
+            Assert.AreEqual(f + "/m_inv 1.png", inv);
+
+            File.WriteAllBytes(f + "/m 1.png", new byte[1]);
+            (main, inv) = OutputPaths.ResolveUniqueMaskPaths(f, "m", true);
+            Assert.AreEqual(f + "/m 2.png", main, "increments until both main and inv are free");
+            Assert.AreEqual(f + "/m_inv 2.png", inv);
 
             (main, inv) = OutputPaths.ResolveUniqueMaskPaths(f, "m", false);
             Assert.AreEqual(f + "/m.png", main);
             Assert.IsNull(inv);
+
+            File.WriteAllBytes(f + "/m.png", new byte[1]);
+            (main, inv) = OutputPaths.ResolveUniqueMaskPaths(f, "m", false);
+            Assert.AreEqual(f + "/m 2.png", main);
+            Assert.IsNull(inv);
+        }
+
+        [Test]
+        public void AppendMaskSubfolder_DoesNotNestWhenAlreadyInMask()
+        {
+            Assert.AreEqual("Assets/Textures/Mask", OutputPaths.AppendMaskSubfolder("Assets/Textures", true));
+            Assert.AreEqual("Assets/Textures/Mask", OutputPaths.AppendMaskSubfolder("Assets/Textures/", true));
+            Assert.AreEqual("Assets/Textures/Mask", OutputPaths.AppendMaskSubfolder("Assets/Textures/Mask", true));
+            Assert.AreEqual("Assets/Textures/mask", OutputPaths.AppendMaskSubfolder("Assets/Textures/mask", true));
+            Assert.AreEqual("Assets/Textures", OutputPaths.AppendMaskSubfolder("Assets/Textures", false));
         }
     }
 }
