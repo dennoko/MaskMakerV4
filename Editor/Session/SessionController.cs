@@ -12,6 +12,9 @@ namespace Dennoko.UVMaskMaker
     /// </summary>
     internal static class SessionController
     {
+        /// <summary>dennokoworks 共通の編集セッション（DennokoSceneSession）での識別名。</summary>
+        public const string ToolId = "UVMaskMakerV4";
+
         public static WorkSession Current { get; private set; }
         public static bool IsWorking => Current != null;
 
@@ -25,7 +28,7 @@ namespace Dennoko.UVMaskMaker
         public static bool Start(Renderer target, bool resume = false, bool keepSession = false, MessageOrigin origin = MessageOrigin.Window)
         {
             if (target == null) return false;
-            End();
+            EndCore(true);
 
             var tx = new StartTransaction();
             WorkSession session = null;
@@ -53,11 +56,11 @@ namespace Dennoko.UVMaskMaker
                 tx.Commit();
 
                 Current = session;
+                SceneSessionBridge.OnStarted(target);
                 if (!resume && !keepSession)
                 {
                     SettingsService.Set(SettingKeys.SymmetryEnabled, session.Analysis.MirrorMatchRate >= 0.9f);
                     FrameTarget(target);
-                    Hints.OnSessionStarted();
                 }
 
                 Changed?.Invoke();
@@ -73,6 +76,7 @@ namespace Dennoko.UVMaskMaker
                 tx.Rollback();
                 Current = null;
                 Debug.LogException(e);
+                SceneSessionBridge.OnStartFailed();
                 Notifier.Post(MessageLevel.Error, L10n.F("error.startFailed", e.Message), origin);
                 Changed?.Invoke();
                 return false;
@@ -99,8 +103,15 @@ namespace Dennoko.UVMaskMaker
             return L10n.T("status.restored");
         }
 
-        /// <summary>作業を終える。何度呼んでもよい。</summary>
-        public static void End(bool save = true)
+        /// <summary>作業を終える。何度呼んでもよい。reason は共通の編集セッションへ伝える（ウィンドウのステータスに出す理由）。</summary>
+        public static void End(bool save = true, DennokoSessionEndReason reason = DennokoSessionEndReason.User)
+        {
+            EndCore(save);
+            SceneSessionBridge.OnEnded(reason);
+        }
+
+        /// <summary>作業だけを終える（対象の切替・やり直しでは共通の編集セッションを続ける）。</summary>
+        private static void EndCore(bool save)
         {
             var s = Current;
             if (s == null) return;

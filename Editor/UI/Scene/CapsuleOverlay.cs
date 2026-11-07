@@ -1,14 +1,13 @@
 using Dennoko.UVMaskMaker.Core;
 using UnityEditor;
 using UnityEditor.Overlays;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Dennoko.UVMaskMaker
 {
     /// <summary>
-    /// 手元カプセル（UI 設計 §6.1）。作業中だけ表示する。状態は持たず、UiHub の合図で読み直す。
-    /// 同じ位置を、選択モードでは「選択の単位」、ペイントモードでは「ペイントツール」に差し替える。
+    /// S1 シーンツールバー（カプセル。skill blocks/sceneview.md）。作業中だけ表示する（ITransientOverlay）。
+    /// 状態は持たず、UiHub の合図で読み直す。同じ位置を、選択モードでは「選択の単位」、ペイントモードでは「ペイントツール」に差し替える。
     /// 既定の置き場所はシーンビューの左下（ユーザーが動かした位置は Unity が覚える）。
     /// </summary>
     [Overlay(typeof(SceneView), "dennokoworks.MaskMakerV4.Capsule", "MaskMaker V4", true,
@@ -17,26 +16,25 @@ namespace Dennoko.UVMaskMaker
     {
         public bool visible => SessionController.IsWorking;
 
+        // ドック位置の変更や SceneView の作り直しのたびに呼ばれるので、毎回作り直せる形にする
         public override VisualElement CreatePanelContent()
         {
             var root = new VisualElement();
-            UiAssets.SetupRoot(root, false);
-            root.AddToClassList("mm-overlay-root");
-            var tree = UiAssets.LoadTree(UiAssets.CapsuleUxmlGuid);
-            if (tree == null) return root;
+            DennokoSceneUI.SetupRoot(root);
+            root.AddToClassList("dennoko-overlay-root");
             // 表示言語が変わったら中身ごと作り直す（ツールチップと単位の文字）
-            LanguageUi.Build(root, content => Build(content, tree), false);
+            LanguageUi.Build(root, content =>
+            {
+                if (DennokoSceneUI.CloneTree(UiAssets.CapsuleUxmlGuid, content)) Build(content);
+            }, false);
             return root;
         }
 
-        private static void Build(VisualElement root, VisualTreeAsset tree)
+        private static void Build(VisualElement root)
         {
-            tree.CloneTree(root);
-
             Button B(string name, string icon, string fallback, string tipKey, string key, System.Action click)
             {
-                var b = root.Q<Button>(name);
-                Icons.Apply(b, icon, fallback, L10n.T(tipKey) + (key != null ? "  " + key : string.Empty));
+                var b = DennokoIcons.Apply(root.Q<Button>(name), icon, fallback, Tip(tipKey, key));
                 if (click != null) b.clicked += click;
                 return b;
             }
@@ -44,15 +42,9 @@ namespace Dennoko.UVMaskMaker
             var modeSelect = B("mode-select", Icons.Select, "S", "term.select", "Tab", () => SessionCommands.SetPaintMode(false));
             var modePaint = B("mode-paint", Icons.Paint, "P", "term.paint", "Tab", () => SessionCommands.SetPaintMode(true));
 
-            var island = root.Q<Button>("unit-island");
-            var part = root.Q<Button>("unit-part");
-            var face = root.Q<Button>("unit-face");
-            island.text = L10n.T("term.island"); island.tooltip = L10n.T("term.island") + "  1";
-            part.text = L10n.T("term.part"); part.tooltip = L10n.T("term.part") + "  2";
-            face.text = L10n.T("term.face"); face.tooltip = L10n.T("term.face") + "  3";
-            island.clicked += () => SessionCommands.SetGranularity(SelectionGranularity.UVIsland);
-            part.clicked += () => SessionCommands.SetGranularity(SelectionGranularity.ConnectedMesh);
-            face.clicked += () => SessionCommands.SetGranularity(SelectionGranularity.Polygon);
+            var island = Choice(root, "unit-island", "term.island", "1", SelectionGranularity.UVIsland);
+            var part = Choice(root, "unit-part", "term.part", "2", SelectionGranularity.ConnectedMesh);
+            var face = Choice(root, "unit-face", "term.face", "3", SelectionGranularity.Polygon);
 
             var brush = B("tool-brush", Icons.Paint, "B", "term.brush", "B", () => SessionCommands.SetPaintTool(PaintSubMode.Brush));
             var rect = B("tool-rect", Icons.Rect, "M", "term.rect", "M", () => SessionCommands.SetPaintTool(PaintSubMode.Rect));
@@ -66,10 +58,12 @@ namespace Dennoko.UVMaskMaker
             B("undo", Icons.Undo, "↶", "term.undo", "Ctrl+Z", Undo.PerformUndo);
             B("redo", Icons.Redo, "↷", "term.redo", "Ctrl+Y", Undo.PerformRedo);
             B("clear", Icons.Clear, "C", "term.clear", null, () => SessionCommands.ClearAll(MessageOrigin.Scene));
-            var export = B("export", Icons.Export, "Ex", "term.export", "Ctrl+Enter", () =>
+            Button export = null;
+            export = B("export", Icons.Export, "Ex", "term.export", "Ctrl+Enter", () =>
             {
+                // シーンから実行したので、結果はカーソル脇のトースト（SceneHud）に出る
                 SessionCommands.Export(MessageOrigin.Scene);
-                FlashSuccess(root.Q<Button>("export"));
+                DennokoSceneUI.FlashSuccess(export);
             });
 
             var units = root.Q("seg-units");
@@ -77,13 +71,14 @@ namespace Dennoko.UVMaskMaker
             var size = root.Q<Label>("brush-size");
             var count = root.Q<Label>("count");
 
-            UiHub.Watch(root, () =>
+            // 状態 → 表示。選択中・ON は selection 色の枠（.dennoko-button-active）
+            UiHub.Watch(root.Q("capsule"), () =>
             {
                 bool paint = UiRules.PaintMode;
                 Bind.Active(modeSelect, !paint);
                 Bind.Active(modePaint, paint);
-                Bind.Show(units, !paint);
-                Bind.Show(tools, paint);
+                DennokoSceneUI.Show(units, !paint);
+                DennokoSceneUI.Show(tools, paint);
                 var g = SettingsService.Get(SettingKeys.Granularity);
                 Bind.Active(island, g == SelectionGranularity.UVIsland);
                 Bind.Active(part, g == SelectionGranularity.ConnectedMesh);
@@ -102,11 +97,17 @@ namespace Dennoko.UVMaskMaker
             });
         }
 
-        /// <summary>出力成功時に 2 秒だけ枠を成功色にする（アイコンは差し替えない）。</summary>
-        private static void FlashSuccess(Button b)
+        /// <summary>文字の選択肢（.dennoko-choice、1 ボタン 3 字まで）。</summary>
+        private static Button Choice(VisualElement root, string name, string textKey, string key, SelectionGranularity g)
         {
-            b.AddToClassList("mm-success-frame");
-            b.schedule.Execute(() => b.RemoveFromClassList("mm-success-frame")).StartingIn(2000);
+            var b = root.Q<Button>(name);
+            b.text = L10n.T(textKey);
+            b.tooltip = Tip(textKey, key);
+            b.clicked += () => SessionCommands.SetGranularity(g);
+            return b;
         }
+
+        /// <summary>ツールチップは「名前  キー」。</summary>
+        private static string Tip(string textKey, string key) => L10n.T(textKey) + (key != null ? "  " + key : string.Empty);
     }
 }

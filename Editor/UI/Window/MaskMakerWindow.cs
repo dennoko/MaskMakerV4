@@ -6,15 +6,23 @@ using UnityEngine.UIElements;
 namespace Dennoko.UVMaskMaker
 {
     /// <summary>
-    /// ツールタブ（UI 設計 §4）。状態を持たず、表示はすべて SettingsService / EditState / SessionController から作る。
+    /// ツールタブ。skill の画面パターン P4（シーン作業）: 状態は Idle（未開始）と Working（作業中）の 2 つだけ。
+    ///   Idle    : B1 対象カードと主ボタン「作業開始」だけ
+    ///   Working : B7 作業中バナー + B1 + B3 UV ビュー + B5 出力カード、主ボタン「出力」、出力ドックに要約チップ
+    /// 状態を持たず、表示はすべて SettingsService / EditState / SessionController から作る。
     /// ウィンドウを閉じると作業を終える（リロードでは OnDestroy は呼ばれない）。
     /// </summary>
     internal sealed class MaskMakerWindow : EditorWindow
     {
+        private const string ToolName = "MaskMaker V4";
+        private const string ReleaseUrl = "https://github.com/dennoko/MaskMakerV4/releases";
+
         private Label _versionLabel;
-        private Label _status;
+        private DennokoAppBar _appBar;
+        private DennokoStatus _status;
         private Button _statusAction;
-        private IVisualElementScheduledItem _statusReset;
+        private string _statusAsset;
+        private int _statusSerial;   // 後から来たメッセージを、前のメッセージの時間切れで消さないための番号
         private DennokoVersionChecker.Result _versionResult =
             new DennokoVersionChecker.Result { State = DennokoVersionChecker.State.Checking, LocalVersion = "0.0.0" };
 
@@ -22,7 +30,7 @@ namespace Dennoko.UVMaskMaker
         public static void Open()
         {
             var w = GetWindow<MaskMakerWindow>();
-            w.titleContent = new GUIContent("MaskMaker V4");
+            w.titleContent = new GUIContent(ToolName);
             w.minSize = new Vector2(320, 420);
         }
 
@@ -33,13 +41,13 @@ namespace Dennoko.UVMaskMaker
             {
                 if (bringToFront)
                 {
-                    var existing = GetWindow<MaskMakerWindow>(false, "MaskMaker V4", false);
+                    var existing = GetWindow<MaskMakerWindow>(false, ToolName, false);
                     existing.Show();
                     existing.Focus();
                 }
                 return;
             }
-            var w = GetWindow<MaskMakerWindow>(false, "MaskMaker V4", bringToFront);
+            var w = GetWindow<MaskMakerWindow>(false, ToolName, bringToFront);
             w.minSize = new Vector2(320, 420);
             if (bringToFront)
             {
@@ -51,16 +59,18 @@ namespace Dennoko.UVMaskMaker
         private void OnEnable()
         {
             Notifier.Posted += OnMessage;
+            DennokoSceneSession.Ended += OnSessionEnded;
         }
 
         private void OnDisable()
         {
             Notifier.Posted -= OnMessage;
+            DennokoSceneSession.Ended -= OnSessionEnded;
         }
 
         private void OnDestroy()
         {
-            SessionController.End();
+            SessionController.End(reason: DennokoSessionEndReason.WindowClosed);
         }
 
         public void CreateGUI()
@@ -85,50 +95,74 @@ namespace Dennoko.UVMaskMaker
             new TargetCard(root);
             new UVCard(root);
             new OutputCard(root);
-            BindHeader(root);
-            BindSummary(root);
+            BindAppBar(root);
+            BindSessionBanner(root);
+            BindOutputDock(root);
             BindFooter(root);
 
-            _status = root.Q<Label>("status-label");
+            _status = new DennokoStatus(root.Q<Label>("status-label"), "Ready", 4000);
+            _status.Ready();
+            root.Q<Label>("status-label").RegisterCallback<ClickEvent>(_ => PingStatus());
             _statusAction = root.Q<Button>("status-action");
             Bind.Show(_statusAction, false);
-            _status.RegisterCallback<ClickEvent>(_ => PingStatus());
 
             UiHub.Watch(root, () =>
             {
-                Bind.Show(root.Q("uv-card"), UiRules.Working);
-                Bind.Show(root.Q("output-card"), UiRules.Working);
-                Bind.Show(root.Q("summary-row"), UiRules.Working);
+                bool working = UiRules.Working;
+                Bind.Show(root.Q("session-banner"), working);
+                Bind.Show(root.Q("uv-card"), working);
+                Bind.Show(root.Q("output-card"), working);
             });
         }
 
-        // ── ヘッダー ──
+        // ── 標準ヘッダー（トップバー） ──
 
-        private void BindHeader(VisualElement root)
+        private void BindAppBar(VisualElement root)
         {
-            _versionLabel = root.Q<Label>("version-label");
+            _appBar = new DennokoAppBar(root, ToolName, english: !L10n.Japanese)
+            {
+                AddToolMenuItems = menu =>
+                {
+                    menu.AddItem(new GUIContent(L10n.T("menu.preferences")), false, () => OpenSettings(true));
+                    menu.AddItem(new GUIContent(L10n.T("menu.projectSettings")), false, () => OpenSettings(false));
+                    menu.AddSeparator(string.Empty);
+                    menu.AddItem(new GUIContent(L10n.T("menu.checkUpdate")), false, CheckUpdate);
+                    menu.AddItem(new GUIContent(L10n.T("menu.openRelease")), false, OpenRelease);
+                },
+            };
+            // 言語は SettingsService に持つ。切り替えると LanguageUi が中身ごと作り直す
+            _appBar.LanguageChanged += LanguageUi.SetEnglish;
+
+            // ↻ / ? / ⋮ のツールチップは表示言語で出し直す（DennokoAppBar の既定は日本語）
             var reload = root.Q<Button>("version-reload-button");
             reload.tooltip = L10n.T("tooltip.reload");
-            reload.clicked += () =>
+            reload.clicked += CheckUpdate;
+            var manual = root.Q<Button>("appbar-manual");
+            manual.tooltip = L10n.T("tooltip.manual");
+            manual.clicked += UiAssets.OpenManual;
+            root.Q<Button>("appbar-settings").tooltip = L10n.T("tooltip.menu");
+
+            _versionLabel = root.Q<Label>("version-label");
+            _versionLabel.RegisterCallback<ClickEvent>(_ =>
             {
-                MaskMakerVersion.ForceRecheck();
-                LoadVersionResultFromSessionState();
-            };
-            LanguageUi.BindToggle(root.Q<Button>("lang-ja"), root.Q<Button>("lang-en"));
-            var settings = root.Q<Button>("settings-button");
-            Icons.Apply(settings, Icons.Settings, "⚙", L10n.T("tooltip.settings"));
-            settings.clicked += () =>
-            {
-                var menu = new GenericDropdownMenu();
-                menu.AddItem("Preferences", false, () => SettingsService_Open(true));
-                menu.AddItem("Project Settings", false, () => SettingsService_Open(false));
-                menu.DropDown(settings.worldBound, settings, false);
-            };
+                if (_versionResult.State == DennokoVersionChecker.State.UpdateAvailable) OpenRelease();
+            });
             LoadVersionResultFromSessionState();
             MaskMakerVersion.StartCheckBackgroundTask();
         }
 
-        private static void SettingsService_Open(bool user)
+        private void CheckUpdate()
+        {
+            MaskMakerVersion.ForceRecheck();
+            LoadVersionResultFromSessionState();
+        }
+
+        private void OpenRelease()
+        {
+            Application.OpenURL(string.IsNullOrEmpty(_versionResult.Url) ? ReleaseUrl : _versionResult.Url);
+        }
+
+        private static void OpenSettings(bool user)
         {
             if (user) UnityEditor.SettingsService.OpenUserPreferences(MaskMakerSettingsPages.PreferencesPath);
             else UnityEditor.SettingsService.OpenProjectSettings(MaskMakerSettingsPages.ProjectPath);
@@ -152,47 +186,76 @@ namespace Dennoko.UVMaskMaker
                 LatestVersion = latest,
                 Url = SessionState.GetString(MaskMakerVersion.VerCheckUrlKey, string.Empty),
             };
-            if (_versionLabel == null) return;
-            _versionLabel.EnableInClassList("dennoko-version-label--update", state == DennokoVersionChecker.State.UpdateAvailable);
-            _versionLabel.EnableInClassList("dennoko-version-label--error", state == DennokoVersionChecker.State.Error);
-            switch (state)
-            {
-                case DennokoVersionChecker.State.UpdateAvailable:
-                    _versionLabel.text = "v" + local + "  " + L10n.F("status.version.update", latest);
-                    break;
-                case DennokoVersionChecker.State.Error:
-                    _versionLabel.text = "v" + local + "  " + L10n.T("status.version.error");
-                    break;
-                default:
-                    _versionLabel.text = "v" + local;
-                    break;
-            }
+            ApplyVersionLabel();
         }
 
-        // ── 出力サマリ（値のチップ。UI 設計 §4.3） ──
-
-        private void BindSummary(VisualElement root)
+        private void ApplyVersionLabel()
         {
-            var row = root.Q("summary-row");
-            UiHub.Watch(row, () =>
-            {
-                row.Clear();
-                var s = SessionController.Current;
-                if (s == null) return;
-                string folder = OutputFolderPreview(s);
-                row.Add(Chip(Icons.Folder, folder, SettingsService.IsOverridden(SettingKeys.CreateMaskSubfolder), () => SettingsService_Open(false)));
-                row.Add(Chip(null, L10n.T("output.margin") + UiRules.EffectiveMargin(s), SettingsService.IsOverridden(SettingKeys.PixelMargin), OpenDetails));
-                if (SettingsService.Get(SettingKeys.InvertMask))
-                    row.Add(Chip(null, L10n.T("output.invert"), SettingsService.IsOverridden(SettingKeys.InvertMask), OpenDetails));
-                if (SettingsService.Get(SettingKeys.SaveInvertedToo))
-                    row.Add(Chip(null, "_inv", SettingsService.IsOverridden(SettingKeys.SaveInvertedToo), OpenDetails));
-            });
+            if (_versionLabel == null) return;
+            var r = _versionResult;
+            string text = "v" + r.LocalVersion;
+            bool update = r.State == DennokoVersionChecker.State.UpdateAvailable;
+            bool error = r.State == DennokoVersionChecker.State.Error;
+            bool checking = r.State == DennokoVersionChecker.State.Checking;
+            if (update) text += "  " + L10n.F("status.version.update", r.LatestVersion);
+            else if (error) text += "  " + L10n.T("status.version.error");
+            else if (checking) text += "  " + L10n.T("status.version.checking");
+            _versionLabel.text = text;
+            _versionLabel.EnableInClassList("dennoko-version-label--update", update);
+            _versionLabel.EnableInClassList("dennoko-version-label--error", error);
+            _versionLabel.EnableInClassList("dennoko-version-label--checking", checking);
+            _appBar?.SetVersionClickable(update, update ? L10n.T("tooltip.openRelease") : null);
+        }
 
-            void OpenDetails()
+        // ── B7 作業中バナー ──
+
+        private static void BindSessionBanner(VisualElement root)
+        {
+            root.Q<Label>("session-state").text = L10n.T("session.state");
+            root.Q<Label>("session-hint").text = L10n.T("session.hint");
+            var end = root.Q<Button>("session-end");
+            end.text = L10n.T("button.end");
+            end.clicked += () => SessionController.End();
+
+            var target = root.Q<Label>("session-target");
+            target.tooltip = L10n.T("tooltip.frameTarget");
+            target.RegisterCallback<ClickEvent>(_ => DennokoSceneSession.FrameTarget());
+            UiHub.Watch(target, () => target.text = SessionController.Current?.Target != null ? SessionController.Current.Target.name : string.Empty);
+        }
+
+        // ── 出力ドック（要約チップ。出力カードが見えている間は隠す。skill cards.md B5） ──
+
+        private static void BindOutputDock(VisualElement root)
+        {
+            var dock = root.Q("output-dock");
+            var chips = root.Q("output-dock-chips");
+            var card = root.Q("output-card");
+            var scroll = root.Q<ScrollView>("main-scroll");
+            var footer = root.Q("footer");
+
+            void ScrollToCard() => scroll.ScrollTo(card);
+
+            void Refresh()
             {
-                var fold = root.Q<Foldout>("details-foldout");
-                if (fold != null) fold.value = true;
+                var s = SessionController.Current;
+                bool cardVisible = s != null && card.resolvedStyle.display == DisplayStyle.Flex
+                                   && card.worldBound.Overlaps(scroll.contentViewport.worldBound);
+                bool show = s != null && !cardVisible;
+                Bind.Show(dock, show);
+                // 出力ドックの直後のフッターは上罫線を重ねない
+                footer.EnableInClassList("dennoko-footer--joined", show);
+                chips.Clear();
+                if (!show) return;
+                string tip = L10n.T("tooltip.toOutput");
+                chips.Add(DennokoBlockUI.Chip(DennokoIcons.Folder, OutputFolderPreview(s), tip, ScrollToCard));
+                chips.Add(DennokoBlockUI.Chip(null, UiRules.EffectiveSize(s).ToString(), tip, ScrollToCard));
+                foreach (var (text, _) in OutputCard.DetailSummary(s)) chips.Add(DennokoBlockUI.Chip(null, text, tip, ScrollToCard));
             }
+
+            UiHub.Watch(dock, Refresh);
+            scroll.verticalScroller.valueChanged += _ => Refresh();
+            scroll.contentViewport.RegisterCallback<GeometryChangedEvent>(_ => Refresh());
+            card.RegisterCallback<GeometryChangedEvent>(_ => Refresh());
         }
 
         private static string OutputFolderPreview(WorkSession s)
@@ -203,60 +266,37 @@ namespace Dennoko.UVMaskMaker
             return resolved == baseDir ? baseName : baseName + "/" + OutputPaths.MaskSubfolderName;
         }
 
-        private static VisualElement Chip(string icon, string text, bool overridden, System.Action onClick)
-        {
-            var chip = new Button(onClick) { text = string.Empty };
-            chip.AddToClassList("mm-chip");
-            if (icon != null && Icons.Get(icon) != null)
-            {
-                var img = new Image { image = Icons.Get(icon) };
-                img.AddToClassList("mm-chip-icon");
-                chip.Add(img);
-            }
-            var label = new Label(text);
-            label.AddToClassList("dennoko-text-tertiary");
-            chip.Add(label);
-            if (overridden)
-            {
-                var dot = new VisualElement();
-                dot.AddToClassList("mm-override-dot");
-                chip.Add(dot);
-            }
-            return chip;
-        }
+        // ── フッター（主ボタン 1 つ。Idle = 作業開始 / Working = 出力） ──
 
-        // ── フッター（主ボタン 1 つ） ──
-
-        private void BindFooter(VisualElement root)
+        private static void BindFooter(VisualElement root)
         {
             var primary = root.Q<Button>("primary-button");
-            var field = root.Q<UnityEditor.UIElements.ObjectField>("target-field");
             primary.clicked += () =>
             {
                 if (SessionController.IsWorking) SessionCommands.Export(MessageOrigin.Window);
-                else SessionController.Start(TargetCard.PendingTarget ?? field?.value as Renderer);
+                else SessionController.Start(TargetCard.PendingTarget);
             };
             UiHub.Watch(primary, () =>
             {
                 bool working = UiRules.Working;
+                bool canStart = TargetCard.PendingTarget != null;
                 primary.text = working ? L10n.T("button.export") : L10n.T("button.start");
-                primary.SetEnabled(working || TargetCard.PendingTarget != null || field?.value is Renderer);
+                primary.SetEnabled(working || canStart);
+                // 押せない理由はツールチップに出す
+                primary.tooltip = working || canStart ? string.Empty : L10n.T("tooltip.chooseTarget");
             });
         }
 
-        // ── ステータスバー ──
-
-        private string _statusAsset;
+        // ── ステータスバー（ウィンドウから実行した結果。シーンから実行した結果はトースト） ──
 
         private void OnMessage(UserMessage m)
         {
-            // シーンから出した通知はトーストだけ（出口は 1 か所。UI 設計 §2.6.1 原則 4）
             if (m.Origin == MessageOrigin.Scene && SceneView.lastActiveSceneView != null && SessionController.IsWorking) return;
             if (_status == null) return;
-            _status.text = m.Text;
-            _status.EnableInClassList("dennoko-status--success", m.Level == MessageLevel.Success);
-            _status.EnableInClassList("dennoko-status--error", m.Level == MessageLevel.Error);
-            _status.EnableInClassList("dennoko-text-warning", m.Level == MessageLevel.Warning);
+            int serial = ++_statusSerial;
+            // 操作ボタンが付いているときは少し長く出す
+            _status.AutoResetMs = m.Action != null ? 6000 : 4000;
+            _status.Set(m.Text, ToStatusType(m.Level));
             _statusAsset = m.AssetPath;
 
             _statusAction.clickable = new Clickable(() => { });
@@ -272,17 +312,47 @@ namespace Dennoko.UVMaskMaker
                 });
             }
 
-            _statusReset?.Pause();
-            if (m.Level == MessageLevel.Info || m.Level == MessageLevel.Success)
-                _statusReset = _status.schedule.Execute(ClearStatus).StartingIn(m.Action != null ? 6000 : 4000);
+            // DennokoStatus は Info を自動では戻さないので、ここで Ready に戻す（成功・警告・エラーは DennokoStatus が戻す）。
+            // 操作ボタンは、文が消えるのと一緒に隠す
+            _statusAction.schedule.Execute(() =>
+            {
+                if (serial != _statusSerial) return;
+                if (m.Level == MessageLevel.Info) ClearStatus();
+                else Bind.Show(_statusAction, false);
+            }).StartingIn(_status.AutoResetMs);
         }
+
+        /// <summary>共通の編集セッションが終わった理由（リロード・Play モードは自動で再開するので出さない。「終了」ボタンは押した本人が分かる）。</summary>
+        private void OnSessionEnded(DennokoSessionEndReason reason)
+        {
+            if (_status == null) return;
+            string key = reason switch
+            {
+                DennokoSessionEndReason.Escape => "session.end.escape",
+                DennokoSessionEndReason.SceneChanged => "session.end.sceneChanged",
+                DennokoSessionEndReason.TargetLost => "session.end.targetLost",
+                DennokoSessionEndReason.Replaced => "session.end.replaced",
+                _ => null,
+            };
+            if (key == null) return;
+            _statusSerial++;
+            _status.AutoResetMs = 4000;
+            _status.Set(L10n.T(key), DennokoStatusType.Warning);
+            Bind.Show(_statusAction, false);
+            _statusAsset = null;
+        }
+
+        private static DennokoStatusType ToStatusType(MessageLevel level) => level switch
+        {
+            MessageLevel.Success => DennokoStatusType.Success,
+            MessageLevel.Warning => DennokoStatusType.Warning,
+            MessageLevel.Error => DennokoStatusType.Error,
+            _ => DennokoStatusType.Info,
+        };
 
         private void ClearStatus()
         {
-            _status.text = string.Empty;
-            _status.RemoveFromClassList("dennoko-status--success");
-            _status.RemoveFromClassList("dennoko-status--error");
-            _status.RemoveFromClassList("dennoko-text-warning");
+            _status.Ready();
             Bind.Show(_statusAction, false);
             _statusAsset = null;
         }

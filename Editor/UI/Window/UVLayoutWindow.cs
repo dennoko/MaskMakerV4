@@ -22,8 +22,7 @@ namespace Dennoko.UVMaskMaker
         private GpuResources _previewGpu; // プレビュー RT を作った作業の GPU 資源（作業が変わったら作り直す）
         private RenderTexture _previewRT;
 
-        private Label _status;
-        private IVisualElementScheduledItem _statusReset;
+        private DennokoStatus _status;
         private string _statusAsset;
 
         /// <summary>ツールタブの上にフローティングで開く（既に開いていれば前に出す）。</summary>
@@ -93,7 +92,7 @@ namespace Dennoko.UVMaskMaker
             tree.CloneTree(root);
 
             titleContent = new GUIContent(L10n.T("layout.title"));
-            root.Q<Label>("layout-title").text = L10n.T("layout.title");
+            root.Q<Label>("appbar-title").text = L10n.T("layout.title");
             root.Q<Label>("layout-size-label").text = L10n.T("layout.size");
             root.Q<Label>("layout-elements-label").text = L10n.T("layout.elements");
             root.Q<Label>("layout-background-label").text = L10n.T("layout.background");
@@ -169,8 +168,10 @@ namespace Dennoko.UVMaskMaker
                 RefreshPreview(s);
             });
 
-            _status = root.Q<Label>("status-label");
-            _status.RegisterCallback<ClickEvent>(_ => PingStatus());
+            var statusLabel = root.Q<Label>("status-label");
+            _status = new DennokoStatus(statusLabel, "Ready", 4000);
+            _status.Ready();
+            statusLabel.RegisterCallback<ClickEvent>(_ => PingStatus());
         }
 
         /// <summary>ウィンドウを閉じてツールタブへ戻る。設定は書き換えた時点で保存済みなので、閉じるだけでよい。</summary>
@@ -279,23 +280,15 @@ namespace Dennoko.UVMaskMaker
         private void OnMessage(UserMessage m)
         {
             if (_status == null || m.Origin != MessageOrigin.Window) return;
-            _status.text = m.Text;
-            _status.EnableInClassList("dennoko-status--success", m.Level == MessageLevel.Success);
-            _status.EnableInClassList("dennoko-status--error", m.Level == MessageLevel.Error);
-            _status.EnableInClassList("dennoko-text-warning", m.Level == MessageLevel.Warning);
+            var type = m.Level switch
+            {
+                MessageLevel.Success => DennokoStatusType.Success,
+                MessageLevel.Warning => DennokoStatusType.Warning,
+                MessageLevel.Error => DennokoStatusType.Error,
+                _ => DennokoStatusType.Info,
+            };
+            _status.Set(m.Text, type);
             _statusAsset = m.AssetPath;
-            _statusReset?.Pause();
-            if (m.Level == MessageLevel.Info || m.Level == MessageLevel.Success)
-                _statusReset = _status.schedule.Execute(ClearStatus).StartingIn(4000);
-        }
-
-        private void ClearStatus()
-        {
-            _status.text = string.Empty;
-            _status.RemoveFromClassList("dennoko-status--success");
-            _status.RemoveFromClassList("dennoko-status--error");
-            _status.RemoveFromClassList("dennoko-text-warning");
-            _statusAsset = null;
         }
 
         private void PingStatus()

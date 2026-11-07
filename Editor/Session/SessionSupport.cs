@@ -93,7 +93,6 @@ namespace Dennoko.UVMaskMaker
 
         // キーを押している間だけの状態
         public bool SpaceHeld;
-        public bool RadialOpen;
 
         public void ClearHover()
         {

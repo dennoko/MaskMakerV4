@@ -26,9 +26,18 @@ namespace Dennoko.UVMaskMaker
             s.Interaction.PointerGui = e.mousePosition;
             s.Interaction.PointerView = view;
 
+            // ラジアルが開いている間はシーンの操作を止める（固定表示のクリックがツールに届かないように）
+            if (MaskMakerRadialMenu.Menu.IsOpen)
+            {
+                if (e.type == EventType.Layout) HandleUtility.AddDefaultControl(id);
+                DennokoSceneFeedback.SetModifier(view, e.mousePosition, false, false);
+                return;
+            }
+
             if (SessionCommands.IsPaused)
             {
                 if (s.Interaction.HoverValid) { s.Interaction.ClearHover(); view.Repaint(); }
+                DennokoSceneFeedback.SetModifier(view, e.mousePosition, false, false);
                 EndGestures(view, s);
                 return;
             }
@@ -42,11 +51,12 @@ namespace Dennoko.UVMaskMaker
             if (e.alt && GUIUtility.hotControl != id) return;
 
             bool paintMode = SettingsService.Get(SettingKeys.IsPaintMode);
+            // 選択モードの Shift = 足す / Ctrl = 外す をカーソル脇に出す（ペイントの Ctrl = 消去は円の色で示す）
+            DennokoSceneFeedback.SetModifier(view, e.mousePosition, !paintMode && e.shift, !paintMode && !e.shift && e.control);
             switch (e.type)
             {
                 case EventType.MouseMove:
                     UpdateHover(view, s, e, paintMode);
-                    SceneHud.OnPointerMoved(view, e.mousePosition);
                     view.Repaint();
                     break;
 
@@ -70,7 +80,7 @@ namespace Dennoko.UVMaskMaker
                             Tris.Add(s.Interaction.HoverTriangle);
                             Select.Begin(s, s.Interaction.HoverGroups, Tris, e.modifiers, e.clickCount);
                         }
-                        Hints.OnClick();
+                        DennokoSceneSession.MarkInteracted();   // 迷い検知ヒントを止める
                         e.Use();
                     }
                     break;
@@ -169,42 +179,6 @@ namespace Dennoko.UVMaskMaker
                 perPixel = 2f * depth * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad) / Mathf.Max(1, cam.pixelHeight);
             }
             return px * perPixel;
-        }
-    }
-
-    /// <summary>迷い検知ヒント（UI 設計 §2.6.3 段階 3）。各ヒントは 3 回まで。</summary>
-    internal static class Hints
-    {
-        private const int MaxShown = 3;
-        private static double _workStart = -1;
-        private static bool _clicked;
-
-        public static void OnSessionStarted()
-        {
-            _workStart = EditorApplication.timeSinceStartup;
-            _clicked = false;
-        }
-
-        public static void OnClick() => _clicked = true;
-
-        /// <summary>今出すべきヒント（無ければ null）。SceneHud が定期的に問い合わせる。</summary>
-        public static string Current(WorkSession s)
-        {
-            if (s == null || _workStart < 0) return null;
-            if (!_clicked && s.Interaction.HoverValid && !SettingsService.Get(SettingKeys.IsPaintMode)
-                && EditorApplication.timeSinceStartup - _workStart > 3.0)
-                return TryShow("click", "hint.click");
-            return null;
-        }
-
-        private static string TryShow(string id, string textKey)
-        {
-            var key = SettingKeys.HintShownCount(id);
-            int n = SettingsService.Get(key);
-            if (n >= MaxShown) return null;
-            SettingsService.Set(key, n + 1);
-            _clicked = true; // 同じ作業中には 1 回だけ
-            return L10n.T(textKey);
         }
     }
 }

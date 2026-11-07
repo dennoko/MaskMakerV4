@@ -57,12 +57,7 @@ namespace Dennoko.UVMaskMaker
         [Shortcut(P + "Quick Export", typeof(SceneView), Tag, KeyCode.Return, ShortcutModifiers.Action)]
         private static void Export() => SessionCommands.Export(MessageOrigin.Scene);
 
-        [ClutchShortcut(P + "Radial Menu (Hold)", typeof(SceneView), Tag, KeyCode.C)]
-        private static void Radial(ShortcutArguments args)
-        {
-            if (args.stage == ShortcutStage.Begin) SceneHud.OpenRadial();
-            else SceneHud.CloseRadial(true);
-        }
+        // ラジアルメニュー（C 長押し）は MaskMakerRadialMenu にある
 
         [ClutchShortcut(P + "Pause (Hold)", typeof(SceneView), Tag, KeyCode.Space)]
         private static void Pause(ShortcutArguments args)

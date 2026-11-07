@@ -12,21 +12,41 @@ namespace Dennoko.UVMaskMaker
     internal static class UiAssets
     {
         public const string ThemeUssGuid = "b3e0a4c19f2d4c7e8a6b5d0f1c2e3a91";
+        public const string BlocksUssGuid = "4f274e7790c540648271401f782db1d7";
         public const string StylesUssGuid = "c4f1b5d2a0e34d8f9b7c6e1a2d3f4b52";
         public const string WindowUxmlGuid = "d5a2c6e3b1f44e9a8c7d0f2b3e4a5c63";
         public const string CapsuleUxmlGuid = "e6b3d7f4c2a54fab9d8e1a3c4f5b6d74";
         public const string LayoutUxmlGuid = "8cb76dc39e39429aa930b43082667f4c";
+        public const string ManualJaGuid = "dbc91f9441dce164a83439d18af2e584";
+        public const string ManualEnGuid = "610280c1ac9b55347810ec24fc55666c";
 
-        /// <summary>dennoko-root と保険の背景色、テーマ + 固有 USS、フォントを適用する。</summary>
-        public static void SetupRoot(VisualElement root, bool opaque = true)
+        /// <summary>
+        /// ウィンドウのルート。dennoko-root と保険の背景色、USS（テーマ → ブロック → 固有の順。後のものが同じ詳細度で勝つ）、フォントを適用する。
+        /// シーン上の UI は DennokoSceneUI.SetupRoot を使う（背景を付けず、シーン用の USS を足す）。
+        /// </summary>
+        public static void SetupRoot(VisualElement root)
         {
             root.AddToClassList("dennoko-root");
-            if (opaque) root.style.backgroundColor = (Color)new Color32(0x12, 0x12, 0x12, 0xFF);
-            var theme = Load<StyleSheet>(ThemeUssGuid);
-            if (theme != null) root.styleSheets.Add(theme);
-            var styles = Load<StyleSheet>(StylesUssGuid);
-            if (styles != null) root.styleSheets.Add(styles);
+            root.style.backgroundColor = (Color)new Color32(0x12, 0x12, 0x12, 0xFF);
+            AddStyle(root, ThemeUssGuid);
+            AddStyle(root, BlocksUssGuid);
+            AddStyle(root, StylesUssGuid);
             DennokoUIFont.Apply(root);
+        }
+
+        /// <summary>同梱のマニュアル（PDF）を表示言語で開く。</summary>
+        public static void OpenManual()
+        {
+            string path = AssetDatabase.GUIDToAssetPath(L10n.Japanese ? ManualJaGuid : ManualEnGuid);
+            if (string.IsNullOrEmpty(path)) path = AssetDatabase.GUIDToAssetPath(ManualJaGuid);
+            if (string.IsNullOrEmpty(path)) return;
+            EditorUtility.OpenWithDefaultApp(System.IO.Path.GetFullPath(path));
+        }
+
+        private static void AddStyle(VisualElement root, string guid)
+        {
+            var sheet = Load<StyleSheet>(guid);
+            if (sheet != null) root.styleSheets.Add(sheet);
         }
 
         public static VisualTreeAsset LoadTree(string guid) => Load<VisualTreeAsset>(guid);
@@ -114,17 +134,9 @@ namespace Dennoko.UVMaskMaker
             });
         }
 
-        /// <summary>ヘッダーの [JA][EN]。「自動」の時は実際に使っている言語を選択中にする。</summary>
-        public static void BindToggle(Button ja, Button en)
-        {
-            ja.text = "JA";
-            en.text = "EN";
-            Bind.Choice(new List<(Button, UILanguage)>
-            {
-                (ja, UILanguage.Japanese),
-                (en, UILanguage.English),
-            }, SettingKeys.Language, () => L10n.Japanese ? UILanguage.Japanese : UILanguage.English);
-        }
+        /// <summary>トップバーの言語ボタン（切り替え先の言語を出す 1 つのボタン）。「自動」から押したら、今と逆の言語に固定する。</summary>
+        public static void SetEnglish(bool english)
+            => SettingsService.Set(SettingKeys.Language, english ? UILanguage.English : UILanguage.Japanese);
     }
 
     /// <summary>
@@ -317,22 +329,6 @@ namespace Dennoko.UVMaskMaker
             return tex;
         }
 
-        /// <summary>ボタンにアイコンを付ける。アイコンが無ければ短い語を出す。</summary>
-        public static void Apply(Button button, string names, string fallbackText, string tooltip)
-        {
-            var tex = Get(names);
-            if (tex != null)
-            {
-                button.style.backgroundImage = tex;
-                button.text = string.Empty;
-            }
-            else
-            {
-                button.style.backgroundImage = StyleKeyword.None;
-                button.text = fallbackText;
-            }
-            button.tooltip = tooltip;
-        }
 
         public static Texture2D ForRenderer(Renderer r) => Get(r is SkinnedMeshRenderer ? SkinnedMesh : MeshRenderer);
 

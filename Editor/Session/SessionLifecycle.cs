@@ -22,9 +22,9 @@ namespace Dennoko.UVMaskMaker
         {
             AssemblyReloadEvents.beforeAssemblyReload += BeforeReload;
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
-            EditorSceneManager.sceneClosing += (scene, removing) => EndWithoutResume();
-            PrefabStage.prefabStageOpened += _ => EndWithoutResume();
-            PrefabStage.prefabStageClosing += _ => EndWithoutResume();
+            EditorSceneManager.sceneClosing += (scene, removing) => EndWithoutResume(DennokoSessionEndReason.SceneChanged);
+            PrefabStage.prefabStageOpened += _ => EndWithoutResume(DennokoSessionEndReason.SceneChanged);
+            PrefabStage.prefabStageClosing += _ => EndWithoutResume(DennokoSessionEndReason.SceneChanged);
             EditorApplication.quitting += OnQuitting;
             EditorApplication.update += Update;
             EditorApplication.focusChanged += focused => { if (focused) SettingsService.ReloadProjectIfChanged(); };
@@ -35,11 +35,42 @@ namespace Dennoko.UVMaskMaker
 
         private static void BeforeReload()
         {
+            Suspend(DennokoSessionEndReason.Reload);
+            SetShortcutTag(false);
+        }
+
+        /// <summary>リロード・Play モードの前。再開トークンを残して作業を終える（戻ったら TryResume が作り直す）。</summary>
+        private static void Suspend(DennokoSessionEndReason reason)
+        {
             if (SessionController.Current != null)
                 SessionState.SetString(ResumeKey, GlobalObjectId.GetGlobalObjectIdSlow(SessionController.Current.Target).ToString());
             SaveScheduler.FlushAll();
-            SessionController.End();
-            SetShortcutTag(false);
+            SessionController.End(reason: reason);
+        }
+
+        /// <summary>
+        /// 共通の編集セッション（DennokoSceneSession）の側から終わった時。Unity のイベントの届く順は決まっていないので、
+        /// どちらが先に受けても同じ終わり方（再開するか・しないか）になるようにする。
+        /// </summary>
+        public static void EndFromSceneSession(DennokoSessionEndReason reason)
+        {
+            switch (reason)
+            {
+                case DennokoSessionEndReason.Reload:
+                case DennokoSessionEndReason.PlayMode:
+                    Suspend(reason);
+                    break;
+                case DennokoSessionEndReason.SceneChanged:
+                case DennokoSessionEndReason.TargetLost:
+                    // Play モードへの移行中は EndWithoutResume が何もしないので、再開できる形で終える
+                    if (EditorApplication.isPlayingOrWillChangePlaymode) Suspend(reason);
+                    else EndWithoutResume(reason);
+                    break;
+                default:
+                    SessionState.EraseString(ResumeKey);
+                    SessionController.End(reason: reason);
+                    break;
+            }
         }
 
         private static void AfterLoad()
@@ -52,10 +83,7 @@ namespace Dennoko.UVMaskMaker
         {
             if (change == PlayModeStateChange.ExitingEditMode)
             {
-                if (SessionController.Current != null)
-                    SessionState.SetString(ResumeKey, GlobalObjectId.GetGlobalObjectIdSlow(SessionController.Current.Target).ToString());
-                SaveScheduler.FlushAll();
-                SessionController.End();
+                Suspend(DennokoSessionEndReason.PlayMode);
             }
             else if (change == PlayModeStateChange.EnteredEditMode)
             {
@@ -63,11 +91,11 @@ namespace Dennoko.UVMaskMaker
             }
         }
 
-        private static void EndWithoutResume()
+        private static void EndWithoutResume(DennokoSessionEndReason reason)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
             SessionState.EraseString(ResumeKey);
-            SessionController.End();
+            SessionController.End(reason: reason);
         }
 
         private static void OnQuitting()
@@ -97,7 +125,7 @@ namespace Dennoko.UVMaskMaker
             if (s == null) return;
             if (s.Target == null)
             {
-                EndWithoutResume();
+                EndWithoutResume(DennokoSessionEndReason.TargetLost);
                 return;
             }
             s.Tick();

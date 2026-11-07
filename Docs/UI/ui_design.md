@@ -36,7 +36,7 @@ graph LR
 
 | 領域 | 使う場面 | 置く機能 | 置かない機能 |
 | :--- | :--- | :--- | :--- |
-| **① ツールタブ** | 作業の前後・設定変更 | 対象指定と作業開始/終了、UV/サブメッシュ（対象ごとの設定）、UV プレビュー（2D ピッキング・ペイント兼用）、**テクスチャごとの出力設定（名前・解像度・チャンネル）**、出力サマリ ＋ ▸詳細（プロジェクト既定の確認） | 作業中に何度も切り替えるもの、ユーザー共通の見た目・キー割当（→ 設定アイコンから Preferences） |
+| **① ツールタブ** | 作業の前後・設定変更 | 対象指定と作業開始/終了、UV/サブメッシュ（対象ごとの設定）、UV プレビュー（2D ピッキング・ペイント兼用）、**テクスチャごとの出力設定（名前・解像度・チャンネル）**、出力ドックの要約チップ ＋ ▶詳細（プロジェクト既定の確認） | 作業中に何度も切り替えるもの、ユーザー共通の見た目・キー割当（→ トップバーの ⋮ から Preferences） |
 | **② シーン直接操作** | 作業の本体 (90%の作業) | スマートクリック（追加/除外トグル）、ダブルクリック（パーツ全選択）、ドラッグ塗り、Ctrl+右ドラッグ（ブラシ伸縮）、Shift+ホイール（選択拡張/縮小）、ホバーハイライト、カメラ保護 | 設定値の変更 |
 | **③ フローティング（カプセル・ラジアル・トースト）** | 作業中の切替 (10%の作業) | **カーソル直下ラジアルメニュー (Cキー長押し)**、手元カプセルツールバー（アイコンのみ）、選択の単位、ペイントツール、対称、Undo/Redo/Clear、全選択/反転、一時停止、クイック出力(Ctrl+Enter) | 出力先フォルダや詳細チャンネル設定 |
 
@@ -64,7 +64,7 @@ graph LR
 | **A** | 1 クリック | ③ カプセル・トースト | 頻度 ○ で Session 粒度 |
 | **B** | タブを見れば常に見える | ① タブ上段・常時表示 | 頻度 ○〜△ で Output / Target 粒度 |
 | **C** | 1 クリックで展開（要約は常時見える） | ① タブの ▸詳細・サマリ行 | 頻度 ▲ で Project 粒度 |
-| **D** | 設定ウィンドウを開く | 設定アイコン → Preferences / Project Settings | 頻度 ✕ で User 粒度、または初回のみ |
+| **D** | 設定ウィンドウを開く | トップバーの ⋮ → Preferences / Project Settings | 頻度 ✕ で User 粒度、または初回のみ |
 
 ### 2.5.3 オプション別評価
 
@@ -105,7 +105,7 @@ graph LR
 | 選択色・シーム色 | ✕ | User | D | Preferences | — |
 | シーム太さ・シームのマスク表示の不透明度 | ✕ | User | D | Preferences | — |
 | ホットキー全般 | ✕ | User | D | Unity の Shortcut Manager | `[Shortcut]` 属性で登録し、再割当ては標準 UI に任せる |
-| 言語 (`Language`) | ○ | User | B | ツールタブのヘッダー右 `[JA][EN]` | 初回は Editor の言語から自動（その時は実際に使っている方を選択中に表示）。切り替えると開いているツールタブ・UV 展開図ウィンドウ・カプセル・設定画面を作り直して、すぐに全部の表示が変わる |
+| 言語 (`Language`) | ○ | User | B | トップバー右の言語ボタン | 初回は Editor の言語から自動。ボタンには切り替え先の言語を出す（日本語表示中は `EN`）。切り替えると開いているツールタブ・UV 展開図ウィンドウ・カプセル・設定画面を作り直して、すぐに全部の表示が変わる |
 | 迷い検知ヒント（§2.6.3） | ✕ | User | D | Preferences | 各ヒントは 3 回出たら以後出さない。Preferences でリセット可 |
 | 対称判定の許容誤差 | ✕ | Project | D | Project Settings | 自動 |
 | 取り込みのしきい値 (`BlackThreshold`) | ✕ | Project | D | Project Settings | 128 |
@@ -176,10 +176,10 @@ graph LR
 ### 2.6.4 導線を 1 本にする
 
 - **画面ごとに主ボタンは 1 つ**: タブはフッターの主ボタンだけを `.dennoko-button-primary` にし、文言で次の行動を示す（Idle=`作業開始` → Working=`出力`）。他のボタンは副ボタンかアイコンボタン。
-- **Idle は 2 要素だけ**: 対象欄（横に副ボタン `編集 ▶`）と `作業開始`。それ以外は描画しない。
+- **Idle は 2 要素だけ**: 対象カード（B1）と `作業開始`。それ以外は描画しない。
 - **同じ機能の出口を役割で分ける**: カプセル＝状態の表示とマウス派の入口、ラジアル＝キーボード派の入口。ラジアルには Ctrl+Z で済む Undo/Redo を入れない。
 - **文脈で中身を差し替える**: カプセルの同じ位置を、選択モードでは「選択の単位」、ペイントモードでは「ペイントツール」にする。ラジアルもモードごとに中身を切り替える。表示中の項目数は常に一定。
-- **折りたたみの中身は要約で見せる**: 詳細は閉じたまま、サマリ行に値のチップ（アイコン＋値）で出す。文章にしない。
+- **折りたたみの中身は要約で見せる**: 詳細は閉じたまま、詳細の見出し行と出力ドックに値のチップ（アイコン＋値）で出す。既定のままの項目は出さない。文章にしない。
 
 ### 2.6.5 用語を固定する
 
@@ -254,90 +254,94 @@ graph LR
 
 | 状態 | ツールタブ | シーン | フローティング |
 | :--- | :--- | :--- | :--- |
-| **Idle** | 対象欄（横に `編集 ▶`）＋「作業開始」のみ（他カードは描画しない） | 通常のシーン（本ツールは何も出さない） | なし |
-| **Working** | 対象カード＋UV ビュー＋出力カード | 対象メッシュを孤立表示＆自動カメラフォーカス、シーム線、マスク投影、ホバーハイライト | カプセル ＋ C キーでラジアル |
+| **Idle** | 対象カード＋「作業開始」のみ（他カードは描画しない） | 通常のシーン（本ツールは何も出さない） | なし |
+| **Working** | 作業中バナー＋対象カード＋UV ビュー＋出力カード、出力ドックに要約チップ | 対象メッシュを孤立表示＆自動カメラフォーカス、シーム線、マスク投影、ホバーハイライト | カプセル ＋ C キーでラジアル |
 | 出力直後（イベント） | タブから出力した時: ステータスバーに `保存: Body_mask.png` | そのまま編集を継続 | シーンから出力した時: カーソル脇トースト `[SaveAs] Body_mask.png [適用]` |
 
 通知はどちらか一方にだけ出す（§2.6.1 原則 4）。出力した場所に出すので、視線を動かさずに結果を確認できる。
 
 **対象の決め方（Idle）**
-- 入口はタブと Hierarchy の 2 か所で、どれも同じ開始処理を呼ぶ: タブの対象欄の横の `編集 ▶` と主ボタン「作業開始」、Hierarchy の右クリック `dennokoworks/MaskMaker V4`。ウィンドウはメニュー `dennokoworks/MaskMaker V4` で開く（右クリックからはウィンドウも自動で開く）。
+- 入口はタブと Hierarchy の 2 か所で、どれも同じ開始処理を呼ぶ: タブの主ボタン「作業開始」（候補一覧のダブルクリックも同じ）、Hierarchy の右クリック `dennokoworks/MaskMaker V4`。ウィンドウはメニュー `dennokoworks/MaskMaker V4` で開く（右クリックからはウィンドウも自動で開く）。
 - シーンには開始用のボタンを置かない。メッシュを選ぶたびにシーンへボタンが出ると、本ツールを使わない作業の邪魔になるため。
 - **Renderer を選択中**: 対象欄に自動入力。主ボタン 1 回で開始。
-- **複数の Renderer を含む親（アバター・衣装のルート）を選択中**: 対象欄が子 Renderer の一覧（アイコン＋名前）になる。前回作業した Renderer（無ければ頂点数が最大のもの）を既定にして、主ボタンでそのまま開始。他の項目はクリックで即開始。
+- **複数の Renderer を含む親（アバター・衣装のルート）を選択中**: 対象欄の下に子 Renderer の候補一覧（`.dennoko-candidates`。アイコン＋名前＋三角形数）を出す。頂点数が最大のものを既定にして、主ボタンでそのまま開始。他の候補はクリックで決定（青枠）、ダブルクリックで即開始。
 
 **自動処理（ユーザーに操作させない）**
 - 開始時: Read/Write 自動修復、UV 解析、`IsolateTargetMesh` による孤立表示、NDMF プレビューメッシュ取得、対象オブジェクトへの自動カメラフォーカス（`SceneView.FrameSelected` 相当）、**前回の作業状態（選択・手塗り）の復元**。
 - 終了時: **作業状態の自動保存**、`ExitIsolation`、オーバーレイ解除。
-- 自動終了: Play モード開始、シーンの切替、スクリプトの再コンパイル、ウィンドウを閉じた時は終了処理を自動で行う（作業は保存）。再コンパイルの後と Play モードから戻った時は、同じ対象で自動的に作業を再開する。孤立表示や一時オブジェクトをシーンに残さない。
+- 終了: 作業中バナーの「終了」、シーンで Esc、ウィンドウを閉じる。どれも同じ終了処理（作業は保存）。
+- 自動終了: Play モード開始、シーンの切替、スクリプトの再コンパイル、対象の削除、別の dennokoworks ツールで編集を始めた時は終了処理を自動で行う（作業は保存）。dennokoworks の編集セッションは同時に 1 つだけ（skill の `DennokoSceneSession`。`SceneSessionBridge` がつなぐ）。終了の理由（Esc・シーン切替・対象の削除・別ツール）はステータスバーに 1 行出す。再コンパイルの後と Play モードから戻った時は、同じ対象で自動的に作業を再開する。孤立表示や一時オブジェクトをシーンに残さない。
 - UV チャンネルに UV が無い場合: UV0 へ自動フォールバックし、ステータスバーに警告（黄）を 1 行出すだけ。
-- 対象選択が変わった場合: 作業中は無視（切替は対象名のドロップダウンから）。Idle なら自動で対象欄を更新。
+- 対象選択が変わった場合: 作業中は無視（切替は対象名の ▼ から）。Idle なら自動で対象欄を更新。
 
 ---
 
 ## 4. ① ツールタブ（EditorWindow）
 
-### 4.1 基本構造（スキル準拠）
+### 4.1 基本構造（スキル準拠: 画面パターン P4 シーン作業）
 
 ```
 VisualElement.dennoko-root
-├─ .dennoko-header         … タイトル + .dennoko-version-label + ↻ (.dennoko-version-reload-button) + 設定アイコン (Preferences / Project Settings)
-├─ .dennoko-separator
-├─ ScrollView.dennoko-scroll   … 状態に応じてカードを出し分け（これだけが縮む）
-│    ├─ .dennoko-card  [Target]      … 対象 (B)
-│    ├─ .dennoko-card  [UV Preview]  … Working のみ (B)
-│    └─ .dennoko-card  [Output]      … Working のみ。基本(B) + ▸詳細(C)
-├─ .dennoko-footer .dennoko-card  … 主アクション（作業開始 / 出力）  ※固定クローム
-└─ .dennoko-status          … Ready / success / error
+├─ .dennoko-appbar            … 標準ヘッダー: ツール名 + .dennoko-version-label + ↻ / 言語（切替先を表示）+ ?（マニュアル PDF）+ ⋮（Preferences / Project Settings / 更新を確認 / 配布ページ）
+├─ .dennoko-session-banner    … B7 作業中バナー（Working のみ）: ● 作業中  対象名  [Esc] で終了  [終了]
+├─ ScrollView.dennoko-scroll  … 状態に応じてカードを出し分け（これだけが縮む）
+│    ├─ .dennoko-card.dennoko-target-card   … B1 対象 (B)
+│    ├─ .dennoko-card.dennoko-preview-card  … B3 UV ビュー。Working のみ (B)
+│    └─ .dennoko-card.dennoko-output-card   … B5 出力。Working のみ。基本(B) + ▶詳細(C)
+├─ .dennoko-output            … 出力ドック: 要約チップだけ（Working かつ出力カードが見えていない時）
+├─ .dennoko-footer            … 主アクション（作業開始 / 出力）。ドックが出ている時は --joined
+└─ .dennoko-status            … Ready / success / warning / error（DennokoStatus）+ 操作ボタン 1 つ（[適用] など）
 ```
 
-- ルートに `dennoko-root`、`DennokoUIFont.Apply(root)`、固定クロームは `flex-shrink:0`。
-- フッターの主ボタンは状態で切り替わる: Idle=「作業開始」、Working=「出力」（`.dennoko-button-primary`）。**常に画面下に 1 つだけ主ボタン**。
+- ルートに `dennoko-root`、USS はテーマ → ブロック（`DennokoBlocks.uss`）→ 固有（`MaskMaker.uss`）の順、`DennokoUIFont.Apply(root)`、固定クロームは `flex-shrink:0`。
+- フッターの主ボタンは状態で切り替わる: Idle=「作業開始」、Working=「出力」（`.dennoko-button-primary`）。**常に画面下に 1 つだけ主ボタン**。押せない時は理由をツールチップに出す。
 
 ### 4.2 ワイヤーフレーム（Working 状態）
 
 ```
-┌ UV Mask Maker      v4.0.0 [Refresh][Settings] ┐ .dennoko-header
+┌ MaskMaker V4  v4.1.1 [↻]             EN [?] [⋮] ┐ .dennoko-appbar
 ├────────────────────────────────────────┤
-│ ┌────────────────────────────────────┐ │  対象（見出しなし）
-│ │ [SMR] Body ▼                [終了] │ │  アイコン＋名前で対象と分かる。▼で対象切替
+│ ● 作業中  Body          [Esc] で終了 [終了] │ .dennoko-session-banner（対象名クリックでフレーム）
+│ ┌ ターゲットメッシュ ────────────────┐ │  B1 対象
+│ │ [SMR] Body                      ▼ │ │  アイコン＋名前で対象と分かる。▼で対象切替
 │ │ [Body_skin ▼]  [UV1 ▼]             │ │  ← 複数ある時のみ。ラベルなし
+│ │ 三角形 12,480 · UV1                 │ │  情報行
 │ └────────────────────────────────────┘ │
-│ ┌────────────────────────────────────┐ │  UV ビュー（見出しなし）
-│ │                                    │ │
+│ ┌────────────────────────────────────┐ │  B3 UV ビュー（見出しなし）
+│ │            [Zoom][Texture][Camera] │ │  ← .dennoko-preview__toolbar（表示を戻す、ベース重ね、UV 展開図）
 │ │          2D UV（クリック/塗り可）    │ │
-│ │         [Zoom] [Texture] [Camera]│ │  ← 表示を戻す、ベース重ね、UV展開図出力（フローティングのウィンドウを開く）
-│ │                                    │ │  ← テクスチャのドロップで既存マスク取り込み
+│ │                                    │ │
+│ │ マスク画像のドロップで取り込み        │ │  情報行（全文はツールチップ）
 │ └────────────────────────────────────┘ │
-│ ┌ 出力 ──────────────────────────────┐ │
+│ ┌ 出力 ──────────────────────────────┐ │  B5 出力
 │ │ [Body_mask                 ] .png  │ │  ラベルなし（拡張子で分かる）
-│ │ [512][1024][2048][4096]            │ │  ラベルなし。青枠で現在値
+│ │ 解像度  [512|1024|2048|4096]        │ │  選択肢グループ。青枠で現在値
 │ │ ☐ チャンネル                        │ │
-│ │    [R][G][B][A]  [Body_tex ▼]      │ │  ← ON の時だけ展開。▼は Base PNG
-│ │ ▸ 詳細                              │ │
+│ │    [R|G|B|A]  [Body_tex ▼]         │ │  ← ON の時だけ展開。▼は Base PNG
+│ │ ▶ 詳細  [反転] [_inv]               │ │  ← 閉じている間は既定から変えた値をチップで要約
 │ └────────────────────────────────────┘ │
 ├────────────────────────────────────────┤
-│ [Folder] Textures  余白2 ●             │ サマリチップ (.mm-summary)。見えている値は重複させない
+│ [Folder] Textures/Mask  [1024] [反転]   │ 出力ドック（出力カードが見えている間は隠す。クリックでカードへ）
 │ [            出  力            ]       │ .dennoko-footer .dennoko-button-primary
-│                                        │ .dennoko-status（平常時は空）
+│ Ready                                  │ .dennoko-status
 └────────────────────────────────────────┘
 ```
 
-`[...]` 内はアイコン（§2.6.6）。「選択の単位」「表示設定」のカードはタブから削除した（前者は S/A ランクで手元に、後者は D ランクで設定ウィンドウへ）。見出しを持つカードは「出力」だけ。
+`[...]` 内はアイコン（§2.6.6）。「選択の単位」「表示設定」のカードはタブから削除した（前者は S/A ランクで手元に、後者は D ランクで設定ウィンドウへ）。見出しを持つカードは「ターゲットメッシュ」と「出力」。
 
 ### 4.3 カード詳細と UX 判断
 
 | カード | ランク | 内容（MaskSettings） | UX 判断 |
 | :--- | :--- | :--- | :--- |
-| **対象** | B | 対象 Renderer、`TargetSubmesh`、`UVChannel`、終了ボタン | Idle ではここに大きなドロップ欄（親を選択中は子 Renderer の一覧、§3）。Hierarchy で Renderer を選択中なら自動入力。Working では対象名がドロップダウンになり、同じアバター配下の Renderer へ切り替えられる（現在の作業は自動保存、切替先の前回作業を復元）。**サブメッシュ・UV は複数ある時だけ表示**。選んだ値は対象（Target）ごとに記憶し、次回は選び直し不要。サブメッシュはマテリアルスロット名で表示 |
-| **UV プレビュー** | B | 2D ピッキング（UV が重なった所はその全部に効く）、ペイント兼用、`PreviewOverlayBaseTex`、`PreviewOverlayAlpha`、既存マスク取り込み、**UV 展開図出力** | シーンと**同じツール・同じモード**でそのまま操作可能。ホバーで該当グループをハイライト。ホイールでズーム、中ボタンでパン。右上の `[ViewToolZoom]` ボタン（または F キー）で 100% のサイズ・元の位置に戻す。重ねトグル ON の時だけ不透明度スライダーを表示。テクスチャをドロップすると既存マスクとして取り込む（黒い部分を手塗りに加算、Undo 可）。受付の枠と `取り込む` はドラッグ中だけ出す。取り込みは常にドロップのみ（黒い部分を塗った領域として扱う。判定の向きは固定）で、導線として UV ビュー左上に `[Import] マスク取り込み` の表示を常に出し、ホバーすると「マスク画像をこのプレビューにドラッグ＆ドロップすると、黒い部分を塗った領域として取り込む」案内を出す（この表示の上に落としても取り込める）。<br>**UV 展開図の出力 (`[Camera]` ボタン)**: クリックでツールタブの上に「UV 展開図の書き出し」ウィンドウをフローティングで開く（開いていれば前に出す。ツールタブの中には項目を出さない）。ウィンドウの左に書き出し結果と同じ見た目のプレビュー（透過部分は市松模様。線は見やすいよう書き出しより太め。設定を変えるとすぐ描き直す）、右に解像度（512〜4096、既定 2048）、描画要素（☑ ポリゴン線、☑ シーム線、☐ 選択限定、☐ アイランド着色）、背景（透過/ベース）、縁の色（赤/白/黒/シアン、既定 赤。シーム線 ON の時だけ表示）、内部エッジの色（赤/白/黒/シアン、既定 白。ポリゴン線 ON の時だけ表示）、アイランド色（島ごと/白/黒/シアン。アイランド着色 ON の時だけ表示）を並べ、下に保存名（同名のファイルがあれば `{FileName}_uv 1.png` のように番号を付けた実際の名前）を出し、主ボタン `[書き出し]` で保存し、成功したらウィンドウを閉じる（失敗時は開いたまま、ウィンドウのステータスにエラーを出す）。横の `[キャンセル]`（または Esc）で書き出さずに閉じ、ツールタブへ戻る。作業中でない時は主ボタンを無効にし、その旨を出す。ウィンドウを閉じても作業は続く。設定は Target で自動保存 |
+| **対象（B1）** | B | 対象 Renderer、`TargetSubmesh`、`UVChannel`、情報行 | Idle では対象欄（親を選択中は下に子 Renderer の候補一覧、§3）。Hierarchy で Renderer を選択中なら自動入力。終了ボタンは作業中バナー（B7）にある。Working では対象欄が「アイコン + 名前 ▼」になり、▼ で同じアバター配下の Renderer へ切り替えられる（現在の作業は自動保存、切替先の前回作業を復元）。**サブメッシュ・UV は複数ある時だけ表示**。選んだ値は対象（Target）ごとに記憶し、次回は選び直し不要。サブメッシュはマテリアルスロット名で表示 |
+| **UV プレビュー** | B | 2D ピッキング（UV が重なった所はその全部に効く）、ペイント兼用、`PreviewOverlayBaseTex`、`PreviewOverlayAlpha`、既存マスク取り込み、**UV 展開図出力** | シーンと**同じツール・同じモード**でそのまま操作可能。ホバーで該当グループをハイライト。ホイールでズーム、中ボタンでパン。右上の `[ViewToolZoom]` ボタン（または F キー）で 100% のサイズ・元の位置に戻す。重ねトグル ON の時だけ不透明度スライダーを表示。テクスチャをドロップすると既存マスクとして取り込む（黒い部分を手塗りに加算、Undo 可）。受付の枠と `取り込む` はドラッグ中だけ出す。取り込みは常にドロップのみ（黒い部分を塗った領域として扱う。判定の向きは固定）で、導線として UV ビューの下の情報行に `マスク画像のドロップで取り込み` を出し、ツールチップで詳しい案内を出す。<br>**UV 展開図の出力 (`[Camera]` ボタン)**: クリックでツールタブの上に「UV 展開図の書き出し」ウィンドウをフローティングで開く（開いていれば前に出す。ツールタブの中には項目を出さない）。ウィンドウの左に書き出し結果と同じ見た目のプレビュー（透過部分は市松模様。線は見やすいよう書き出しより太め。設定を変えるとすぐ描き直す）、右に解像度（512〜4096、既定 2048）、描画要素（☑ ポリゴン線、☑ シーム線、☐ 選択限定、☐ アイランド着色）、背景（透過/ベース）、縁の色（赤/白/黒/シアン、既定 赤。シーム線 ON の時だけ表示）、内部エッジの色（赤/白/黒/シアン、既定 白。ポリゴン線 ON の時だけ表示）、アイランド色（島ごと/白/黒/シアン。アイランド着色 ON の時だけ表示）を並べ、下に保存名（同名のファイルがあれば `{FileName}_uv 1.png` のように番号を付けた実際の名前）を出し、主ボタン `[書き出し]` で保存し、成功したらウィンドウを閉じる（失敗時は開いたまま、ウィンドウのステータスにエラーを出す）。横の `[キャンセル]`（または Esc）で書き出さずに閉じ、ツールタブへ戻る。作業中でない時は主ボタンを無効にし、その旨を出す。ウィンドウを閉じても作業は続く。設定は Target で自動保存 |
 | **出力（基本）** | B | `FileName`、`TextureSize`、`ChannelWriteEnabled` と R/G/B/A・Base PNG | テクスチャごとに決める項目だけを常時表示。ファイル名は `{Renderer名}_mask` を自動入力。解像度はベーステクスチャのサイズを自動採用（無ければ Project 既定）。Base PNG を指定した時は解像度を Base PNG のサイズに固定する（ボタンは無効にしてサイズを表示）。解像度を下げるとシーンと UV ビューの表示も同じ粗さになり、出力結果をその場で確認できる（手塗りは内部で 4096 のまま保持するので、戻せば元に戻る）。チャンネル書き込みは OFF なら R/G/B/A と Base PNG を隠し、ON でインデント展開。Base PNG はマテリアルから候補を自動提示。解像度はプロジェクト単位、それ以外の値は対象ごとに記憶 |
 | **出力（▸詳細）** | C | `InvertMask`、`PixelMargin`、`SaveInvertedToo` | 既定で閉。Project 既定の値を使うので毎回は触らない。`PixelMargin` と `SaveInvertedToo` はプロジェクト単位で記憶する。`SaveInvertedToo` は ON で実ファイル名（`name.png` / `name_inv.png`）を灰色でプレビュー。`PixelMargin` は解像度に応じた推奨値を既定にする |
-| **出力サマリ行**（フッター上） | C | 保存先と ▸詳細の値の要約 | 例: `[Folder] Textures  余白2`。カード上に見えている値（ファイル名・解像度）は重複させない。反転・反転同時保存は ON の時だけチップを出す。文章にせず値のチップだけを並べる。チップをクリックすると該当の詳細を開き、保存先チップは Project Settings を開く。値が Project 既定と違う項目には上書きマーク ● を付け、クリックで既定に戻す |
-| **言語 `[JA][EN]` ＋ 設定アイコン（ヘッダー右）** | B / D | 言語、表示色・シーム・ホットキー・ヒント | 言語は 1 クリックで切り替える（スキルのウィンドウ構造テンプレートのヘッダーに合わせる）。設定アイコンからは Preferences（User）と Project Settings を開く（その中身は作業中のタブには置かない） |
+| **出力ドック**（フッター上。skill B5） | C | 保存先・解像度と ▶詳細の値の要約 | 例: `[Folder] Textures/Mask  [1024]  [反転]`。出力カードが画面に見えている間は隠す（同じ情報を 2 か所に出さない）。反転・余白（自動以外）・反転同時保存は既定から変えた時だけチップを出す。チップをクリックすると出力カードへスクロールする。詳細の中で値が Project 既定と違う項目には上書きマーク ● を付け、クリックで既定に戻す |
+| **言語・マニュアル・⋮（トップバー右）** | B / D | 言語、マニュアル、表示色・シーム・ホットキー・ヒント | 言語は切り替え先の言語を出す 1 つのボタン（日本語表示中は `EN`）。`?` で同梱のマニュアル PDF を表示言語で開く。`⋮` からは Preferences（User）・Project Settings（その中身は作業中のタブには置かない）・更新を確認・配布ページを開く。更新ありの時はバージョン表示のクリックでも配布ページを開く |
 
 ### 4.4 出力時の挙動
-- 押下 → 成功で `.dennoko-status--success` に `保存: Body_mask.png`（ファイル名クリックで Ping）。4 秒で消える。書き出し中の表示は 0.3 秒以上かかった時だけ出す。シーンから出力した時はステータスバーには出さず、トースト（§6.2）だけにする。
+- 押下 → 成功で `.dennoko-status--success` に `保存: Body_mask.png`（ファイル名クリックで Ping）。4 秒で Ready に戻る（[適用] が付く時は 6 秒）。書き出し中の表示は 0.3 秒以上かかった時だけ出す。シーンから出力した時はステータスバーには出さず、トースト（§6.2）だけにする。
 - **上書きと連番**: 同じ対象から前回出力したファイルは上書きする。ファイル名を変えた時、または本ツールが出力していない既存ファイルと衝突した時だけ連番にする。元/反転ペアの番号一致は自動で行い、確定したファイル名をそのまま表示する。
 - 選択も手塗りも空のとき: 実行は止めず、警告 `選択なし（全白で出力）` を出す。
 - 失敗は `.dennoko-status--error` に原因 1 行（例: `書き込みできません`）。
@@ -481,7 +485,7 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | 選択の拡張 / 縮小（操作） | S | — | — | **Shift+ホイール** |
 | クイック出力 | S | 出力ボタン | カプセル | **Ctrl+Enter** |
 | `AutoApplyMaterial`（新設）/ 適用先スロット（新設、Target で記憶） | A | — | トースト内ボタン | — |
-| 対象の切替（操作） | B | 対象名のドロップダウン | — | — |
+| 対象の切替（操作） | B | 対象名の ▼ | — | — |
 | 既存マスクの取り込み（操作） | B | UV ビューへのドロップ | — | — |
 | `ExportUVLayout`（UV展開図出力） | B | UV プレビュー右上 `[Camera]` ボタン → UV 展開図ウィンドウの `[書き出し]` | — | — |
 | `UVLayoutSize` / 要素 / 背景 / 縁の色 / 内部エッジの色 / アイランド色 | B | UV 展開図ウィンドウ | — | — |
@@ -495,54 +499,47 @@ Unity の `Overlay` API で実装。SceneView内に自然に馴染む半透明�
 | `InvertMask` | C | 出力 ▸詳細 | — | — |
 | `PixelMargin` | C | 出力 ▸詳細 | — | — |
 | `SaveInvertedToo` | C | 出力 ▸詳細 | — | — |
-| `UseTextureFolder` / `OutputDir` | C | 出力サマリ行の保存先チップ（クリックで Project Settings） | — | — |
-| `SelectedSceneColor` / `SeamColor` | D | 設定アイコン → Preferences | — | — |
-| `OverlaySeamThickness` / `SceneMaskAlpha` | D | 設定アイコン → Preferences | — | — |
+| `UseTextureFolder` / `OutputDir` | C | 出力ドックの保存先チップに表示。変更は ⋮ → Project Settings | — | — |
+| `SelectedSceneColor` / `SeamColor` | D | ⋮ → Preferences | — | — |
+| `OverlaySeamThickness` / `SceneMaskAlpha` | D | ⋮ → Preferences | — | — |
 | 全ホットキー | D | — | — | Shortcut Manager |
-| `Language`（初回は Editor 言語から自動） | B | ツールタブのヘッダー右 `[JA][EN]` | — | — |
-| 迷い検知ヒント（ON/OFF・リセット） | D | 設定アイコン → Preferences | — | — |
-| `BlackThreshold`（取り込みのしきい値） | D | 設定アイコン → Project Settings | — | — |
+| `Language`（初回は Editor 言語から自動） | B | トップバー右の言語ボタン（切り替え先を表示） | — | — |
+| 迷い検知ヒント（ON/OFF・リセット） | D | ⋮ → Preferences | — | — |
+| `BlackThreshold`（取り込みのしきい値） | D | ⋮ → Project Settings | — | — |
 
 ---
 
 ## 8. スキル準拠コンポーネント対応表
 
-| UI 要素 | 使用クラス / コントロール |
-| :--- | :--- |
-| ルート | `.dennoko-root`（Overlay およびラジアルメニューのルートにも付与） |
-| 各設定ブロック | `.dennoko-card` ＋ `.dennoko-card-header` |
-| ヘッダー/バージョン | `.dennoko-header`、`.dennoko-header-titlegroup`、`.dennoko-version-label`（`--update` / `--error`）、`.dennoko-version-reload-button` |
-| 区切り | `.dennoko-separator` |
-| スクロール領域 | `ScrollView.dennoko-scroll` |
-| 固定フッター | `.dennoko-footer` + `.dennoko-card` |
-| ステータスバー | `.dennoko-status`（`--success` / `--error`） |
-| フローティングカプセル | `.dennoko-toolbar` + `.dennoko-card` (角丸カプセル型) |
-| カーソル直下ラジアルメニュー | `.dennoko-root .mm-radial-menu`（枠なしの容れ物）+ `.mm-radial-bg`（Surface1 + Outline の円）+ `.mm-radial-slice`（扇形スライス群。汎用ボタンの margin / padding は 0 に戻す） |
-| 出力完了トースト | `.dennoko-root .mm-toast` (Surface2 + Outline + 影、カーソル近傍出現) |
-| UV 展開図ウィンドウ | フローティングの EditorWindow（`ShowUtility`。本体は `.mm-layout-body` で左にプレビュー（IMGUIContainer + `DrawTextureTransparent`）、右に幅 300px の設定。ヘッダー + `.dennoko-card` の設定 + `.dennoko-footer` の主ボタン・キャンセル + ステータス）。項目見出しは `.dennoko-root .mm-layout-label`、キャンセルは `.dennoko-button-secondary` を主ボタンと同じ高さにする `.mm-footer-cancel` |
-| 主ボタン（作業開始/出力。画面ごとに 1 つ） | `.dennoko-button-primary` |
-| 副ボタン（終了など） | `.dennoko-button-secondary` |
-| モード/ツール/粒度/対称の単一選択群 | ボタン群 + 選択中に `.dennoko-button-active`（青枠 `#64b5f6`） |
-| トグル切替（X-Ray、一時停止、対称） | `.dennoko-button-active` を ON 時に付与 |
-| チェックボックス | `Toggle`（**囲まない**。子項目はインデントで階層化） |
-| 折りたたみ見出し | `.dennoko-toggle-header` |
-| スライダー | `Slider show-input-field="true"` |
-| ドロップダウン | `DropdownField`（UV/サブメッシュ/対象切替） |
-| 子 Renderer 一覧（Idle） | `.dennoko-root .mm-target-list`（アイコン＋名前の行。既定の行に `.dennoko-button-active`） |
-| ドロップ受付（UV ビュー） | `.dennoko-root .mm-drop-target`（ドラッグ中だけ Outline を `--dennoko-semantic-info` に） |
-| オブジェクト指定 | `ObjectField`（対象 / Base PNG） |
-| 出力サマリ行 | `.dennoko-root .mm-summary`（アイコン＋値のチップ。`.dennoko-text-tertiary`、クリックで該当の詳細 / 保存先は Project Settings） |
-| 上書きマーク ● | `.dennoko-root .mm-override-dot`（`--dennoko-semantic-info`、クリックで上位の既定に戻す） |
-| 設定アイコン | `.dennoko-version-reload-button` と同形のアイコンボタン（Preferences / Project Settings を開く） |
-| アイコンボタン | Unity 内蔵アイコン（`d_` 版）のみ。`tooltip` に「名前  キー」を必ず設定 |
-| 迷い検知ヒント / 修飾キーバッジ | `.dennoko-root .mm-cursor-hint`（カーソル脇、Surface2、1 行） |
-| テキスト色 | 警告=`.dennoko-text-warning`、成功=`.dennoko-text-success`、補足=`.dennoko-text-tertiary`、無効=`.dennoko-text-disabled`、情報=`.dennoko-text-info` |
+skill（dennokoworks デザインシステム）の大きい単位の定義に合わせて組む。画面パターンは **P4 シーン作業**、シーン操作 UI は **S1 + S3 + S4 + S5** とセッション規約（skill `blocks/sceneview.md` の「モード・ツールが多い」ツール）。
+
+| UI 要素 | skill の単位 | 使用クラス / 実装 |
+| :--- | :--- | :--- |
+| ルート | L0 | `.dennoko-root`。ウィンドウは `UiAssets.SetupRoot`（テーマ → `DennokoBlocks.uss` → `MaskMaker.uss`）、シーン上は `DennokoSceneUI.SetupRoot`（テーマ → ブロック → `DennokoSceneUI.uss`、`.dennoko-scene`、背景なし） |
+| 標準ヘッダー | L1 | `.dennoko-appbar`（`DennokoAppBar`。↻ / ? / ⋮ のツールチップと ⋮ の項目は L10n で入れる） |
+| 作業中バナー | B7 | `.dennoko-session-banner`（`.dennoko-session-dot` / `__state` / `__target` / `__hint` + `.dennoko-keycap`。「終了」は `.dennoko-button-secondary`） |
+| 対象カード | B1 | `.dennoko-card.dennoko-target-card`、見出し「ターゲットメッシュ」（`.dennoko-card-header--row`）、`.dennoko-target-row`、`.dennoko-target-working`（`__name` / `__arrow`）、`.dennoko-target-sub`、`.dennoko-candidates` / `.dennoko-candidate`（決めた行に `.dennoko-button-active`）、`.dennoko-info-row` |
+| UV ビュー | B3 | `.dennoko-card.dennoko-preview-card`、`.dennoko-preview.mm-uv-host`（中身を全面に広げる）、`.dennoko-preview__toolbar` の `.dennoko-icon-button` 3 個、ドロップ受付は `.mm-drop-target` |
+| 出力カード | B5 | `.dennoko-card.dennoko-output-card`、`.dennoko-card-header--row`、`.dennoko-field-row` + `.dennoko-segmented.dennoko-choice-group`（解像度・R/G/B/A）、`.dennoko-details`（`DennokoBlockUI.BindDetails`。閉じている間は `.dennoko-summary-chip`） |
+| 出力ドック | B5 / L1 | `.dennoko-output` + `.dennoko-output__chips`（`DennokoBlockUI.Chip`）。直後のフッターは `.dennoko-footer--joined` |
+| 固定フッター | L1 | `.dennoko-footer`（カードで囲まない）+ `.dennoko-button-primary` 1 つ |
+| ステータスバー | L1 | `.dennoko-status`（`DennokoStatus`。Label に子要素を足さないので、操作ボタンは `.mm-status-row` で横に並べる） |
+| 上書きマーク ● | 固有 | `.mm-override-dot`（`--dennoko-selection-border`、クリックで上位の既定に戻す） |
+| シーンツールバー（カプセル） | S1 | `.dennoko-capsule` + `.dennoko-segment`、`.dennoko-icon-button`（シーンでは 26px）、`.dennoko-choice`（島 / パーツ / 面）、`.dennoko-capsule__value` / `__count`、出力成功は `DennokoSceneUI.FlashSuccess`。ボタンは 14 個（skill の目安 12 個を超えるが、孤立表示・一時停止も手元に置くため例外とする） |
+| ラジアルメニュー | S3 | `DennokoRadialMenu`（skill の共通部品そのまま）+ `MaskMakerRadialMenu`（項目と C 長押しのショートカット） |
+| トースト / 迷い検知ヒント / 修飾キーのバッジ | S4 | `DennokoSceneFeedback`（共通部品そのまま）+ `SceneHud`（Notifier → トースト、ヒントの文と回数、トーストのクリックで Ping） |
+| シーン描画の色と線 | S5 | `DennokoSceneColors`（ホバーの足す / 外す、ブラシ円・矩形・投げ縄は 2 重線、消す時は赤 + 点線）。選択色・シーム色はユーザー設定色のまま |
+| 編集セッション | セッション規約 | `DennokoSceneSession`（共通部品そのまま）。作業の中身・保存・リロード後の再開は `SessionController` / `SessionLifecycle` が持ち、`SceneSessionBridge` が共通の約束（同時に 1 つ・Esc で終了・終了の理由）だけをつなぐ。ショートカットのタグは作業ツールが選ばれている間だけ `SessionLifecycle` が登録する |
+| UV 展開図ウィンドウ | P1 に近い形 | `.dennoko-appbar`（ツール名と対象だけ）、左に `.dennoko-preview.mm-layout-preview`（IMGUIContainer + `DrawTextureTransparent`）、右に幅 300px の `.dennoko-card.dennoko-options-card`（`.dennoko-field-row` + 選択肢グループ、`.dennoko-subhead`、色の設定はトグルの下にインデント）、`.dennoko-footer`（`.dennoko-footer__info` に保存名、左 Secondary「キャンセル」+ 右 Primary「書き出し」）+ `.dennoko-status` |
+| チェックボックス | L1 | `Toggle text=`（**囲まない**。子項目はインデントで階層化） |
+| アイコンボタン | L1 | Unity 内蔵アイコン（`d_` 版）のみ。`DennokoIcons.Apply` で子要素 `.dennoko-icon` として付け、`tooltip` に「名前  キー」を必ず設定 |
+| テキスト色 | L0 | 警告=`.dennoko-text-warning`、成功=`.dennoko-text-success`、補足=`.dennoko-text-tertiary`、無効=`.dennoko-text-disabled`、情報=`.dennoko-text-info` |
 
 **スキル絶対規則の適用**
 - 色は `var(--dennoko-*)` 経由のみ。UV プレビュー内の選択色（cyan）とシーム色（red）はユーザー設定色のため例外として C# 描画側で扱い、UI 枠・文字には直書きしない。
-- 独自クラス（UV ビュー枠、ラジアルメニュー、トーストなど）は `.dennoko-root .mm-xxx` で定義。`!important` 禁止。
+- skill に無いものだけを独自クラス（UV ビューの中身、上書きマーク、ステータス行など）として `.dennoko-root .mm-xxx` で定義。`!important` 禁止。
 - UXML=構造 / USS=スタイル / C#=ロジック。動的生成は UV ビューやラジアル等の動的要素のみ。
-- UXML/USS は GUID ロード。`DennokoUIFont.Apply(root)` は Window と各 Overlay / ラジアルメニューのルートで 1 回ずつ適用。
+- UXML/USS は GUID ロード。`DennokoUIFont.Apply(root)` は Window と各 Overlay / HUD / ラジアルメニューのルートで 1 回ずつ適用（`UiAssets.SetupRoot` / `DennokoSceneUI.SetupRoot` が呼ぶ）。
 - 縮小テスト: ヘッダー/フッター/ステータスが潰れず、`dennoko-scroll` のみが縮むこと。
 
 ---

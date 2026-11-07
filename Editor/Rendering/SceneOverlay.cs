@@ -69,22 +69,22 @@ namespace Dennoko.UVMaskMaker
             var it = s.Interaction;
             if (!paused && !paintMode && it.HoverGroups.Count > 0 && s.HoverLines3D.SegmentCount > 0)
             {
-                line.SetColor(ShaderIds.Color, it.HoverWouldAdd ? Color.white : new Color(1f, 0.32f, 0.32f, 1f));
+                line.SetColor(ShaderIds.Color, it.HoverWouldAdd ? DennokoSceneColors.HoverAdd : DennokoSceneColors.HoverRemove);
                 line.SetFloat(ShaderIds.Thickness, 2f * EditorGUIUtility.pixelsPerPoint);
                 line.SetPass(ShaderIds.LineWorld);
                 Graphics.DrawMeshNow(s.HoverLines3D.Mesh, l2w);
             }
 
             if (!paused && paintMode) DrawPaintCursor(view, s);
-            if (!paused && !paintMode) DrawModifierBadge(e);
         }
 
         private static void DrawPaintCursor(SceneView view, WorkSession s)
         {
             var it = s.Interaction;
             var tool = SettingsService.Get(SettingKeys.PaintTool);
+            // 色と線は skill S5（DennokoSceneColors）。消す時は赤に加えて点線にする（色だけで意味を伝えない）
             bool erase = PaintCommit.PaintValue(tool, Event.current.modifiers) == false;
-            Handles.color = erase ? new Color(1f, 0.45f, 0.45f, 1f) : Color.white;
+            var color = erase ? DennokoSceneColors.HoverRemove : DennokoSceneColors.BrushInner;
 
             if (tool == PaintSubMode.Rect || tool == PaintSubMode.Lasso)
             {
@@ -103,7 +103,7 @@ namespace Dennoko.UVMaskMaker
                     for (int i = 0; i < pts.Count; i++) poly[i] = pts[i];
                     poly[pts.Count] = pts[0];
                 }
-                Handles.DrawAAPolyLine(2f, poly);
+                DennokoSceneColors.Polyline(poly, color, DennokoSceneColors.Bold, erase);
                 Handles.EndGUI();
                 return;
             }
@@ -111,26 +111,14 @@ namespace Dennoko.UVMaskMaker
             if (it.HoverValid)
             {
                 float r = SceneInput.BrushWorldRadius(view.camera, it.HoverPoint);
-                Handles.DrawWireDisc(it.HoverPoint, it.HoverNormal, r, 1.5f);
+                DennokoSceneColors.Circle(it.HoverPoint, it.HoverNormal, r, color, DennokoSceneColors.Bold, erase);
             }
             else
             {
                 Handles.BeginGUI();
-                Handles.DrawWireDisc(it.PointerGui, Vector3.forward, SettingsService.Get(SettingKeys.BrushSize));
+                DennokoSceneColors.Circle(it.PointerGui, Vector3.forward, SettingsService.Get(SettingKeys.BrushSize), color, DennokoSceneColors.Bold, erase);
                 Handles.EndGUI();
             }
-        }
-
-        /// <summary>Shift / Ctrl を押している間、カーソル脇に + / - のアイコン（UI 設計 §2.6.3 段階 2）。</summary>
-        private static void DrawModifierBadge(Event e)
-        {
-            string icon = e.shift ? Icons.Plus : e.control ? Icons.Minus : null;
-            if (icon == null) return;
-            var tex = Icons.Get(icon);
-            if (tex == null) return;
-            Handles.BeginGUI();
-            GUI.DrawTexture(new Rect(e.mousePosition + new Vector2(14, 10), new Vector2(16, 16)), tex);
-            Handles.EndGUI();
         }
     }
 }

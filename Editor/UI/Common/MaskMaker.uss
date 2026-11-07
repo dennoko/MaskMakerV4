@@ -1,189 +1,46 @@
-/* MaskMaker V4 固有クラス。必ず .dennoko-root を前置する（uss-conventions）。色は var(--dennoko-*) のみ */
-
-.dennoko-root .mm-row {
-    flex-direction: row;
-    align-items: center;
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
-
-.dennoko-root .mm-grow {
-    flex-grow: 1;
-    flex-shrink: 1;
-}
+/* MaskMaker V4 固有クラス。DennokoTheme.uss → DennokoBlocks.uss の後に読む。
+   必ず .dennoko-root を前置する（skill references/uss-conventions.md）。色は var(--dennoko-*) のみ。
+   画面の部品はできるだけ skill のクラス（.dennoko-*）で組み、ここには skill に無いものだけを置く。 */
 
 .dennoko-root .mm-indent {
     margin-left: 16px;
 }
 
-.dennoko-root .mm-hidden {
-    display: none;
+/* スクロール領域の最初のカードはトップバー / バナーから少し離す（.dennoko-card は上の余白が 0） */
+.dennoko-root .dennoko-scroll .dennoko-card.dennoko-target-card,
+.dennoko-root .dennoko-scroll.mm-layout-settings .dennoko-card {
+    margin-top: 8px;
 }
 
-/* アイコンだけのボタン */
-.dennoko-root .mm-icon-button {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    padding: 3px;
-    margin: 1px;
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
-    -unity-background-scale-mode: scale-to-fit;
-    -unity-text-align: middle-center;
-    font-size: 11px;
+/* ─── B1 対象カード ─── */
+
+/* 候補一覧の行の中のアイコン（Renderer の種類） */
+.dennoko-root .dennoko-candidate > .dennoko-icon {
+    flex-shrink: 0;
 }
 
-.dennoko-root .mm-icon-button:hover {
-    background-color: var(--dennoko-surface-2);
+/* 候補一覧で今の対象として決めた行 */
+.dennoko-root .unity-button.dennoko-candidate.dennoko-button-active,
+.dennoko-root .unity-button.dennoko-candidate.dennoko-button-active:hover {
+    background-color: var(--dennoko-selection-bg);
+    border-color: var(--dennoko-selection-border);
 }
 
-/* 選択肢のボタン（解像度、R/G/B/A、島/パーツ/面） */
-.dennoko-root .mm-choice {
-    min-width: 34px;
-    height: 24px;
-    margin: 1px;
-    padding-left: 6px;
-    padding-right: 6px;
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
-    -unity-text-align: middle-center;
-}
+/* ─── B3 UV ビュー ─── */
 
-.dennoko-root .mm-choice:hover {
-    background-color: var(--dennoko-surface-2);
-}
-
-.dennoko-root .mm-success-frame {
-    border-color: var(--dennoko-semantic-success);
-}
-
-.dennoko-root .mm-segment {
-    flex-direction: row;
-    align-items: center;
-    padding-left: 2px;
-    padding-right: 2px;
-    border-right-width: 1px;
-    border-right-color: var(--dennoko-outline);
-}
-
-/* 上書きマーク ● */
-.dennoko-root .mm-override-dot {
-    width: 8px;
-    height: 8px;
-    margin-left: 4px;
-    margin-right: 4px;
-    border-radius: 4px;
-    background-color: var(--dennoko-semantic-info);
-}
-
-/* 対象 */
-.dennoko-root .mm-target-card {
-    padding: 4px 6px;
-    margin-bottom: 6px;
-}
-
-.dennoko-root #target-idle > .mm-row,
-.dennoko-root #target-working > .mm-row {
-    margin-top: 1px;
-    margin-bottom: 1px;
-}
-
-.dennoko-root #target-idle .unity-base-field,
-.dennoko-root #target-working .unity-base-field {
-    margin: 0;
-}
-
-.dennoko-root #target-idle .unity-base-field__input,
-.dennoko-root #target-working .unity-base-field__input {
-    height: 22px;
-    min-height: 22px;
-    padding: 1px 4px 1px 6px;
-}
-
-.dennoko-root #target-idle #edit-button {
-    height: 22px;
-    min-height: 22px;
-    padding: 0 8px;
-    margin: 0 0 0 4px;
-}
-
-.dennoko-root #target-working .mm-target-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 4px;
-    margin-left: 0;
-}
-
-.dennoko-root #target-working #target-dropdown {
-    margin-right: 4px;
-}
-
-.dennoko-root #target-working #end-button {
-    height: 22px;
-    min-height: 22px;
-    padding: 0 8px;
-    margin: 0;
-}
-
-.dennoko-root #target-working #submesh-dropdown {
-    margin-right: 4px;
-}
-
-.dennoko-root #target-working #uv-dropdown {
-    margin: 0;
-    min-width: 54px;
-}
-
-.dennoko-root .mm-target-list {
-    margin-top: 4px;
-}
-
-.dennoko-root .mm-target-row {
-    flex-direction: row;
-    align-items: center;
-    height: 24px;
-    margin: 1px;
-    padding-left: 6px;
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
-    -unity-text-align: middle-left;
-}
-
-.dennoko-root .mm-target-row:hover {
-    background-color: var(--dennoko-surface-2);
-}
-
-/* ヘッダーの言語切替 [JA][EN]（選択中は .dennoko-button-active） */
-.dennoko-root .unity-button.mm-lang-button {
-    height: 18px;
-    min-width: 24px;
-    margin: 0 0 0 2px;
-    padding: 0 4px;
-    border-radius: 3px;
-    font-size: 10px;
-    -unity-text-align: middle-center;
-}
-
-/* UV ビュー */
-.dennoko-root .mm-uv-host {
+/* .dennoko-preview は中身を中央に寄せる（align-items: center）ので、UV ビューは全面に広げる */
+.dennoko-root .dennoko-preview.mm-uv-host {
     height: 320px;
     min-height: 160px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: var(--dennoko-surface-0);
+    align-items: stretch;
 }
 
 .dennoko-root .mm-uv-view {
-    flex-grow: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .dennoko-root .mm-uv-image {
@@ -194,67 +51,9 @@
     bottom: 0;
 }
 
-.dennoko-root .mm-uv-tools {
-    position: absolute;
-    right: 4px;
-    top: 4px;
-    flex-direction: row;
-}
-
-/* UV ビュー左上のマスク取り込み表示（ホバーでドロップの案内を出す） */
-.dennoko-root .mm-uv-import {
-    position: absolute;
-    left: 4px;
-    top: 4px;
-    align-items: flex-start;
-}
-
-.dennoko-root .mm-uv-import-chip {
-    flex-direction: row;
-    align-items: center;
-    height: 22px;
-    padding-left: 5px;
-    padding-right: 6px;
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
-}
-
-.dennoko-root .mm-uv-import:hover .mm-uv-import-chip {
-    background-color: var(--dennoko-surface-2);
-}
-
-.dennoko-root .mm-uv-import-label {
-    color: var(--dennoko-text-secondary);
-    font-size: 11px;
-}
-
-.dennoko-root .mm-uv-import:hover .mm-uv-import-label {
-    color: var(--dennoko-text-primary);
-}
-
-.dennoko-root .mm-uv-import-hint {
-    display: none;
-    width: 220px;
-    margin-top: 2px;
-    padding: 6px 8px;
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-2);
-    color: var(--dennoko-text-primary);
-    font-size: 11px;
-    white-space: normal;
-}
-
-.dennoko-root .mm-uv-import:hover .mm-uv-import-hint {
-    display: flex;
-}
-
-.dennoko-root .mm-drop-target {
-    border-width: 2px;
-    border-color: var(--dennoko-semantic-info);
+/* テクスチャをドラッグ中（ドロップで取り込み） */
+.dennoko-root .mm-uv-host.mm-drop-target {
+    border-color: var(--dennoko-selection-border);
 }
 
 .dennoko-root .mm-drop-label {
@@ -263,85 +62,51 @@
     right: 0;
     top: 45%;
     -unity-text-align: middle-center;
-    color: var(--dennoko-semantic-info);
+    color: var(--dennoko-selection-border);
 }
 
-/* UV 展開図ウィンドウの本体（左: プレビュー、右: 設定） */
-.dennoko-root .mm-layout-body {
-    flex-direction: row;
-    flex-grow: 1;
-    flex-shrink: 1;
-    min-height: 0;
+.dennoko-root .mm-base-alpha {
+    margin-top: 4px;
 }
 
-.dennoko-root .mm-layout-preview {
-    flex-grow: 1;
-    min-width: 160px;
-    margin: 8px;
-    justify-content: center;
-}
+/* ─── B5 出力カード ─── */
 
-.dennoko-root .mm-layout-preview-empty {
-    -unity-text-align: middle-center;
-    white-space: normal;
-}
-
-.dennoko-root .dennoko-scroll.mm-layout-settings {
-    flex-grow: 0;
-    width: 300px;
-}
-
-/* UV 展開図ウィンドウの項目見出し（2 つ目以降は上に間を空ける） */
-.dennoko-root .mm-layout-label {
-    margin-top: 10px;
-}
-
-/* UV 展開図ウィンドウのキャンセル（主ボタンの横に同じ高さで並べる） */
-.dennoko-root .unity-button.mm-footer-cancel {
-    height: 34px;
-    padding-left: 12px;
-    padding-right: 12px;
-}
-
-/* 出力カード */
-.dennoko-root .mm-output-card {
-    padding: 8px 10px;
-    margin-bottom: 6px;
-}
-
-.dennoko-root .mm-output-card .dennoko-card-header {
-    padding-bottom: 4px;
-    margin-bottom: 6px;
-}
-
-/* 出力サマリ */
-.dennoko-root .mm-summary {
-    flex-direction: row;
-    flex-wrap: wrap;
+.dennoko-root .mm-ext {
     flex-shrink: 0;
-    padding-left: 8px;
-    padding-right: 8px;
-    padding-top: 2px;
-    margin-bottom: 4px;
+    margin-left: 4px;
 }
 
-.dennoko-root .mm-chip {
-    flex-direction: row;
-    align-items: center;
-    height: 20px;
-    margin-right: 6px;
-    padding-left: 4px;
-    padding-right: 4px;
+/* Base PNG の大きさで解像度が決まっているとき（ボタンの右に実際の大きさ） */
+.dennoko-root .mm-size-locked {
+    flex-shrink: 0;
+    margin-left: 6px;
+    font-size: 10px;
+}
+
+/* チャンネルの R / G / B / A は文字の幅で並べる（伸ばさない） */
+.dennoko-root .dennoko-segmented.dennoko-choice-group.mm-channels {
+    align-self: flex-start;
+    margin-bottom: 2px;
+}
+
+.dennoko-root .dennoko-segmented.dennoko-choice-group.mm-channels > .unity-button {
+    flex-grow: 0;
+    flex-basis: auto;
+    min-width: 28px;
+}
+
+/* 上書きマーク ●（プロジェクトの既定から変えている。クリックで既定に戻す） */
+.dennoko-root .mm-override-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    margin-left: 4px;
+    margin-right: 4px;
     border-radius: 4px;
-    background-color: var(--dennoko-surface-1);
-    border-width: 0;
+    background-color: var(--dennoko-selection-border);
 }
 
-.dennoko-root .mm-chip-icon {
-    width: 14px;
-    height: 14px;
-    margin-right: 3px;
-}
+/* ─── ステータス行（ステータス + 操作ボタン 1 つ。Label に子要素を足さないため横に並べる） ─── */
 
 .dennoko-root .mm-status-row {
     flex-direction: row;
@@ -349,123 +114,49 @@
     flex-shrink: 0;
 }
 
-/* シーン上のフローティング UI */
-.dennoko-root.mm-hud {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0);
+.dennoko-root .mm-status-row > .dennoko-status {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
-.dennoko-root.mm-capsule {
+/* ステータスの下余白（6px）と揃える */
+.dennoko-root .mm-status-row > .unity-button.mm-status-action {
+    flex-shrink: 0;
+    min-height: 0;
+    height: 20px;
+    margin: 0 8px 6px -4px;
+    font-size: 10px;
+}
+
+/* ─── UV 展開図ウィンドウ（左: プレビュー、右: 設定） ─── */
+
+.dennoko-root .mm-layout-body {
     flex-direction: row;
-    align-items: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.dennoko-root .dennoko-preview.mm-layout-preview {
+    flex-grow: 1;
+    height: auto;
+    min-width: 160px;
+    margin: 8px 0 8px 8px;
+}
+
+.dennoko-root .dennoko-scroll.mm-layout-settings {
     flex-grow: 0;
-    height: 32px;
-    padding-left: 4px;
-    padding-right: 6px;
-    border-radius: 16px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
+    width: 300px;
 }
 
-.dennoko-root .mm-count {
-    margin-left: 6px;
-    color: var(--dennoko-text-primary);
-    -unity-font-style: bold;
+/* ラベル列（100px〜30%）だと 300px の設定欄では選択肢が窮屈なので狭める */
+.dennoko-root .mm-layout-settings .dennoko-field-row__label {
+    min-width: 72px;
+    width: 72px;
 }
 
-.dennoko-root .mm-radial-menu {
-    position: absolute;
-    width: 180px;
-    height: 180px;
-}
-
-.dennoko-root .mm-radial-bg {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 180px;
-    height: 180px;
-    border-radius: 90px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-1);
-}
-
-/* 汎用の .dennoko-root .unity-button の margin / padding が位置をずらすので詳細度を上げて打ち消す
-   （枠と背景はここに書かない。書くと .dennoko-button-active の青枠に勝ってしまう） */
-.dennoko-root .unity-button.mm-radial-slice {
-    margin: 0;
-    padding: 0;
-}
-
-.dennoko-root .mm-radial-slice {
-    position: absolute;
-    width: 36px;
-    height: 36px;
-    border-radius: 18px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-2);
-    -unity-background-scale-mode: scale-to-fit;
-    -unity-text-align: middle-center;
-    font-size: 11px;
-}
-
-.dennoko-root .mm-radial-hot {
-    border-color: var(--dennoko-accent);
-    border-width: 2px;
-}
-
-.dennoko-root .mm-radial-center {
-    position: absolute;
-    left: 40px;
-    top: 80px;
-    width: 100px;
-    -unity-text-align: middle-center;
-    color: var(--dennoko-text-primary);
-}
-
-.dennoko-root .mm-radial-key {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -14px;
-    font-size: 9px;
-    -unity-text-align: middle-center;
-    color: var(--dennoko-text-tertiary);
-}
-
-.dennoko-root .mm-toast {
-    position: absolute;
-    flex-direction: row;
-    align-items: center;
-    padding: 4px 8px;
-    border-radius: 6px;
-    border-width: 1px;
-    border-color: var(--dennoko-outline);
-    background-color: var(--dennoko-surface-2);
-}
-
-.dennoko-root .mm-toast-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-}
-
-.dennoko-root .mm-cursor-hint {
-    position: absolute;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background-color: var(--dennoko-surface-2);
-    color: var(--dennoko-text-primary);
-}
-
-.dennoko-root.mm-overlay-root {
-    flex-grow: 0;
-    background-color: rgba(0, 0, 0, 0);
+.dennoko-root .mm-layout-settings .dennoko-field-row {
+    margin-top: 2px;
+    margin-bottom: 2px;
 }

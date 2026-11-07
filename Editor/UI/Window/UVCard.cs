@@ -2,7 +2,11 @@ using UnityEngine.UIElements;
 
 namespace Dennoko.UVMaskMaker
 {
-    /// <summary>UV ビューのカード（UV ビュー本体、表示を戻す、ベース重ね、UV 展開図の書き出し、マスク取り込みの案内）。</summary>
+    /// <summary>
+    /// B3 プレビューカード（UV ビュー。skill blocks/cards.md）。見出しは付けない。
+    /// 右上のツールバー（アイコン 3 個まで）: 表示を戻す、ベーステクスチャを重ねる、UV 展開図の書き出し（別ウィンドウ）。
+    /// 既存マスクの取り込みはビューへのテクスチャのドロップ（案内は情報行、詳しくはツールチップ）。
+    /// </summary>
     internal sealed class UVCard
     {
         public UVCard(VisualElement root)
@@ -11,31 +15,23 @@ namespace Dennoko.UVMaskMaker
             var view = new UVViewElement();
             host.Insert(0, view);
 
-            var resetButton = root.Q<Button>("reset-view-button");
-            Icons.Apply(resetButton, Icons.ResetView, "1:1", L10n.T("tooltip.resetView"));
+            var resetButton = DennokoIcons.Apply(root.Q<Button>("reset-view-button"), Icons.ResetView, "1:1", L10n.T("tooltip.resetView"));
             resetButton.clicked += view.ResetView;
 
-            var baseButton = root.Q<Button>("base-overlay-button");
-            Icons.Apply(baseButton, Icons.Texture, "B", L10n.T("tooltip.baseOverlay"));
+            var baseButton = DennokoIcons.Apply(root.Q<Button>("base-overlay-button"), Icons.Texture, "B", L10n.T("tooltip.baseOverlay"));
             Bind.ToggleButton(baseButton, SettingKeys.PreviewOverlayBaseTex);
 
             var alpha = root.Q<Slider>("base-alpha-slider");
+            alpha.tooltip = L10n.T("tooltip.baseAlpha");
             Bind.Slider(alpha, SettingKeys.PreviewOverlayAlpha);
             UiHub.Watch(alpha, () => Bind.Show(alpha, SettingsService.Get(SettingKeys.PreviewOverlayBaseTex)));
 
-            var layoutButton = root.Q<Button>("layout-button");
-            Icons.Apply(layoutButton, Icons.Layout, "UV", L10n.T("tooltip.layout"));
+            var layoutButton = DennokoIcons.Apply(root.Q<Button>("layout-button"), Icons.Layout, "UV", L10n.T("tooltip.layout"));
             layoutButton.clicked += UVLayoutWindow.Open;
 
-            // 既存マスクの取り込みはドロップのみ。左上の表示にホバーすると案内を出す（USS の :hover）
-            var import = root.Q("uv-import");
-            var importIcon = root.Q("uv-import-icon");
-            var importTex = Icons.Get(Icons.Import);
-            if (importTex != null) importIcon.style.backgroundImage = importTex;
-            Bind.Show(importIcon, importTex != null);
-            root.Q<Label>("uv-import-label").text = L10n.T("uv.import");
-            root.Q<Label>("uv-import-hint").text = L10n.T("uv.importHint");
-            view.AcceptDrops(import);
+            var info = root.Q<Label>("uv-info");
+            info.text = L10n.T("uv.dropHint");
+            info.tooltip = L10n.T("uv.importHint");
         }
     }
 }
