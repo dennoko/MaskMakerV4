@@ -26,40 +26,56 @@ The interface is structured into the following operational areas to maximize wor
 ```
 +-------------------------------------------------------------------+
 | Main Window (EditorWindow / Tool Tab)                             |
-| [Target Renderer Picker] [Start / Stop Editing]                   |
+| [Top Bar: Tool Name / Version / ↻ / Language(JA) / ? / ⋮]         |
 | +---------------------------------------------------------------+ |
-| | UV View (2D UV layout preview / picking / painting)           | |
+| | [Session Banner: Target Name / End (Esc)] (Working only)      | |
+| | [Target Mesh: Picker / Switch in Same Avatar ▼]               | |
+| | [UV View (2D UV layout preview / picking / painting)]         | |
+| | [Export Settings: File Name / Resolution / Channels / ▶ Details] |
 | +---------------------------------------------------------------+ |
-| [Export Settings: File Name / Resolution / Channel / Advanced]   |
-| [Export Button (Ctrl+Enter)]                                      |
+| [Output Dock: Settings summary chips] (Working only)              |
+| [Footer Primary Button: Start Editing / Export (Ctrl+Enter)]      |
+| [Status Bar: Feedback message / Apply button]                     |
 +-------------------------------------------------------------------+
 
 In SceneView:
-  - Floating Toolbar (Draggable, can be placed anywhere in SceneView)
+  - Scene Toolbar (Capsule) (Floating toolbar, freely draggable in SceneView)
   - Radial Menu (Summoned directly under cursor by holding C)
-  - Notification Panel (Toast message with Apply button upon export)
+  - Feedback & Notifications (Toast messages / guidance hints / modifier badges)
 ```
 
 ### 2.1 Main Window (Tool Tab)
 Opened via top menu: **`dennokoworks` > `MaskMaker V4`**.
-- **Target Object Selection**: Specifies the active Renderer and starts/ends editing sessions.
-- **UV View**: Allows direct polygon selection and brush painting on the 2D UV layout.
-- **Export Settings**: Configures texture file names, resolutions, target color channels, and edge dilation (padding).
-- **Language Switch**: Toggles the display language between Japanese (`JA`) and English (`EN`) in the top-right header.
+The window adapts cleanly between two operational states: **Idle** and **Working**.
 
-### 2.2 SceneView Floating Toolbar
-Appears inside the SceneView when an editing session begins. Can be repositioned by dragging.
+- **Top Bar**:
+  - **Tool Info**: Displays tool name, version, and a reload button (`↻`) to check for updates.
+  - **Language Toggle**: Switches between `EN` and `JA` (displays the target language on the button).
+  - **Manual (`?`)**: Opens the included user manual.
+  - **Settings Menu (`⋮`)**: Opens Preferences, Project Settings, update checks, or the release page.
+- **Session Banner (Working only)**: Displays the active target mesh name and an **"End"** button (or press `Esc`) to exit editing at any time.
+- **Target Mesh Card**:
+  - Selects the target Renderer. Automatically follows Hierarchy selection; selecting a parent GameObject displays a candidate list of child Renderers (click to select, double-click to start).
+  - During editing, a dropdown (`▼`) allows instant switching between Renderers on the same avatar, alongside submesh and UV channel selectors.
+- **UV View (Working only)**: Inspects and edits the 2D UV layout with direct selection and painting. Supports base texture overlay, zoom reset (`F`), UV layout wireframe export (camera icon), and drag-and-drop import of external mask images.
+- **Export Card (Working only)**: Configures texture file name, resolution choices (512–4096), and color channels (Mask / R / G / B / A). Expand `▶ Details` to configure Invert, Padding (0–32px), Save Inverted Too, and Save to Mask/ subfolder.
+- **Output Dock / Footer**: Displays summary chips for output settings and the primary action button ("Start Editing" in Idle, "Export" in Working).
+- **Status Bar**: Shows action results, the 1-click "Apply" button, and session end reasons (Esc, scene changed, target deleted, etc.).
+
+### 2.2 Scene Toolbar (Capsule)
+Floating, draggable toolbar (capsule) that appears in the SceneView when editing begins:
 - **Mode Toggle**: Switches between Selection Mode and Paint Mode.
-- **Selection Granularity**: Toggles between Island, Part, and Face modes.
-- **Paint Tools**: Selects between Brush, Rectangle fill, Lasso fill, and Eraser.
-- **Utilities**: Toggles Symmetry Editing (X-Mirror), Target Isolation, and X-Ray (Translucent) display.
+- **Dynamic Segment**:
+  - **Selection Mode**: Switches selection granularity between Island, Part, and Face.
+  - **Paint Mode**: Selects Brush, Rectangle fill, Lasso fill, or Eraser (displays current brush size value).
+- **Utilities**: Toggles Symmetry Editing (X-Mirror), X-Ray (Translucent) view, Target Isolation, and Pause (Space).
 - **History & Actions**: Executes Undo, Redo, Clear Selection, and Quick Export.
 
 ### 2.3 Radial Menu
 Holding the **`C` key** in the SceneView summons a circular context menu directly under your mouse cursor. Move the cursor toward the desired tool and release the key to switch tools instantly without moving your cursor to screen edges.
 
-### 2.4 Notification Panel (Toast UI)
-Appears temporarily on-screen upon completing an export or specific operations. Clicking the **`Apply`** button inside the notification automatically assigns the exported mask texture to the appropriate material slot.
+### 2.4 Notifications and Scene Feedback
+Toast notifications appear temporarily on-screen upon completing an export or specific actions. Clicking **`Apply`** inside the notification automatically assigns the texture to the appropriate material slot. In-scene guidance hints and modifier key badges also provide real-time feedback.
 
 ---
 
@@ -68,7 +84,7 @@ Appears temporarily on-screen upon completing an export or specific operations. 
 The standard procedure for selecting mesh regions, exporting a mask, and applying it to a material:
 
 ```
-[Select in Hierarchy] → [Right-Click to Start] → [Click Mesh to Select] → [Ctrl+Enter to Export] → [Click Apply]
+[Select in Hierarchy] → [Right-Click to Start] → [Click Mesh to Select] → [Ctrl+Enter to Export] → [Click Apply] → [Esc to Finish]
 ```
 
 ### Step 1: Start Editing
@@ -89,6 +105,9 @@ The standard procedure for selecting mesh regions, exporting a mask, and applyin
 2. Once the image is generated, a notification toast appears on-screen.
 3. Click **`Apply`** within the notification. The tool inspects shader properties and assigns the texture to the appropriate mask slot.
    *(If multiple candidate slots exist, choose the desired slot from the displayed list).*
+
+### Step 4: Finish Editing
+When done, press **`Esc`** in the SceneView or click the **`End`** button in the main window's session banner to complete the editing session.
 
 ---
 
@@ -115,16 +134,20 @@ The standard procedure for selecting mesh regions, exporting a mask, and applyin
 | **Export** | **Mask Texture Export** | Generates linear black-and-white PNG mask textures at specified resolutions |
 | | **Padding (Dilation)** | Dilates mask boundaries outward to prevent texture filtering seams |
 | | **Inverted Mask Export** | Exports inverted masks, or saves normal and inverted versions simultaneously |
+| | **Save to Mask/ Subfolder** | Automatically creates and organizes exports inside a Mask/ subfolder |
 | | **Channel Packing** | Injects masks directly into specific channels (R, G, B, or A) of existing textures |
 | | **Safe Overwriting** | Re-exporting overwrites previous files so linked materials update automatically |
 | | **Material Auto-Apply** | 1-click shader slot assignment from post-export notification toasts |
 | | **UV Wireframe Export** | Exports wireframe layout PNG images for external paint programs |
 | | **Import Mask Image** | Drag and drop black-and-white images into the UV View to merge into paint |
 | **Workflow** | **Radial Menu** | Hold C to summon a circular tool picker under the cursor |
-| | **SceneView Toolbar** | Floating, movable toolbar inside the SceneView |
+| | **Scene Toolbar** | Floating, movable toolbar (capsule) inside the SceneView |
+| | **End Session** | Press Esc or click "End" in the window banner to safely finish editing |
+| | **Switch Target in Avatar** | Switch directly between Renderers of the same avatar via the ▼ menu |
 | | **Unified Undo / Redo** | Full history tracking for selections, paint strokes, and settings via Ctrl+Z / Ctrl+Y |
 | | **Auto-Save & Restore** | Persists edit states across scene changes, recompiles, and Unity restarts |
 | | **Multi-Language Support** | Instant toggle between Japanese (`JA`) and English (`EN`) |
+| | **Help & Settings Menu** | Access manual (`?`) and Settings (Preferences / Project Settings) from the top bar |
 
 ---
 
@@ -198,14 +221,16 @@ The UV View in the center of the main window enables inspection and editing dire
 Export textures from the main window's export panel or by pressing **`Ctrl + Enter`**.
 
 #### Export Parameters
-- **File Name**: Defaults to `{RendererName}_mask.png`.
+- **File Name**: Defaults to `{RendererName}_mask.png`. If a conflicting file name exists in the folder, duplicates are automatically avoided.
 - **Resolution**: Select from 512, 1024, 2048, or 4096 pixels.
 - **Channel Packing**:
-  - Export as a standalone grayscale texture or pack into a specific channel (R, G, B, or A) of an existing texture.
-- **Advanced Settings**:
+  - Export as a standalone grayscale texture (Mask) or pack into a specific channel (R, G, B, or A) of an existing texture.
+- **Advanced Settings (▶ Details)**:
+  Click to expand (displays summary chips of current settings when collapsed).
   - **Invert**: Inverts black and white values.
-  - **Padding (Dilation)**: Dilates mask boundaries outward by a specified number of pixels. This prevents mipmap filtering artifacts and seam bleeding at UV edges.
+  - **Padding (Dilation)**: Dilates mask boundaries outward by a specified number of pixels (0–32 px). This prevents mipmap filtering artifacts and seam bleeding at UV edges.
   - **Save Inverted Too**: Generates both normal and inverted versions in one operation.
+  - **Save to Mask/ Subfolder**: Automatically creates a `Mask/` subfolder in the target texture directory and saves the exported mask inside it.
 
 #### Material Assignment and Safe Overwriting
 - Re-exporting an existing target overwrites the previous texture file. Because materials reference this file on disk, the material automatically updates in the scene without manual reassignment.
@@ -254,6 +279,7 @@ Export UV wireframe layout images for reference in external painting application
 | **`Ctrl + Z`** | History | Undo previous action |
 | **`Ctrl + Y`** | History | Redo undone action |
 | **`Ctrl + Enter`** | Export | Quick export mask texture |
+| **`Esc`** | Session | Finish editing session (Closes Radial Menu if open) |
 | **`F`** | View Navigation | Center and reset UV View zoom |
 
 ---
