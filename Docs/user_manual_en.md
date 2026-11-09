@@ -52,7 +52,7 @@ The window adapts cleanly between two operational states: **Idle** and **Working
   - **Tool Info**: Displays tool name, version, and a reload button (`↻`) to check for updates.
   - **Language Toggle**: Switches between `EN` and `JA` (displays the target language on the button).
   - **Manual (`?`)**: Opens the included user manual.
-  - **Settings Menu (`⋮`)**: Opens Preferences, Project Settings, update checks, or the release page.
+  - **Settings Menu (`⋮`)**: Opens Preferences, Project Settings, or checks for updates.
 - **Session Banner (Working only)**: Displays the active target mesh name and an **"End"** button (or press `Esc`) to exit editing at any time.
 - **Target Mesh Card**:
   - Selects the target Renderer. Automatically follows Hierarchy selection; selecting a parent GameObject displays a candidate list of child Renderers (click to select, double-click to start).

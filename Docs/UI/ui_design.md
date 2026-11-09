@@ -282,7 +282,7 @@ graph LR
 
 ```
 VisualElement.dennoko-root
-├─ .dennoko-appbar            … 標準ヘッダー: ツール名 + .dennoko-version-label + ↻ / 言語（切替先を表示）+ ?（マニュアル PDF）+ ⋮（Preferences / Project Settings / 更新を確認 / 配布ページ）
+├─ .dennoko-appbar            … 標準ヘッダー: ツール名 + .dennoko-version-label + ↻ / 言語（切替先を表示）+ ?（マニュアル PDF）+ ⋮（Preferences / Project Settings / 更新を確認）
 ├─ .dennoko-session-banner    … B7 作業中バナー（Working のみ）: ● 作業中  対象名  [Esc] で終了  [終了]
 ├─ ScrollView.dennoko-scroll  … 状態に応じてカードを出し分け（これだけが縮む）
 │    ├─ .dennoko-card.dennoko-target-card   … B1 対象 (B)
@@ -338,7 +338,7 @@ VisualElement.dennoko-root
 | **出力（基本）** | B | `FileName`、`TextureSize`、`ChannelWriteEnabled` と R/G/B/A・Base PNG | テクスチャごとに決める項目だけを常時表示。ファイル名は `{Renderer名}_mask` を自動入力。解像度はベーステクスチャのサイズを自動採用（無ければ Project 既定）。Base PNG を指定した時は解像度を Base PNG のサイズに固定する（ボタンは無効にしてサイズを表示）。解像度を下げるとシーンと UV ビューの表示も同じ粗さになり、出力結果をその場で確認できる（手塗りは内部で 4096 のまま保持するので、戻せば元に戻る）。チャンネル書き込みは OFF なら R/G/B/A と Base PNG を隠し、ON でインデント展開。Base PNG はマテリアルから候補を自動提示。解像度はプロジェクト単位、それ以外の値は対象ごとに記憶 |
 | **出力（▸詳細）** | C | `InvertMask`、`PixelMargin`、`SaveInvertedToo` | 既定で閉。Project 既定の値を使うので毎回は触らない。`PixelMargin` と `SaveInvertedToo` はプロジェクト単位で記憶する。`SaveInvertedToo` は ON で実ファイル名（`name.png` / `name_inv.png`）を灰色でプレビュー。`PixelMargin` は解像度に応じた推奨値を既定にする |
 | **出力ドック**（フッター上。skill B5） | C | 保存先・解像度と ▶詳細の値の要約 | 例: `[Folder] Textures/Mask  [1024]  [反転]`。出力カードが画面に見えている間は隠す（同じ情報を 2 か所に出さない）。反転・余白（自動以外）・反転同時保存は既定から変えた時だけチップを出す。チップをクリックすると出力カードへスクロールする。詳細の中で値が Project 既定と違う項目には上書きマーク ● を付け、クリックで既定に戻す |
-| **言語・マニュアル・⋮（トップバー右）** | B / D | 言語、マニュアル、表示色・シーム・ホットキー・ヒント | 言語は切り替え先の言語を出す 1 つのボタン（日本語表示中は `EN`）。`?` で同梱のマニュアル PDF を表示言語で開く。`⋮` からは Preferences（User）・Project Settings（その中身は作業中のタブには置かない）・更新を確認・配布ページを開く。更新ありの時はバージョン表示のクリックでも配布ページを開く |
+| **言語・マニュアル・⋮（トップバー右）** | B / D | 言語、マニュアル、表示色・シーム・ホットキー・ヒント | 言語は切り替え先の言語を出す 1 つのボタン（日本語表示中は `EN`）。`?` で同梱のマニュアル PDF を表示言語で開く。`⋮` からは Preferences（User）・Project Settings（その中身は作業中のタブには置かない）・更新を確認。三点リーダーからの配布ページ導線はオミットし、GitHub への参照はツールの公開ページ（Booth 等）側のみに置く前提としてツール内からは直接の導線を作らない |
 
 ### 4.4 出力時の挙動
 - 押下 → 成功で `.dennoko-status--success` に `保存: Body_mask.png`（ファイル名クリックで Ping）。4 秒で Ready に戻る（[適用] が付く時は 6 秒）。書き出し中の表示は 0.3 秒以上かかった時だけ出す。シーンから出力した時はステータスバーには出さず、トースト（§6.2）だけにする。

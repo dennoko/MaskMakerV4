@@ -15,7 +15,6 @@ namespace Dennoko.UVMaskMaker
     internal sealed class MaskMakerWindow : EditorWindow
     {
         private const string ToolName = "MaskMaker V4";
-        private const string ReleaseUrl = "https://github.com/dennoko/MaskMakerV4/releases";
 
         private Label _versionLabel;
         private DennokoAppBar _appBar;
@@ -127,7 +126,6 @@ namespace Dennoko.UVMaskMaker
                     menu.AddItem(new GUIContent(L10n.T("menu.projectSettings")), false, () => OpenSettings(false));
                     menu.AddSeparator(string.Empty);
                     menu.AddItem(new GUIContent(L10n.T("menu.checkUpdate")), false, CheckUpdate);
-                    menu.AddItem(new GUIContent(L10n.T("menu.openRelease")), false, OpenRelease);
                 },
             };
             // 言語は SettingsService に持つ。切り替えると LanguageUi が中身ごと作り直す
@@ -159,7 +157,12 @@ namespace Dennoko.UVMaskMaker
 
         private void OpenRelease()
         {
-            Application.OpenURL(string.IsNullOrEmpty(_versionResult.Url) ? ReleaseUrl : _versionResult.Url);
+            // GitHub への直接リンクは行わず、ツールの公開ページ（Booth 等）の URL がある場合のみ開く
+            string url = _versionResult.Url;
+            if (!string.IsNullOrEmpty(url) && !url.Contains("github.com"))
+            {
+                Application.OpenURL(url);
+            }
         }
 
         private static void OpenSettings(bool user)
@@ -204,7 +207,8 @@ namespace Dennoko.UVMaskMaker
             _versionLabel.EnableInClassList("dennoko-version-label--update", update);
             _versionLabel.EnableInClassList("dennoko-version-label--error", error);
             _versionLabel.EnableInClassList("dennoko-version-label--checking", checking);
-            _appBar?.SetVersionClickable(update, update ? L10n.T("tooltip.openRelease") : null);
+            bool hasPublicUrl = !string.IsNullOrEmpty(r.Url) && !r.Url.Contains("github.com");
+            _appBar?.SetVersionClickable(update && hasPublicUrl, update && hasPublicUrl ? L10n.T("tooltip.openRelease") : null);
         }
 
         // ── B7 作業中バナー ──

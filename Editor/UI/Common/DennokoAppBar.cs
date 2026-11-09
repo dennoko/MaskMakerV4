@@ -13,7 +13,7 @@ namespace Dennoko.UVMaskMaker
     ///
     /// - 要素は名前で探し、無いものは無視する (言語を切り替えないツールは appbar-lang を UXML から消すだけ)。
     /// - バージョン表示の文言と状態クラスは references/version-check-guide.md の ApplyVersionLabel が書く。
-    ///   ここでは ↻ と ⋮「更新を確認」から CheckUpdateRequested を出し、更新ありのときにラベルのクリックで配布ページを開く。
+    ///   ここでは ↻ と ⋮「更新を確認」から CheckUpdateRequested を出し、更新ありのときにラベルのクリックで公開配布ページを開く。
     /// - ⋮ のメニューは「ツール固有の項目 (上) → 区切り → 共通項目 (下)」の順。
     /// </summary>
     internal sealed class DennokoAppBar
@@ -30,7 +30,7 @@ namespace Dennoko.UVMaskMaker
         /// <summary>言語ボタンを押したとき。true = English。</summary>
         public event Action<bool> LanguageChanged;
 
-        /// <summary>配布ページ (Booth / GitHub Releases)。更新ありのラベルのクリックと ⋮「配布ページを開く」。</summary>
+        /// <summary>公開配布ページ (Booth 等)。更新ありのラベルのクリック用（GitHub への直接導線は作らず、三点リーダーメニューにも含めない）。</summary>
         public string ReleaseUrl;
 
         /// <summary>マニュアル (? ボタン)。言語ごとに変えるときは LanguageChanged で書き換える。</summary>
@@ -118,8 +118,6 @@ namespace Dennoko.UVMaskMaker
             }
             if (CheckUpdateRequested != null)
                 menu.AddItem(new GUIContent("更新を確認"), false, () => CheckUpdateRequested?.Invoke());
-            if (!string.IsNullOrEmpty(ReleaseUrl))
-                menu.AddItem(new GUIContent("配布ページを開く"), false, () => Application.OpenURL(ReleaseUrl));
 
             menu.DropDown(anchor.worldBound);
         }
